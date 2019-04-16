@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./css/vue-print-object.css">
+</head>
+
+<body>
+    <div id="app" class="container">
+        <div class="row">
+            <div class="col-lg-12 mb-4 mt-4">
+                <h1>Enter KT-address:</h1>
+                <div class="input-group mb-3">
+                    <input v-model="address" type="text" class="form-control" placeholder="KT-Address"
+                        aria-label="kt-address">
+                </div>
+                <button type="button" class="btn btn-primary" @click="explore">Go</button>
+            </div>
+            <div class="col-lg-6" v-if="ready">
+                <h2>TypeMap:</h2>
+                <print-object :printable-object="typeMap"></print-object>
+            </div>
+            <div class="col-lg-6" v-if="ready">
+                <h2>CollapsedTree:</h2>
+                <print-object :printable-object="collapsedTree"></print-object>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="./js/vue-print-object.min.js"></script>
+    <script src="./js/app.js"></script>
+</body>
+
+</html>
