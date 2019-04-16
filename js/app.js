@@ -3,15 +3,17 @@ Vue.use(VuePrintObject);
 var app = new Vue({
     el: '#app',
     data: () => ({
-        address: "KT1HWuhDdbtVQ2S9NAaeEJyCbAF6cMtLcqcc",
+        // address: "KT1HWuhDdbtVQ2S9NAaeEJyCbAF6cMtLcqcc",
+        address: "KT1ExvG3EjTrvDcAU7EqLNb77agPa5u6KvnY",
         typeMap: {},
         collapsedTree: {},
         ready: false
     }),
     methods: {
         explore() {
+            // .get(`https://api.alphanet.tzscan.io/v1/node_account/${this.address}`)
             axios
-            .get(`https://api.alphanet.tzscan.io/v1/node_account/${this.address}`)
+            .get(`https://api6.tzscan.io/v1/node_account/${this.address}`)
             .then((response) => {
                 let code = response["data"]["script"]["code"];
                 let result = {}
