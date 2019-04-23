@@ -3,19 +3,29 @@ Vue.use(VuePrintObject);
 var app = new Vue({
     el: '#app',
     data: () => ({
-        // address: "KT1HWuhDdbtVQ2S9NAaeEJyCbAF6cMtLcqcc",
-        address: "KT1ExvG3EjTrvDcAU7EqLNb77agPa5u6KvnY",
+        // address: "KT1HWuhDdbtVQ2S9NAaeEJyCbAF6cMtLcqcc", // AlphaNet
+        // address: "KT1SufMDx6d2tuVe3n6tSYUBNjtV9GgaLgtV", // AlphaNet
+        address: "KT1ExvG3EjTrvDcAU7EqLNb77agPa5u6KvnY", // MainNet
         typeMap: {},
         collapsedTree: {},
         ready: false,
-        decoded: {}
+        decoded_data: {},
+        decoded_schema: {},
+        tezosNet: "main"
     }),
+    computed: {
+        apiURL: function() {
+            if (this.tezosNet === "main") {
+                return "https://api6.tzscan.io/v1/node_account/"
+            } else {
+                return "https://api.alphanet.tzscan.io/v1/node_account/"
+            }
+        }
+    },
     methods: {
         explore() {
-            // .get(`https://api6.tzscan.io/v1/node_account/${this.address}`)
-            // .get(`https://api.alphanet.tzscan.io/v1/node_account/${this.address}`)
             axios
-            .get(`https://api.alphanet.tzscan.io/v1/node_account/${this.address}`)
+            .get(`${this.apiURL}${this.address}`)
             .then((response) => {
                 let code = response["data"]["script"]["code"];
                 let result = {};
@@ -29,7 +39,8 @@ var app = new Vue({
 
                 this.typeMap = result["type_map"];
                 this.collapsedTree = result["collapsed_tree"];
-                this.decoded = decode_data(data, result);
+                this.decoded_data = decode_data(data, result);
+                this.decoded_schema = decode_schema(result["collapsed_tree"])
                 this.ready = true
 
             }).catch(error => (console.log(error)));
@@ -257,4 +268,60 @@ function decode_literal(node, prim) {
     }
 
     return value
+}
+
+function decode_schema(collapsed_tree) {
+    function decode_node(node) {
+        if (node["prim"] == "or") {
+            var res = {};
+
+            node["args"].forEach(function (arg, i) {
+                if (arg["name"] != undefined) {
+                    res[arg["name"]] = decode_node(arg)
+                } else {
+                    res[i] = decode_node(arg)
+                }
+            });
+
+            return res;
+        }
+
+        if (node["prim"] == "pair") {
+            var flag = false;
+            var values = [];
+            var res = {};
+
+            node["args"].forEach(function (arg) {
+                if (arg["name"] == undefined) {
+                    flag = true
+                }
+
+                var va = decode_node(arg)
+
+                values.push(va)
+                res[arg["name"]] = va
+            });
+
+            return flag ? values : res
+        }
+
+        if (node["prim"] == "set") {
+            return [...decode_node(node['args'][0])]
+        }
+
+        if (node['prim'] == 'list') {
+            return [...decode_node(node['args'][0])]
+        }
+
+
+        if (['map', 'big_map'].indexOf(node['prim']) != -1) {
+            var res = {}
+            res[decode_node(node['args'][0])] = decode_node(node['args'][1]);
+            return res
+        }
+
+        return `#${node["prim"]}`
+    }
+
+    return decode_node(collapsed_tree)
 }

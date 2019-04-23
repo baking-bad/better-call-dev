@@ -14,17 +14,34 @@
     <div id="app" class="container">
         <div class="row">
             <div class="col-lg-12 mb-4 mt-4">
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" value="main" v-model="tezosNet">
+                    <label class="form-check-label" for="exampleRadios1">
+                        MainNet
+                    </label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" value="alpha" v-model="tezosNet">
+                    <label class="form-check-label" for="exampleRadios2">
+                        AlphaNet
+                    </label>
+                </div>
                 <h1>Enter KT-address:</h1>
                 <div class="input-group mb-3">
-                    <input v-model="address" type="text" class="form-control" placeholder="KT-Address"
-                        aria-label="kt-address">
+                    <input v-model="address" type="text" class="form-control"
+                        placeholder="KT1ExvG3EjTrvDcAU7EqLNb77agPa5u6KvnY" aria-label="kt-address">
                 </div>
                 <button type="button" class="btn btn-primary" @click="explore">Go</button>
             </div>
-            <div class="col-lg-12" v-if="ready">
-                <h2>DECODED:</h2>
-                <print-object :printable-object="decoded"></print-object>
+            <div class="col-lg-6" v-if="ready">
+                <h2>Decoded data:</h2>
+                <print-object :printable-object="decoded_data"></print-object>
             </div>
+            <div class="col-lg-6" v-if="ready">
+                <h2>Decoded schema:</h2>
+                <print-object :printable-object="decoded_schema"></print-object>
+            </div>
+            <hr>
             <div class="col-lg-6" v-if="ready">
                 <h2>TypeMap:</h2>
                 <print-object :printable-object="typeMap"></print-object>
