@@ -1,4 +1,7 @@
 Vue.use(VuePrintObject);
+Vue.use(VueLoading);
+
+Vue.component('loading', VueLoading)
 
 var app = new Vue({
     el: '#app',
@@ -8,13 +11,14 @@ var app = new Vue({
         address: "KT1ExvG3EjTrvDcAU7EqLNb77agPa5u6KvnY", // MainNet
         typeMap: {},
         collapsedTree: {},
-        ready: false,
+        isReady: false,
         decoded_data: {},
         decoded_schema: {},
         tezosNet: "main",
         parameterSchema: {},
         txData: [],
-        txDecoded: []
+        txDecoded: [],
+        isLoading: false
     }),
     computed: {
         baseApiURL: function() {
@@ -27,6 +31,8 @@ var app = new Vue({
     },
     methods: {
         explore() {
+            this.isLoading = true;
+
             getPages = async () => {
                 let res = await axios.get(`${this.baseApiURL}/number_operations/${this.address}?type=Transaction`)
                 return res.data;
@@ -97,8 +103,9 @@ var app = new Vue({
                     this.txDecoded = txDecodedData;
 
                     // show results on the page
-                    this.parameterSchema = result_for_parameter;
-                    this.ready = true
+                    this.parameterSchema = decode_schema(result_for_parameter["collapsed_tree"]);
+                    this.isReady = true;
+                    this.isLoading = false;
                 })
                 .catch(error => (console.log(error)));
             }

@@ -8,10 +8,12 @@
     <title>Document</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="./css/vue-print-object.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vue-loading-overlay@3/dist/vue-loading.css">
 </head>
 
 <body>
     <div id="app" class="container">
+        <loading :active.sync="isLoading" :can-cancel="false" :is-full-page="true"></loading>
         <div class="row">
             <div class="col-lg-12 mb-4 mt-4">
                 <div class="form-check form-check-inline">
@@ -34,40 +36,45 @@
                 <button type="button" class="btn btn-primary" @click="explore">Go</button>
             </div>
             <div class="col-lg-6" v-if="ready">
-                <h2>Decoded data:</h2>
+                <h2>Decoded Storage:</h2>
                 <print-object :printable-object="decoded_data"></print-object>
             </div>
             <div class="col-lg-6" v-if="ready">
-                <h2>Decoded schema:</h2>
+                <h2>Decoded storage schema:</h2>
                 <print-object :printable-object="decoded_schema"></print-object>
             </div>
+
             <hr>
+
             <div class="col-lg-6" v-if="ready">
+                <h2>Decoded Parameter schema:</h2>
+                <print-object :printable-object="parameterSchema"></print-object>
+            </div>
+            <div class="col-lg-12" v-if="ready">
+                <h2>Decoded TxData:</h2>
+                <print-object :printable-object="txDecoded"></print-object>
+            </div>
+
+            <!-- <div class="col-lg-6" v-if="ready">
                 <h2>TypeMap:</h2>
                 <print-object :printable-object="typeMap"></print-object>
             </div>
             <div class="col-lg-6" v-if="ready">
                 <h2>CollapsedTree:</h2>
                 <print-object :printable-object="collapsedTree"></print-object>
-            </div>
-            <div class="col-lg-6" v-if="ready">
-                <h2>Parameter schema:</h2>
-                <print-object :printable-object="parameterSchema"></print-object>
-            </div>
-            <div class="col-lg-12" v-if="ready">
+            </div> -->
+            <!-- <div class="col-lg-12" v-if="ready">
                 <h2>TxData:</h2>
                 <print-object :printable-object="txData"></print-object>
-            </div>
-            <div class="col-lg-6" v-if="ready">
-                <h2>Decoded TxData:</h2>
-                <print-object :printable-object="txDecoded"></print-object>
-            </div>
+            </div> -->
+
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="./js/vue-print-object.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-loading-overlay@3"></script>
     <script src="./js/app.js"></script>
 </body>
 
