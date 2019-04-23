@@ -14,9 +14,7 @@ var app = new Vue({
         tezosNet: "main",
         parameterSchema: {},
         txData: [],
-        txDecoded: [],
-        max_pages: 0,
-        transactions: []
+        txDecoded: []
     }),
     computed: {
         baseApiURL: function() {
