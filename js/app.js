@@ -11,39 +11,101 @@ var app = new Vue({
         ready: false,
         decoded_data: {},
         decoded_schema: {},
-        tezosNet: "main"
+        tezosNet: "main",
+        parameterSchema: {},
+        txData: [],
+        txDecoded: [],
+        max_pages: 0,
+        transactions: []
     }),
     computed: {
-        apiURL: function() {
+        baseApiURL: function() {
             if (this.tezosNet === "main") {
-                return "https://api6.tzscan.io/v1/node_account/"
+                return "https://api6.tzscan.io/v1"
             } else {
-                return "https://api.alphanet.tzscan.io/v1/node_account/"
+                return "https://api.alphanet.tzscan.io/v1"
             }
         }
     },
     methods: {
         explore() {
-            axios
-            .get(`${this.apiURL}${this.address}`)
-            .then((response) => {
-                let code = response["data"]["script"]["code"];
-                let result = {};
-                let data = response["data"]["script"]["storage"]
+            getPages = async () => {
+                let res = await axios.get(`${this.baseApiURL}/number_operations/${this.address}?type=Transaction`)
+                return await res.data;
+            };
 
-                code.forEach(function(element) {
-                    if (element["prim"] == "storage") {
-                        result = buildSchema(element)
-                    }  
-                });
+            buildTransactionsLinks = async () => {
+                let pages = await getPages()
+                let links = [];
+                pages = Math.ceil(pages / 20)
 
-                this.typeMap = result["type_map"];
-                this.collapsedTree = result["collapsed_tree"];
-                this.decoded_data = decode_data(data, result);
-                this.decoded_schema = decode_schema(result["collapsed_tree"])
-                this.ready = true
+                for (var i = 0; i < pages; i++) {
+                    links.push(`${this.baseApiURL}/operations/${this.address}?type=Transaction&p=${i}`)
+                }
 
-            }).catch(error => (console.log(error)));
+                return links
+            };
+
+            getTransactionsData = async () => {
+                let links = await buildTransactionsLinks()
+                let promiseArray = links.map( url => axios.get(url) );
+
+                return axios.all( promiseArray )
+                .then((results) => { 
+                    return results.map( el => el.data ).reduce((a, b) => [...a, ...b], [])
+                })
+            }
+
+            makeCalculations = async () => {
+                let txs = await getTransactionsData();
+
+                axios
+                .get(`${this.baseApiURL}/node_account/${this.address}`)
+                .then((response) => {
+                    // storage part
+                    let code = response["data"]["script"]["code"];
+                    let result = {};
+                    let result_for_parameter = {};
+                    let data = response["data"]["script"]["storage"]
+
+                    code.forEach(function(element) {
+                        if (element["prim"] == "storage") {
+                            result = buildSchema(element)
+                        } 
+                        if (element["prim"] == "parameter") {
+                            result_for_parameter = buildSchema(element)
+                        } 
+                    });
+
+                    this.typeMap = result["type_map"];
+                    this.collapsedTree = result["collapsed_tree"];
+                    this.decoded_data = decode_data(data, result);
+                    this.decoded_schema = decode_schema(result["collapsed_tree"])
+
+                    // parameters part
+                    let res = [];
+                    let txDecodedData = [];
+
+                    txs.forEach(function(tx) {
+                        res.push(JSON.parse(tx["type"]["operations"][0]["str_parameters"]))
+                    });
+
+                    this.txData = res;
+                    
+                    res.forEach(function(item) {
+                        txDecodedData.push(decode_data(item, result_for_parameter))
+                    });
+
+                    this.txDecoded = txDecodedData;
+
+                    // show results on the page
+                    this.parameterSchema = result_for_parameter;
+                    this.ready = true
+                })
+                .catch(error => (console.log(error)));
+            }
+
+            makeCalculations()
         }
     }
 })

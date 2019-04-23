@@ -50,6 +50,18 @@
                 <h2>CollapsedTree:</h2>
                 <print-object :printable-object="collapsedTree"></print-object>
             </div>
+            <div class="col-lg-6" v-if="ready">
+                <h2>Parameter schema:</h2>
+                <print-object :printable-object="parameterSchema"></print-object>
+            </div>
+            <div class="col-lg-12" v-if="ready">
+                <h2>TxData:</h2>
+                <print-object :printable-object="txData"></print-object>
+            </div>
+            <div class="col-lg-6" v-if="ready">
+                <h2>Decoded TxData:</h2>
+                <print-object :printable-object="txDecoded"></print-object>
+            </div>
         </div>
     </div>
 
