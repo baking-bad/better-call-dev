@@ -29,7 +29,7 @@ var app = new Vue({
         explore() {
             getPages = async () => {
                 let res = await axios.get(`${this.baseApiURL}/number_operations/${this.address}?type=Transaction`)
-                return await res.data;
+                return res.data;
             };
 
             buildTransactionsLinks = async () => {
