@@ -11,7 +11,7 @@ var app = new Vue({
         address: "KT1ExvG3EjTrvDcAU7EqLNb77agPa5u6KvnY", // MainNet
         typeMap: {},
         collapsedTree: {},
-        isReady: false,
+        ready: false,
         decoded_data: {},
         decoded_schema: {},
         tezosNet: "main",
@@ -104,7 +104,7 @@ var app = new Vue({
 
                     // show results on the page
                     this.parameterSchema = decode_schema(result_for_parameter["collapsed_tree"]);
-                    this.isReady = true;
+                    this.ready = true;
                     this.isLoading = false;
                 })
                 .catch(error => (console.log(error)));
