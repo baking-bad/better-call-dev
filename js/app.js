@@ -11,14 +11,13 @@ var app = new Vue({
         address: "KT1ExvG3EjTrvDcAU7EqLNb77agPa5u6KvnY", // MainNet
         typeMap: {},
         collapsedTree: {},
-        ready: false,
+        isReady: false,
         decoded_data: {},
         decoded_schema: {},
         tezosNet: "main",
         parameterSchema: {},
         txData: [],
-        txDecoded: [],
-        isLoading: false
+        txDecoded: []
     }),
     computed: {
         baseApiURL: function() {
@@ -31,7 +30,11 @@ var app = new Vue({
     },
     methods: {
         explore() {
-            this.isLoading = true;
+            let loader = this.$loading.show({
+                container: this.$refs.formContainer,
+                canCancel: false,
+                color: "#007bff",
+            });
 
             getPages = async () => {
                 let res = await axios.get(`${this.baseApiURL}/number_operations/${this.address}?type=Transaction`)
@@ -104,8 +107,9 @@ var app = new Vue({
 
                     // show results on the page
                     this.parameterSchema = decode_schema(result_for_parameter["collapsed_tree"]);
-                    this.ready = true;
-                    this.isLoading = false;
+                    this.isReady = true;
+
+                    loader.hide()
                 })
                 .catch(error => (console.log(error)));
             }
