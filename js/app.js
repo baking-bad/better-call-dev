@@ -7,24 +7,33 @@ var app = new Vue({
     el: '#app',
     data: () => ({
         // address: "KT1HWuhDdbtVQ2S9NAaeEJyCbAF6cMtLcqcc", // AlphaNet
-        // address: "KT1SufMDx6d2tuVe3n6tSYUBNjtV9GgaLgtV", // AlphaNet
-        address: "KT1ExvG3EjTrvDcAU7EqLNb77agPa5u6KvnY", // MainNet
+        address: "KT1SufMDx6d2tuVe3n6tSYUBNjtV9GgaLgtV", // AlphaNet
+        // address: "KT1FU74GimCeEVRAEZGURb6TWU8jK1N6zFJy", // AlphaNet
+        // address: "KT1ExvG3EjTrvDcAU7EqLNb77agPa5u6KvnY", // MainNet
         typeMap: {},
         collapsedTree: {},
         isReady: false,
         decoded_data: {},
         decoded_schema: {},
-        tezosNet: "main",
+        tezosNet: "alpha",
         parameterSchema: {},
         txData: [],
-        txDecoded: []
+        txDecoded: [],
+        txWithDecodedData: {}
     }),
     computed: {
         baseApiURL: function() {
             if (this.tezosNet === "main") {
-                return "https://api6.tzscan.io/v1"
+                return "https://api5.tzscan.io/v1"
             } else {
                 return "https://api.alphanet.tzscan.io/v1"
+            }
+        },
+        baseNodeApiURL: function() {
+            if (this.tezosNet === "main") {
+                return "http://mainnet-node.tzscan.io/chains/main/blocks"
+            } else {
+                return "http://alphanet-node.tzscan.io/chains/main/blocks"
             }
         }
     },
@@ -92,10 +101,22 @@ var app = new Vue({
                     // parameters part
                     let res = [];
                     let txDecodedData = [];
+                    let txWithDecoded = [];
 
                     txs.forEach(function(tx) {
-                        res.push(JSON.parse(tx["type"]["operations"][0]["str_parameters"]))
+                        let item = JSON.parse(tx["type"]["operations"][0]["str_parameters"]);
+                        txWithDecoded.push(
+                            {
+                                "hash": tx["hash"],
+                                "block_hash": tx["block_hash"],
+                                "decoded_data": decode_data(item, result_for_parameter),
+                                "result": null
+                            }
+                        )
+                        res.push(item)
                     });
+
+                    this.txWithDecodedData = txWithDecoded
 
                     this.txData = res;
                     
@@ -115,14 +136,30 @@ var app = new Vue({
             }
 
             makeCalculations()
+        },
+        click(tx) {
+            axios
+            .get(`${this.baseNodeApiURL}/${tx.block_hash}/operations/3`)
+            .then((response) => {
+                let schema = {}
+
+                schema["type_map"] = this.typeMap;
+                schema["collapsed_tree"] = this.collapsedTree;
+
+                let data = response["data"][0]["contents"][0]["metadata"]["operation_result"]["big_map_diff"];
+
+                tx.result = bigMapDiffDecode(data, schema)
+            })
+            .catch(error => (console.log(error)));
         }
     }
 })
 
+
 function flatten(items) {
-    if (items instanceof TupleArray) {
+    if (items instanceof PairArray) {
         if (items.length == 0) {
-            return new TupleArray()
+            return new PairArray()
         }
 
         let first = items[0]
@@ -161,7 +198,8 @@ function onlyUnique(value, index, self) {
     return self.indexOf(value) === index;
 }
 
-class TupleArray extends Array {}
+class PairArray extends Array {}
+class OrArray extends Array {}
 
 function getAnnotation(x, prefix, def=undefined) {
     let ret = []
@@ -254,7 +292,7 @@ function decode_data(data, schema, annotations=true, literals=true, rootNode='0'
             }
             
             if (node["prim"] == "Pair") {
-                let tupleArgs = new TupleArray(...args);
+                let tupleArgs = new PairArray(...args);
                 res = flatten(tupleArgs)
 
                 if (type_info['props'] != undefined && annotations) {
@@ -395,4 +433,30 @@ function decode_schema(collapsed_tree) {
     }
 
     return decode_node(collapsed_tree)
+}
+
+function getBigMapSchema(typeMap) {
+    let res = {}
+    Object.keys(typeMap).forEach(function(key) {
+        if (typeMap[key]["prim"] == "big_map") {
+            res["key_path"] = key.toString() + "0";
+            res["val_path"] = key.toString() + "1";
+        }
+    });
+
+    return res
+}
+
+function bigMapDiffDecode(data, schema) {
+    let paths = getBigMapSchema(schema["type_map"])
+    let res = {}
+
+    data.forEach(function(item) {
+        let key = decode_data(item["key"], schema, true, true, paths["key_path"])
+        let val = decode_data(item["value"], schema, true, true, paths["val_path"])
+
+        res[key] = val
+    })
+
+    return res
 }

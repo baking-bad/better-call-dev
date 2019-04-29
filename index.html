@@ -44,16 +44,15 @@
                 <print-object :printable-object="decoded_schema"></print-object>
             </div>
 
-            <hr>
-
             <div class="col-lg-6" v-if="isReady">
                 <h2>Decoded Parameter schema:</h2>
                 <print-object :printable-object="parameterSchema"></print-object>
             </div>
+            <!--             
             <div class="col-lg-12" v-if="isReady">
                 <h2>Decoded TxData:</h2>
                 <print-object :printable-object="txDecoded"></print-object>
-            </div>
+            </div> -->
 
             <!-- <div class="col-lg-6" v-if="isReady">
                 <h2>TypeMap:</h2>
@@ -63,10 +62,41 @@
                 <h2>CollapsedTree:</h2>
                 <print-object :printable-object="collapsedTree"></print-object>
             </div> -->
+
+
             <!-- <div class="col-lg-12" v-if="isReady">
                 <h2>TxData:</h2>
                 <print-object :printable-object="txData"></print-object>
             </div> -->
+
+            <br><br><br>
+            <div class="col-lg-12" v-if="isReady">
+                <h2>List of TXs:</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Tx hash | Tx block hash</th>
+                            <th scope="col">Magic button</th>
+                            <th scope="col">Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(tx, index) in txWithDecodedData" :key="`tx-${index}`">
+                            <td scope="row">{{ index + 1 }}</td>
+                            <td style="font-size: 70%;">
+                                <b>hash: </b>{{ tx.hash }}<br>
+                                <b>block hash: </b>{{ tx.block_hash }}<br>
+                                <print-object :printable-object="tx.decoded_data"></print-object>
+                            </td>
+                            <td style="color: #fff;"><a class="btn btn-primary" @click="click(tx)">Go</a></td>
+                            <td style="font-size: 70%;">
+                                <print-object :printable-object="tx.result" v-if="tx.result != null"></print-object>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
         </div>
     </div>
