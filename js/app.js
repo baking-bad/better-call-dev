@@ -19,7 +19,8 @@ var app = new Vue({
         parameterSchema: {},
         txData: [],
         txDecoded: [],
-        txWithDecodedData: {}
+        txWithDecodedData: {},
+        activetab: 1
     }),
     computed: {
         baseApiURL: function() {

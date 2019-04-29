@@ -8,6 +8,7 @@
     <title>Document</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="./css/vue-print-object.css">
+    <link rel="stylesheet" href="./css/tabs.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vue-loading-overlay@3/dist/vue-loading.css">
 </head>
 
@@ -15,7 +16,7 @@
     <div id="app" class="container">
         <loading></loading>
         <div class="row">
-            <div class="col-lg-12 mb-4 mt-4">
+            <div class="col-lg-12 mb-4">
                 <div class="form-check form-check-inline">
                     <input class="form-check-input" type="radio" value="main" v-model="tezosNet">
                     <label class="form-check-label" for="exampleRadios1">
@@ -35,19 +36,94 @@
                 </div>
                 <button type="button" class="btn btn-primary" @click="explore">Go</button>
             </div>
-            <div class="col-lg-6" v-if="isReady">
+
+            <div class="col-lg-12" v-if="isReady">
+                <div id="tabs">
+                    <div class="tabs">
+                        <a v-on:click="activetab=1" v-bind:class="[ activetab === 1 ? 'active' : '' ]">Storage</a>
+                        <a v-on:click="activetab=2" v-bind:class="[ activetab === 2 ? 'active' : '' ]">Transactions</a>
+                        <a v-on:click="activetab=3" v-bind:class="[ activetab === 3 ? 'active' : '' ]">Parameters</a>
+                    </div>
+
+                    <div class="content">
+                        <div v-if="activetab === 1" class="tabcontent">
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-lg-6">
+                                        <h2>Decoded Storage:</h2>
+                                        <print-object :printable-object="decoded_data"></print-object>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <h2>Decoded storage schema:</h2>
+                                        <print-object :printable-object="decoded_schema"></print-object>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-if="activetab === 2" class="tabcontent">
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-lg-12">
+                                        <h2>List of TXs:</h2>
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">#</th>
+                                                    <th scope="col">Tx hash | Tx block hash</th>
+                                                    <th scope="col">Magic button</th>
+                                                    <th scope="col">Result</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr v-for="(tx, index) in txWithDecodedData" :key="`tx-${index}`">
+                                                    <td scope="row">{{ index + 1 }}</td>
+                                                    <td style="font-size: 70%;">
+                                                        <b>hash: </b>{{ tx.hash }}<br>
+                                                        <b>block hash: </b>{{ tx.block_hash }}<br>
+                                                        <print-object :printable-object="tx.decoded_data">
+                                                        </print-object>
+                                                    </td>
+                                                    <td style="color: #fff;"><a class="btn btn-primary"
+                                                            @click="click(tx)">Go</a></td>
+                                                    <td style="font-size: 70%;">
+                                                        <print-object :printable-object="tx.result"
+                                                            v-if="tx.result != null"></print-object>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-if="activetab === 3" class="tabcontent">
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-lg-6">
+                                        <h2>Decoded Parameter schema:</h2>
+                                        <print-object :printable-object="parameterSchema"></print-object>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- <div class="col-lg-6" v-if="isReady">
                 <h2>Decoded Storage:</h2>
                 <print-object :printable-object="decoded_data"></print-object>
             </div>
             <div class="col-lg-6" v-if="isReady">
                 <h2>Decoded storage schema:</h2>
                 <print-object :printable-object="decoded_schema"></print-object>
-            </div>
+            </div> -->
 
-            <div class="col-lg-6" v-if="isReady">
+            <!-- <div class="col-lg-6" v-if="isReady">
                 <h2>Decoded Parameter schema:</h2>
                 <print-object :printable-object="parameterSchema"></print-object>
-            </div>
+            </div> -->
             <!--             
             <div class="col-lg-12" v-if="isReady">
                 <h2>Decoded TxData:</h2>
@@ -69,8 +145,8 @@
                 <print-object :printable-object="txData"></print-object>
             </div> -->
 
-            <br><br><br>
-            <div class="col-lg-12" v-if="isReady">
+            <!-- <br><br><br> -->
+            <!-- <div class="col-lg-12" v-if="isReady">
                 <h2>List of TXs:</h2>
                 <table class="table">
                     <thead>
@@ -96,11 +172,12 @@
                         </tr>
                     </tbody>
                 </table>
-            </div>
+            </div> -->
 
         </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="./js/vue-print-object.min.js"></script>
