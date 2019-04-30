@@ -12,7 +12,7 @@
 .container {  
     max-width: 1600px; 
     min-width: 420px;
-    margin: 40px auto;
+    margin: 20px auto;
     font-family: "Nunito Sans", Arial, Helvetica, sans-serif;
     color: #888;
 }
