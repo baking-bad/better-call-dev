@@ -17,9 +17,6 @@ var app = new Vue({
         decoded_schema: {},
         tezosNet: "alpha",
         parameterSchema: {},
-        txData: [],
-        txDecoded: [],
-        txWithDecodedData: {},
         activetab: 1,
         txInfo: {
             maxPages: 0,
@@ -27,7 +24,8 @@ var app = new Vue({
             tempTxStack: [],
             data: [],
             groups: {}
-        }
+        },
+        nodeAccountData: {}
     }),
     computed: {
         baseApiURL: function() {
@@ -69,6 +67,7 @@ var app = new Vue({
 
                 return {
                     "hash": tx["hash"],
+                    "block_hash": tx["block_hash"],
                     "src": operation["src"]["tz"],
                     "dst": operation["destination"]["tz"],
                     "amount": operation["amount"],
@@ -108,6 +107,37 @@ var app = new Vue({
                 return res
             }
 
+            // getNodeData = async (block_hash) => {
+            //     let res = await axios.get(`${this.baseNodeApiURL}/${block_hash}/operations/3`)
+            //     return res.data;
+            // }
+
+            getNodeAccountData = async () => {
+                let res = await axios.get(`${this.baseApiURL}/node_account/${this.address}`)
+                return res.data;
+            }
+
+            buildNodeLinks = async () => {
+                let links = [];
+
+                Object.keys(this.txInfo.groups).forEach(function(hash) {
+                    let block_hash = this.txInfo.groups[hash][0]["block_hash"];
+                    links.push(`${this.baseNodeApiURL}/${block_hash}/operations/3`)
+                }, this)
+
+                return links
+            }
+
+            getAllNodeData = async () => {
+                let links = await buildNodeLinks()
+                let promiseArray = links.map( url => axios.get(url) );
+
+                return axios.all( promiseArray )
+                .then((results) => { 
+                    return results.map( el => el.data ).reduce((a, b) => [...a, ...b], [])
+                })
+            }
+
             this.txInfo.maxPages = Math.ceil(await getPages() / 20)
             this.txInfo.data = await getTransactionData()
 
@@ -119,172 +149,58 @@ var app = new Vue({
 
             this.txInfo.groups = buildTxGroups(this.txInfo.data)
 
-            axios
-            .get(`${this.baseApiURL}/node_account/${this.address}`)
-            .then((response) => {
-                // storage part
-                let code = response["data"]["script"]["code"];
-                let result = {};
-                let result_for_parameter = {};
-                let data = response["data"]["script"]["storage"]
+            this.nodeAccountData = await getNodeAccountData()
 
-                code.forEach(function(element) {
-                    if (element["prim"] == "storage") {
-                        result = buildSchema(element)
-                    } 
-                    if (element["prim"] == "parameter") {
-                        result_for_parameter = buildSchema(element)
-                    } 
-                });
 
-                this.typeMap = result["type_map"];
-                this.collapsedTree = result["collapsed_tree"];
-                this.decoded_data = decode_data(data, result);
-                this.decoded_schema = decode_schema(result["collapsed_tree"])
+            let code = this.nodeAccountData["script"]["code"];
+            let data = this.nodeAccountData["script"]["storage"];
+            let result = {};
+            let result_for_parameter = {};
 
-                // parameters part
-                // let res = [];
-                // let txDecodedData = [];
-                // let txWithDecoded = [];
+            code.forEach(function(element) {
+                if (element["prim"] == "storage") {
+                    result = buildSchema(element)
+                } 
+                if (element["prim"] == "parameter") {
+                    result_for_parameter = buildSchema(element)
+                } 
+            });
 
-                Object.keys(this.txInfo.groups).forEach(function(hash) {
-                    (this.txInfo.groups[hash]).forEach(function(tx) {
-                        let item = JSON.parse(tx["str_parameters"]);
+            this.typeMap = result["type_map"];
+            this.collapsedTree = result["collapsed_tree"];
+            this.decoded_data = decode_data(data, result);
+            this.decoded_schema = decode_schema(result["collapsed_tree"])
 
-                        tx["decoded_data"] = decode_data(item, result_for_parameter);
-                        tx["result"] = null;
-                    })
-                }, this);
+            Object.keys(this.txInfo.groups).forEach(function(hash) {
+                (this.txInfo.groups[hash]).forEach(function(tx) {
+                    let item = JSON.parse(tx["str_parameters"]);
 
-                console.log(this.txInfo.groups)
+                    tx["decoded_data"] = decode_data(item, result_for_parameter);
+                    tx["result"] = null;
+                })
+            }, this);
 
-                // this.txWithDecodedData = txWithDecoded
-
-                // this.txData = res;
-                
-                // res.forEach(function(item) {
-                //     txDecodedData.push(decode_data(item, result_for_parameter))
-                // });
-
-                // this.txDecoded = txDecodedData;
-
-                // // show results on the page
-                this.parameterSchema = decode_schema(result_for_parameter["collapsed_tree"]);
-                this.isReady = true;
-
-                loader.hide()
-            })
-            .catch(error => (console.log(error)));
-
-            // buildTransactionsLinks = async () => {
-            //     let pages = await getPages()
-            //     let links = [];
-            //     pages = Math.ceil(pages / 20)
-
-            //     for (var i = 0; i < pages; i++) {
-            //         links.push(`${this.baseApiURL}/operations/${this.address}?type=Transaction&p=${i}`)
-            //     }
-
-            //     return links
-            // };
-
-            // getTransactionsData = async () => {
-            //     let links = await buildTransactionsLinks()
-            //     let promiseArray = links.map( url => axios.get(url) );
-
-            //     return axios.all( promiseArray )
-            //     .then((results) => { 
-            //         return results.map( el => el.data ).reduce((a, b) => [...a, ...b], [])
-            //     })
-            // }
+            this.parameterSchema = decode_schema(result_for_parameter["collapsed_tree"]);
 
             
 
-            // makeCalculations = async () => {
-            //     let txs = await getTransactionsData();
+            let final_data = await getAllNodeData()
 
-            //     axios
-            //     .get(`${this.baseApiURL}/node_account/${this.address}`)
-            //     .then((response) => {
-            //         // storage part
-            //         let code = response["data"]["script"]["code"];
-            //         let result = {};
-            //         let result_for_parameter = {};
-            //         let data = response["data"]["script"]["storage"]
+            final_data.forEach(function(node_data) {
+                let big_map_diff = node_data["contents"][0]["metadata"]["operation_result"]["big_map_diff"];
+                
+                if (big_map_diff) {
+                    let schema = {};
 
-            //         code.forEach(function(element) {
-            //             if (element["prim"] == "storage") {
-            //                 result = buildSchema(element)
-            //             } 
-            //             if (element["prim"] == "parameter") {
-            //                 result_for_parameter = buildSchema(element)
-            //             } 
-            //         });
+                    schema["type_map"] = this.typeMap;
+                    schema["collapsed_tree"] = this.collapsedTree;
 
-            //         this.typeMap = result["type_map"];
-            //         this.collapsedTree = result["collapsed_tree"];
-            //         this.decoded_data = decode_data(data, result);
-            //         this.decoded_schema = decode_schema(result["collapsed_tree"])
+                    this.txInfo.groups[node_data["hash"]][0]["result"] = bigMapDiffDecode(big_map_diff, schema)
+                }
+            }, this)
 
-            //         // parameters part
-            //         let res = [];
-            //         let txDecodedData = [];
-            //         let txWithDecoded = [];
-
-            //         txs.forEach(function(tx) {
-            //             let item = JSON.parse(tx["type"]["operations"][0]["str_parameters"]);
-
-            //             let dateObj = new Date(tx["type"]["operations"][0]["timestamp"]);
-            //             let time = dateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-            //             let date = dateObj.toLocaleString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' });
-
-            //             txWithDecoded.push(
-            //                 {
-            //                     "time": time,
-            //                     "date": date,
-            //                     "block": tx["type"]["operations"][0]["op_level"],
-            //                     "decoded_data": decode_data(item, result_for_parameter),
-            //                     "result": null
-            //                 }
-            //             )
-            //             res.push(item)
-            //         });
-
-            //         this.txWithDecodedData = txWithDecoded
-
-            //         this.txData = res;
-                    
-            //         res.forEach(function(item) {
-            //             txDecodedData.push(decode_data(item, result_for_parameter))
-            //         });
-
-            //         this.txDecoded = txDecodedData;
-
-            //         // show results on the page
-            //         this.parameterSchema = decode_schema(result_for_parameter["collapsed_tree"]);
-            //         this.isReady = true;
-
-            //         loader.hide()
-            //     })
-            //     .catch(error => (console.log(error)));
-            // }
-
-            // makeCalculations()
-        },
-        click(tx) {
-            axios
-            .get(`${this.baseNodeApiURL}/${tx.block_hash}/operations/3`)
-            .then((response) => {
-                let schema = {}
-
-                schema["type_map"] = this.typeMap;
-                schema["collapsed_tree"] = this.collapsedTree;
-
-                let data = response["data"][0]["contents"][0]["metadata"]["operation_result"]["big_map_diff"];
-
-                tx.result = bigMapDiffDecode(data, schema)
-            })
-            .catch(error => (console.log(error)));
+            this.isReady = true;
+            loader.hide()
         }
     }
 })

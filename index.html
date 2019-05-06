@@ -56,8 +56,7 @@
                                                 <tr>
                                                     <th scope="col">#</th>
                                                     <th scope="col">Decoded Data</th>
-                                                    <!-- <th scope="col">Magic button</th>
-                                                    <th scope="col">Result</th> -->
+                                                    <th scope="col">Result</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -74,12 +73,10 @@
                                                             </print-object>
                                                         </div>
                                                     </td>
-                                                    <!-- <td style="color: #fff;"><a class="btn btn-primary"
-                                                            @click="click(tx)">Go</a></td> -->
-                                                    <!-- <td style="font-size: 70%;">
-                                                        <print-object :printable-object="tx.result"
-                                                            v-if="tx.result != null"></print-object>
-                                                    </td> -->
+                                                    <td style="font-size: 70%;">
+                                                        <print-object :printable-object="group[0].result"
+                                                            v-if="group[0].result != null"></print-object>
+                                                    </td>
                                                 </tr>
                                             </tbody>
                                         </table>
