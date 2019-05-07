@@ -13,7 +13,7 @@
 </head>
 
 <body>
-    <div id="app" class="container">
+    <div id="app" class="container mt-4">
         <loading></loading>
         <div class="row">
             <div class="col-lg-12 mb-4">
@@ -28,19 +28,22 @@
                     <label class="form-check-label" for="exampleRadios2">
                         AlphaNet
                     </label>
+                    <button type="button" class="btn btn-link demo-btn" @click="demo">Pick Random Contract</button>
                 </div>
-                <h1>Enter KT-address:</h1>
-                <div class="input-group mb-3">
-                    <input v-model="address" type="text" class="form-control"
-                        placeholder="KT1ExvG3EjTrvDcAU7EqLNb77agPa5u6KvnY" aria-label="kt-address">
+                <div class="input-group mb-3 mt-2 input-address">
+                    <input v-model="address" type="text" class="form-control" placeholder="Enter KT-address"
+                        aria-label="kt-address">
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-primary" @click="explore">Go</button>
+                    </div>
                 </div>
-                <button type="button" class="btn btn-primary" @click="explore">Go</button>
+
             </div>
 
             <div class="col-lg-12" v-if="isReady">
                 <div id="tabs">
                     <div class="tabs">
-                        <a v-on:click="activetab=1" v-bind:class="[ activetab === 1 ? 'active' : '' ]">Transactions</a>
+                        <a v-on:click="activetab=1" v-bind:class="[ activetab === 1 ? 'active' : '' ]">Operations</a>
                         <a v-on:click="activetab=2" v-bind:class="[ activetab === 2 ? 'active' : '' ]">Storage</a>
                         <a v-on:click="activetab=3" v-bind:class="[ activetab === 3 ? 'active' : '' ]">Parameters</a>
                     </div>
@@ -50,21 +53,14 @@
                             <div class="container">
                                 <div class="row">
                                     <div class="col-lg-12">
-                                        <h2>List of TXs:</h2>
-                                        <table class="table">
-                                            <thead>
-                                                <tr>
-                                                    <th scope="col">#</th>
-                                                    <th scope="col">Decoded Params</th>
-                                                    <th scope="col">Big Map Diff</th>
-                                                </tr>
-                                            </thead>
+                                        <table class="table results">
                                             <tbody>
                                                 <tr v-for="group in txInfo.groups">
-                                                    <td scope="row" style="font-size: 70%;">
-                                                        {{ group[0].time }}<br>
-                                                        {{ group[0].date }}<br>
-                                                        #{{ group[0].op_level }}
+                                                    <td scope="row" class="info-block">
+                                                        <div class="time">{{ group[0].time }}</div>
+                                                        <div>{{ group[0].date }}</div>
+                                                        <div><a :href="explorerBaseUrl + group[0].op_level"
+                                                                target="_blank">{{ group[0].op_level }}</a></div>
                                                     </td>
                                                     <td>
                                                         <div v-for="tx in group">
@@ -82,15 +78,20 @@
                                                             <span style="font-size: 90%;">with</span>
                                                             {{ formatXTZ(tx.fee) }}
                                                             <span style="font-size: 90%;">fee</span><br>
-                                                            <print-object style="font-size: 70%;"
-                                                                :printable-object="tx.decoded_data">
-                                                            </print-object>
-                                                            <br><br>
+                                                            <div style="font-size: 75%;">
+                                                                parameters<br>
+                                                                <print-object :printable-object="tx.decoded_data">
+                                                                </print-object>
+                                                            </div>
+                                                            <br>
                                                         </div>
                                                     </td>
-                                                    <td style="font-size: 70%;">
-                                                        <print-object :printable-object="group[0].result"
-                                                            v-if="group[0].result != null"></print-object>
+                                                    <td style="font-size: 75%;">
+                                                        <div v-if="group[0].result != null">
+                                                            <br>big_map_diff<br>
+                                                            <print-object :printable-object="group[0].result">
+                                                            </print-object>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -99,7 +100,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div v-if="activetab === 2" class="tabcontent">
+                        <div v-if="activetab === 2" class="tabcontent storage-tab">
                             <div class="container">
                                 <div class="row">
                                     <div class="col-lg-6">
@@ -113,7 +114,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div v-if="activetab === 3" class="tabcontent">
+                        <div v-if="activetab === 3" class="tabcontent parameters-tab">
                             <div class="container">
                                 <div class="row">
                                     <div class="col-lg-6">

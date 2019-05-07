@@ -7,9 +7,10 @@ var app = new Vue({
     el: '#app',
     data: () => ({
         // address: "KT1HWuhDdbtVQ2S9NAaeEJyCbAF6cMtLcqcc", // AlphaNet
-        address: "KT1SufMDx6d2tuVe3n6tSYUBNjtV9GgaLgtV", // AlphaNet
+        // address: "KT1SufMDx6d2tuVe3n6tSYUBNjtV9GgaLgtV", // AlphaNet
         // address: "KT1FU74GimCeEVRAEZGURb6TWU8jK1N6zFJy", // AlphaNet
         // address: "KT1ExvG3EjTrvDcAU7EqLNb77agPa5u6KvnY", // MainNet
+        address: "",
         typeMap: {},
         collapsedTree: {},
         isReady: false,
@@ -25,7 +26,23 @@ var app = new Vue({
             data: [],
             groups: {}
         },
-        nodeAccountData: {}
+        nodeAccountData: {},
+        demoAddresses: [{
+            net: "alpha",
+            address: "KT1SufMDx6d2tuVe3n6tSYUBNjtV9GgaLgtV"
+        }, {
+            net: "alpha",
+            address: "KT1FU74GimCeEVRAEZGURb6TWU8jK1N6zFJy"
+        }, {
+            net: "alpha",
+            address: "KT1HWuhDdbtVQ2S9NAaeEJyCbAF6cMtLcqcc"
+        }, {
+            net: "alpha",
+            address: "KT19iGCL4YrVpT6ezEzbDH37Yxbas8jWQz4s"
+        }, {
+            net: "alpha",
+            address: "KT1FEDVALSfQLZwVZbF1hRxJ9c8MTPe7azCZ"
+        }]
     }),
     computed: {
         baseApiURL: function() {
@@ -217,9 +234,23 @@ var app = new Vue({
                 return "0 ꜩ"
             }
             return (amount / Math.pow(10, 6)).toString() + " ꜩ"
+        },
+        demo() {
+            let pick = randomInteger(0, this.demoAddresses.length - 1)
+            let item = this.demoAddresses[pick]
+
+            this.tezosNet = item["net"]
+            this.address = item["address"]
+            this.explore()
         }
     }
 })
+
+function randomInteger(min, max) {
+    var rand = min + Math.random() * (max + 1 - min);
+    rand = Math.floor(rand);
+    return rand;
+  }
 
 function get_flat_nested(nested) {
     let flat_args = [];
