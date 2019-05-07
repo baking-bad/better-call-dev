@@ -37,9 +37,9 @@ var app = new Vue({
         },
         baseNodeApiURL: function() {
             if (this.tezosNet === "main") {
-                return "http://mainnet-node.tzscan.io/chains/main/blocks"
+                return "https://mainnet-node.tzscan.io/chains/main/blocks"
             } else {
-                return "http://alphanet-node.tzscan.io/chains/main/blocks"
+                return "https://alphanet-node.tzscan.io/chains/main/blocks"
             }
         }
     },
@@ -230,6 +230,27 @@ function flatten(items) {
     }
 }
 
+function get_flat_nested(nested) {
+    let flat_args = [];
+
+    nested.args.forEach(function(arg) {
+        if ((arg instanceof Nested) && (arg["prim"] == nested.prim)) {
+            flat_args = flat_args.concat(get_flat_nested(arg));
+        } else {
+            flat_args.push(arg);
+        }
+    })
+
+    return flat_args
+}
+
+function get_route_terminal(route) {
+    if (route.value instanceof Route) {
+        return get_route_terminal(route.value)
+    }
+    return route
+}
+
 function allTrue(obj) {
     for (var o in obj) {
         if (!obj[o]) {
@@ -248,8 +269,8 @@ function onlyUnique(value, index, self) {
     return self.indexOf(value) === index;
 }
 
-class PairArray extends Array {}
-class OrArray extends Array {}
+class Nested extends Object {}
+class Route extends Object {}
 
 function getAnnotation(x, prefix, def=undefined) {
     let ret = []
@@ -268,8 +289,8 @@ function getAnnotation(x, prefix, def=undefined) {
 function buildSchema(code) {
     let type_map = {}
 
-    function parseNode(node, path="0", nested=undefined) {
-        if (["storage", "parameter"].indexOf(node["prim"]) != -1) {
+    function parseNode(node, path="0", parent_prim=undefined) {
+        if (["storage", "parameter"].includes(node["prim"])) {
             return parseNode(node['args'][0])
         }
 
@@ -285,9 +306,16 @@ function buildSchema(code) {
             });
         }
 
-        if (["pair", "or"].indexOf(node["prim"]) != -1) {
-            if (typename || (nested != node["prim"])) {
-                args = flatten(args);
+        if (["pair", "or"].includes(node["prim"])) {
+            res = new Nested()
+            res.prim = node['prim'];
+            res.args = args;
+
+            if (typename || (parent_prim != node["prim"])) {
+                args = get_flat_nested(res);
+                type_map[path]['children'] = args.map(function(x) {
+                    return x["path"];
+                });
 
                 let props = args.map(function(x) {
                     return x["name"];
@@ -302,7 +330,7 @@ function buildSchema(code) {
                 }
 
             } else {
-                return args
+                return res;
             }
         }
 
@@ -342,25 +370,37 @@ function decode_data(data, schema, annotations=true, literals=true, rootNode='0'
             }
             
             if (node["prim"] == "Pair") {
-                let tupleArgs = new PairArray(...args);
-                res = flatten(tupleArgs)
+                res = new Nested()
+                res.prim = type_info['prim']
+                res.args = args;
 
-                if (type_info['props'] != undefined && annotations) {
-                    retRes = {}
-                    for (var i = 0; i < res.length; i++) {
-                        retRes[type_info['props'][i]] = res[i]
+                if (type_info["children"] != undefined) {
+                    res = get_flat_nested(res);
+
+                    if (type_info['props'] != undefined && annotations) {
+                        retRes = {}
+                        for (var i = 0; i < res.length; i++) {
+                            retRes[type_info['props'][i]] = res[i]
+                        }
+                        res = retRes
+                    }  
+                }  
+            } else if (["Left", "Right"].includes(node["prim"])) {
+                let arg_path = path + (node["prim"] == "Left" ? '0' : '1');
+                res = new Route();
+                res.path = arg_path;
+                res.value = decode_node(node['args'][0], arg_path);
+
+                if (type_info["children"] != undefined ) {
+                    let terminal = get_route_terminal(res)
+
+                    if (type_info['props'] != undefined && annotations == true) {
+                        let index = type_info["children"].indexOf(terminal.path)
+                        res = {}
+                        res[type_info['props'][index]] = terminal.value;
+                    } else {
+                        res = terminal.value;
                     }
-                    res = retRes
-                }   
-                
-            } else if (["Left", "Right"].indexOf(node["prim"]) != -1) {
-                let index = (node["prim"] == "Left" ? '0' : '1');
-                let value = decode_node(node['args'][0], path + index);
-
-                if (type_info['props'] != undefined && annotations == true) {
-                    res[type_info['props'][index]] = value;
-                } else {
-                    res[index] = value;
                 }
             } else if (node["prim"] == "Elt") {
                 res = args
