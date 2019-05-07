@@ -40,9 +40,6 @@ var app = new Vue({
         }, {
             net: "alpha",
             address: "KT1HWuhDdbtVQ2S9NAaeEJyCbAF6cMtLcqcc"
-        }, {
-            net: "alpha",
-            address: "KT1FEDVALSfQLZwVZbF1hRxJ9c8MTPe7azCZ"
         }]
     }),
     computed: {
