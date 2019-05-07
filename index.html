@@ -55,8 +55,8 @@
                                             <thead>
                                                 <tr>
                                                     <th scope="col">#</th>
-                                                    <th scope="col">Decoded Data</th>
-                                                    <th scope="col">Result</th>
+                                                    <th scope="col">Decoded Params</th>
+                                                    <th scope="col">Big Map Diff</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -66,11 +66,26 @@
                                                         {{ group[0].date }}<br>
                                                         #{{ group[0].op_level }}
                                                     </td>
-                                                    <td style="font-size: 70%;">
+                                                    <td>
                                                         <div v-for="tx in group">
-                                                            <b>{{ tx.hash }}:</b><br>
-                                                            <print-object :printable-object="tx.decoded_data">
+                                                            <a target="_blank" :href="explorerBaseUrl + tx.src"
+                                                                v-if="address == tx.src"><mark>{{ formatAddress(tx.src) }}</mark></a>
+                                                            <a target="_blank" :href="explorerBaseUrl + tx.src"
+                                                                v-else>{{ formatAddress(tx.src) }}</a>
+                                                            <span style="font-size: 90%;">⟶</span>
+                                                            <a target="_blank" :href="explorerBaseUrl + tx.dst"
+                                                                v-if="address == tx.dst"><mark>{{ formatAddress(tx.dst) }}</mark></a>
+                                                            <a target="_blank" :href="explorerBaseUrl + tx.dst"
+                                                                v-else>{{ formatAddress(tx.dst) }}</a>
+                                                            <span style="font-size: 90%;">for</span>
+                                                            {{ formatXTZ(tx.amount) }}
+                                                            <span style="font-size: 90%;">with</span>
+                                                            {{ formatXTZ(tx.fee) }}
+                                                            <span style="font-size: 90%;">fee</span><br>
+                                                            <print-object style="font-size: 70%;"
+                                                                :printable-object="tx.decoded_data">
                                                             </print-object>
+                                                            <br><br>
                                                         </div>
                                                     </td>
                                                     <td style="font-size: 70%;">

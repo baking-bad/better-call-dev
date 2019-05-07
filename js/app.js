@@ -41,6 +41,13 @@ var app = new Vue({
             } else {
                 return "https://alphanet-node.tzscan.io/chains/main/blocks"
             }
+        },
+        explorerBaseUrl: function() {
+            if (this.tezosNet === "main") {
+                return "https://tzscan.io/"
+            } else {
+                return "https://alphanet.tzscan.io/"
+            }
         }
     },
     methods: {
@@ -201,34 +208,18 @@ var app = new Vue({
 
             this.isReady = true;
             loader.hide()
+        },
+        formatAddress(address) {
+            return address.substr(0,4) + "..." + address.substr(address.length - 4,4)
+        },
+        formatXTZ(amount) {
+            if (amount == 0) {
+                return "0 ꜩ"
+            }
+            return (amount / Math.pow(10, 6)).toString() + " ꜩ"
         }
     }
 })
-
-
-function flatten(items) {
-    if (items instanceof PairArray) {
-        if (items.length == 0) {
-            return new PairArray()
-        }
-
-        let first = items[0]
-        let rest = items.slice(1, items.length)
-        
-        return flatten(first).concat(flatten(rest))
-    } else if (Array.isArray(items)) {
-        if (items.length == 0) {
-            return []
-        }
-
-        let first = items[0]
-        let rest = items.slice(1, items.length)
-        
-        return flatten(first).concat(flatten(rest))
-    } else {
-        return [items]
-    }
-}
 
 function get_flat_nested(nested) {
     let flat_args = [];
