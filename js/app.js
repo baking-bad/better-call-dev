@@ -9,6 +9,7 @@ var app = new Vue({
         // address: "KT1HWuhDdbtVQ2S9NAaeEJyCbAF6cMtLcqcc", // AlphaNet
         // address: "KT1SufMDx6d2tuVe3n6tSYUBNjtV9GgaLgtV", // AlphaNet
         // address: "KT1FU74GimCeEVRAEZGURb6TWU8jK1N6zFJy", // AlphaNet
+        // address: "KT1HWuhDdbtVQ2S9NAaeEJyCbAF6cMtLcqcc", // AlphaNet
         // address: "KT1ExvG3EjTrvDcAU7EqLNb77agPa5u6KvnY", // MainNet
         address: "",
         typeMap: {},
@@ -35,10 +36,10 @@ var app = new Vue({
             address: "KT1FU74GimCeEVRAEZGURb6TWU8jK1N6zFJy"
         }, {
             net: "alpha",
-            address: "KT1HWuhDdbtVQ2S9NAaeEJyCbAF6cMtLcqcc"
+            address: "KT19iGCL4YrVpT6ezEzbDH37Yxbas8jWQz4s"
         }, {
             net: "alpha",
-            address: "KT19iGCL4YrVpT6ezEzbDH37Yxbas8jWQz4s"
+            address: "KT1HWuhDdbtVQ2S9NAaeEJyCbAF6cMtLcqcc"
         }, {
             net: "alpha",
             address: "KT1FEDVALSfQLZwVZbF1hRxJ9c8MTPe7azCZ"
@@ -69,6 +70,8 @@ var app = new Vue({
     },
     methods: {
         async explore() {
+            await this.initApp();
+
             let loader = this.$loading.show({
                 container: this.$refs.formContainer,
                 canCancel: false,
@@ -99,6 +102,7 @@ var app = new Vue({
                     "str_parameters": operation["str_parameters"],
                     "internal": operation["internal"],
                     "op_level": operation["op_level"],
+                    "decoded_data": null,
                     "time": dateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
                     "date": dateObj.toLocaleString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' })
                 }
@@ -242,6 +246,21 @@ var app = new Vue({
             this.tezosNet = item["net"]
             this.address = item["address"]
             this.explore()
+        },
+        async initApp() {
+            this.typeMap = {};
+            this.collapsedTree = {};
+            this.isReady = false;
+            this.decoded_data = {};
+            this.decoded_schema = {};
+            this.parameterSchema = {};
+            this.activetab = 1;
+            this.txInfo.maxPages = 0;
+            this.txInfo.currentPage = 0;
+            this.txInfo.tempTxStack = [];
+            this.txInfo.data = [];
+            this.txInfo.groups = {};
+            this.nodeAccountData = {};
         }
     }
 })
