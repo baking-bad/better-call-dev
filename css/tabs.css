@@ -88,3 +88,9 @@
 .demo-btn {
     margin-left: 40px;
 }
+
+.github-ribbon {
+    position: absolute;
+    right: 0;
+    top: 0;
+}
