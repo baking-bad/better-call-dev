@@ -296,7 +296,11 @@ var app = new Vue({
 
             Object.keys(newGroups).forEach(function(hash) {
                 (newGroups[hash]).forEach(function(tx) {
-                    let item = JSON.parse(tx["str_parameters"]);
+                    let item = {}
+
+                    if (tx["str_parameters"] != undefined) {
+                        item = JSON.parse(tx["str_parameters"]);
+                    }
 
                     tx["decoded_data"] = decode_data(item, this.resultForParameter);
                     tx["result"] = null;
