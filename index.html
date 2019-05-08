@@ -55,7 +55,7 @@
                                     <div class="col-lg-12">
                                         <table class="table results">
                                             <tbody>
-                                                <tr v-for="group in txInfo.groups">
+                                                <tr v-for="group in groups">
                                                     <td scope="row" class="info-block">
                                                         <div class="time">{{ group[0].time }}</div>
                                                         <div>{{ group[0].date }}</div>
@@ -64,15 +64,17 @@
                                                     </td>
                                                     <td>
                                                         <div v-for="tx in group">
-                                                            <a target="_blank" :href="explorerBaseUrl + tx.src"
-                                                                v-if="address == tx.src"><mark>{{ formatAddress(tx.src) }}</mark></a>
-                                                            <a target="_blank" :href="explorerBaseUrl + tx.src"
-                                                                v-else>{{ formatAddress(tx.src) }}</a>
+                                                            <a target="_blank" :href="explorerBaseUrl + tx.src">
+                                                                <mark
+                                                                    v-if="address == tx.src">{{ formatAddress(tx.src) }}</mark>
+                                                                <span v-else>{{ formatAddress(tx.src) }}</span>
+                                                            </a>
                                                             <span style="font-size: 90%;">⟶</span>
-                                                            <a target="_blank" :href="explorerBaseUrl + tx.dst"
-                                                                v-if="address == tx.dst"><mark>{{ formatAddress(tx.dst) }}</mark></a>
-                                                            <a target="_blank" :href="explorerBaseUrl + tx.dst"
-                                                                v-else>{{ formatAddress(tx.dst) }}</a>
+                                                            <a target="_blank" :href="explorerBaseUrl + tx.dst">
+                                                                <mark
+                                                                    v-if="address == tx.dst">{{ formatAddress(tx.dst) }}</mark>
+                                                                <span v-else>{{ formatAddress(tx.dst) }}</span>
+                                                            </a>
                                                             <span style="font-size: 90%;">for</span>
                                                             {{ formatXTZ(tx.amount) }}
                                                             <span style="font-size: 90%;">with</span>
@@ -92,6 +94,12 @@
                                                             <print-object :printable-object="group[0].result">
                                                             </print-object>
                                                         </div>
+                                                    </td>
+                                                </tr>
+                                                <tr v-if="txInfo.currentPage != txInfo.maxPages">
+                                                    <td colspan="3" class="text-center">
+                                                        <button type="button" class="btn btn-link"
+                                                            @click="loadMore">Load More</button>
                                                     </td>
                                                 </tr>
                                             </tbody>
