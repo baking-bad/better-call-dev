@@ -94,7 +94,9 @@
                                                             {{ formatXTZ(tx.amount) }}
                                                             <span style="font-size: 90%;">with</span>
                                                             {{ formatXTZ(tx.fee) }}
-                                                            <span style="font-size: 90%;">fee</span><br>
+                                                            <span style="font-size: 90%;">fee</span>
+                                                            <span v-if="tx.failed"
+                                                                class="badge badge-danger">Failed</span><br>
                                                             <div style="font-size: 75%;">
                                                                 parameters<br>
                                                                 <print-object :printable-object="tx.decoded_data">

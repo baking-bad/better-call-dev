@@ -37,10 +37,28 @@ var app = new Vue({
             address: "KT19iGCL4YrVpT6ezEzbDH37Yxbas8jWQz4s"
         }, {
             net: "alpha",
-            address: "KT1HWuhDdbtVQ2S9NAaeEJyCbAF6cMtLcqcc"
+            address: "KT1QiAJocHUKYN29BegaCnCaSQ9FT2ZXGfuJ"
         }, {
             net: "alpha",
-            address: "KT1QiAJocHUKYN29BegaCnCaSQ9FT2ZXGfuJ"
+            address: "KT1HnvV5Z53naoh51jYvPF7w168nW8nfyx5v"
+        }, {
+            net: "alpha",
+            address: "KT19yAMFum5MmD99kusQiCBGpTEVC1B52f9Q"
+        }, {
+            net: "alpha",
+            address: "KT1Sefu81jFomBUTiJgK6VvCyY5rGrkhPszt"
+        }, {
+            net: "alpha",
+            address: "KT1TpKkwKzGwMrWrGnPp9KixhraD2dtE5wE5"
+        }, {
+            net: "alpha",
+            address: "KT1P3j1VonQytW3b2SzCnGVpjdf3oWajM79E"
+        }, {
+            net: "alpha",
+            address: "KT1XtauF2tnmAKBzbLA2gNoMji9zSzSyYq9w"
+        }, {
+            net: "alpha",
+            address: "KT1Qx7PRNAVHgam1qb2MuJohggnSdHTeBWyc"
         }]
     }),
     computed: {
@@ -110,7 +128,11 @@ var app = new Vue({
 
             Object.keys(this.groups).forEach(function(hash) {
                 (this.groups[hash]).forEach(function(tx) {
-                    let item = JSON.parse(tx["str_parameters"]);
+                    let item = {}
+
+                    if (tx["str_parameters"] != undefined) {
+                        item = JSON.parse(tx["str_parameters"]);
+                    }
 
                     tx["decoded_data"] = decode_data(item, this.resultForParameter);
                     tx["result"] = null;
@@ -122,7 +144,7 @@ var app = new Vue({
             final_data.forEach(function(node_data) {
                 let big_map_diff = node_data["contents"][0]["metadata"]["operation_result"]["big_map_diff"];
                 
-                if (big_map_diff) {
+                if (big_map_diff && (node_data["hash"] in this.groups)) {
                     let schema = {};
 
                     schema["type_map"] = this.typeMap;
@@ -160,7 +182,6 @@ var app = new Vue({
                     this.resultForStorage = buildSchema(element)
                 } 
                 if (element["prim"] == "parameter") {
-                    // result_for_parameter = buildSchema(element)
                     this.resultForParameter = buildSchema(element);
                 } 
             }, this);
@@ -180,6 +201,7 @@ var app = new Vue({
             return {
                 "hash": tx["hash"],
                 "block_hash": tx["block_hash"],
+                "failed": operation["failed"],
                 "src": operation["src"]["tz"],
                 "dst": operation["destination"]["tz"],
                 "amount": operation["amount"],
@@ -203,18 +225,15 @@ var app = new Vue({
         },
         buildTxGroups(data) {
             let res = {};
-            let lastExt = 0;
-
             for (let i = 0; i < data.length; i++) {
-                if (data[i]["internal"] == true) {
-                    continue
+                let txHash = data[i]["hash"];
+                if (txHash in res) {
+                    res[txHash].unshift(data[i])
                 } else {
-                    let txHash = data[i]["hash"];
-                    res[txHash] = data.slice(lastExt, i + 1).reverse();
-                    lastExt = i + 1;
+                    res[txHash] = new Array(data[i])
                 }
             }
-            
+
             return res
         },
         async buildNodeLinks(groups) {
@@ -289,7 +308,7 @@ var app = new Vue({
             final_data.forEach(function(node_data) {
                 let big_map_diff = node_data["contents"][0]["metadata"]["operation_result"]["big_map_diff"];
                 
-                if (big_map_diff) {
+                if (big_map_diff && (node_data["hash"] in newGroups)) {
                     newGroups[node_data["hash"]][0]["result"] = bigMapDiffDecode(big_map_diff, this.resultForStorage)
                 }
             }, this)
@@ -593,11 +612,11 @@ function decode_schema(collapsed_tree) {
         }
 
         if (node["prim"] == "set") {
-            return [...decode_node(node['args'][0])]
+            return [decode_node(node['args'][0])]
         }
 
         if (node['prim'] == 'list') {
-            return [...decode_node(node['args'][0])]
+            return [decode_node(node['args'][0])]
         }
 
 
