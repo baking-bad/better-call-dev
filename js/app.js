@@ -65,9 +65,17 @@ var app = new Vue({
             }
         }
     },
+    mounted() {
+        if (window.location.hash) {
+            this.address = (window.location.hash).substring(1);
+            this.explore();
+        }
+    },
     methods: {
         async explore() {
             await this.initApp();
+
+            window.location.hash = "#" + this.address;
 
             let loader = this.$loading.show({
                 container: this.$refs.formContainer,
