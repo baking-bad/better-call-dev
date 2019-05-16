@@ -8,7 +8,7 @@
     <meta property="og:url" content="https://baking-bad.github.io/better-call-dev/">
     <meta property="og:type" content="website">
     <meta property="og:title" content="Better Call Dev">
-    <meta property="og:description" content="Smart contract explorer for Tezos. By Baking Bad.">
+    <meta property="og:description" content="Smart contract meta-explorer for Tezos. By Baking Bad.">
     <meta property="og:image" content="https://baking-bad.github.io/better-call-dev/logo_og.png">
     <meta property="og:image:secure_url" content="https://baking-bad.github.io/better-call-dev/logo_og.png">
     <meta property="og:image:type" content="image/png">
@@ -17,9 +17,9 @@
     <meta name="twitter:card" content="summary">
     <meta name="twitter:creator" content="@TezosBakingBad">
     <meta name="twitter:title" content="Better Call Dev">
-    <meta name="twitter:description" content="Smart contract explorer for Tezos. By Baking Bad.">
+    <meta name="twitter:description" content="Smart contract meta-explorer for Tezos. By Baking Bad.">
     <meta name="twitter:image" content="https://baking-bad.github.io/better-call-dev/logo_og.png">
-    <title>Better Call Dev — Smart contract explorer for Tezos</title>
+    <title>Better Call Dev — Smart contract meta-explorer for Tezos</title>
     <link rel="icon" href="favicon.ico">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="./css/vue-print-object.css">
@@ -68,7 +68,7 @@
 
             </div>
 
-            <div class="col-lg-12" v-if="isReady">
+            <div class="col-lg-12 mb-3" v-if="isReady">
                 <div id="tabs">
                     <div class="tabs">
                         <a v-on:click="activetab=1" v-bind:class="[ activetab === 1 ? 'active' : '' ]">Operations</a>
@@ -79,61 +79,59 @@
                     <div class="content">
                         <div v-if="activetab === 1" class="tabcontent">
                             <div class="container">
-                                <div class="row">
-                                    <div class="col-lg-12">
-                                        <table class="table results">
-                                            <tbody>
-                                                <tr v-for="group in groups">
-                                                    <td scope="row" class="info-block">
-                                                        <div class="time">{{ group[0].time }}</div>
-                                                        <div>{{ group[0].date }}</div>
-                                                        <div><a :href="explorerBaseUrl + group[0].op_level"
-                                                                target="_blank">{{ group[0].op_level }}</a></div>
-                                                    </td>
-                                                    <td>
-                                                        <div v-for="tx in group">
-                                                            <a target="_blank" :href="explorerBaseUrl + tx.src">
-                                                                <mark
-                                                                    v-if="address == tx.src">{{ formatAddress(tx.src) }}</mark>
-                                                                <span v-else>{{ formatAddress(tx.src) }}</span>
-                                                            </a>
-                                                            <span style="font-size: 90%;">⟶</span>
-                                                            <a target="_blank" :href="explorerBaseUrl + tx.dst">
-                                                                <mark
-                                                                    v-if="address == tx.dst">{{ formatAddress(tx.dst) }}</mark>
-                                                                <span v-else>{{ formatAddress(tx.dst) }}</span>
-                                                            </a>
-                                                            <span style="font-size: 90%;">for</span>
-                                                            {{ formatXTZ(tx.amount) }}
-                                                            <span style="font-size: 90%;">with</span>
-                                                            {{ formatXTZ(tx.fee) }}
-                                                            <span style="font-size: 90%;">fee</span>
-                                                            <span v-if="tx.failed"
-                                                                class="badge badge-danger">Failed</span><br>
-                                                            <div style="font-size: 75%;">
-                                                                parameters<br>
-                                                                <print-object :printable-object="tx.decoded_data">
-                                                                </print-object>
-                                                            </div>
-                                                            <br>
-                                                        </div>
-                                                    </td>
-                                                    <td style="font-size: 75%;">
-                                                        <div v-if="group[0].result != null">
-                                                            <br>big_map_diff<br>
-                                                            <print-object :printable-object="group[0].result">
-                                                            </print-object>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                                <tr v-if="txInfo.currentPage != txInfo.maxPages">
-                                                    <td colspan="3" class="text-center">
-                                                        <button type="button" class="btn btn-link"
-                                                            @click="loadMore">Load More</button>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
+                                <div class="row styled-row" v-for="group in groups">
+                                    <div class="col-lg-1">
+                                        <div class="info-block">
+                                            <div class="one-four-six">{{ group.level }}</div>
+                                            <div>{{ group.date }}</div>
+                                            <div>{{ group.time }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-11 mb-3">
+                                        <div class="row" v-for="tx in group['operations']">
+                                            <div class="col-lg-6">
+                                                <mark v-if="address == tx.source">{{ formatAddress(tx.source) }}</mark>
+                                                <a v-else-if="tx.source.substring(0,3) == 'KT'" target="_blank"
+                                                    :href="baseAppURL + tx.source">
+                                                    {{ formatAddress(tx.source) }}
+                                                </a>
+                                                <span v-else>{{ formatAddress(tx.source) }}</span>
+
+                                                <span style="font-size: 90%;">⟶</span>
+
+                                                <mark
+                                                    v-if="address == tx.destination">{{ formatAddress(tx.destination) }}</mark>
+                                                <a v-else-if="tx.destination[0] == 'K'" target="_blank"
+                                                    :href="baseAppURL + tx.destination">
+                                                    {{ formatAddress(tx.destination) }}
+                                                </a>
+                                                <span v-else>{{ formatAddress(tx.destination) }}</span>
+                                                <span style="font-size: 90%;">for</span>
+                                                {{ formatXTZ(tx.amount) }}
+                                                <span style="font-size: 90%;">with</span>
+                                                {{ formatXTZ(tx.fee) }}
+                                                <span style="font-size: 90%;">fee</span>
+                                                <span v-if="tx.status"
+                                                    :class="'badge ' + badgeClass(tx.status)">{{ tx.status }}</span>
+                                                <br>
+                                                <div style="font-size: 75%;">
+                                                    parameters<br>
+                                                    <print-object :printable-object="tx.decodedParameters">
+                                                    </print-object>
+                                                </div>
+                                                <br>
+                                            </div>
+                                            <div class="col-lg-6" style="font-size: 75%;">
+                                                <br><br>big_map_diff<br>
+                                                <print-object :printable-object="tx.decodedBigMapDiff">
+                                                </print-object>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div v-if="txInfo.currentPage != txInfo.maxPages" class="row styled-row">
+                                    <div class="col-lg-12 text-center mb-3">
+                                        <button type="button" class="btn btn-link" @click="loadMore">Load More</button>
                                     </div>
                                 </div>
                             </div>

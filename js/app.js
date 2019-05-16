@@ -8,24 +8,22 @@ var app = new Vue({
     data: () => ({
         // address: "KT1ExvG3EjTrvDcAU7EqLNb77agPa5u6KvnY", // MainNet
         address: "",
-        typeMap: {},
-        collapsedTree: {},
+        tezosNet: "alpha",
+        activetab: 1,
         isReady: false,
+        resultForParameter: {},
+        resultForStorage: {},
         decoded_data: {},
         decoded_schema: {},
-        tezosNet: "alpha",
         parameterSchema: {},
-        activetab: 1,
         txInfo: {
             maxPages: 0,
             currentPage: 0,
-            tempTxStack: [],
-            data: []
+            data: [],
+            levels: []
         },
-        groups: {},
-        resultForParameter: {},
-        resultForStorage: {},
-        nodeAccountData: {},
+        groups: {},   
+        baseAppURL: "https://baking-bad.github.io/better-call-dev/#",
         demoAddresses: [{
             net: "alpha",
             address: "KT1SufMDx6d2tuVe3n6tSYUBNjtV9GgaLgtV"
@@ -75,18 +73,13 @@ var app = new Vue({
             } else {
                 return "https://alphanet-node.tzscan.io/chains/main/blocks"
             }
-        },
-        explorerBaseUrl: function() {
-            if (this.tezosNet === "main") {
-                return "https://tzscan.io/"
-            } else {
-                return "https://alphanet.tzscan.io/"
-            }
         }
     },
     mounted() {
         if (window.location.hash) {
-            this.address = (window.location.hash).substring(1);
+            let params = (window.location.hash).substring(1).split(':');
+            this.tezosNet = params[0];
+            this.address = params[1];
             this.explore();
         }
     },
@@ -94,87 +87,158 @@ var app = new Vue({
         async explore() {
             await this.initApp();
 
-            window.location.hash = "#" + this.address;
+            window.location.hash = `#${this.tezosNet}:${this.address}`
 
-            let loader = this.$loading.show({
-                container: this.$refs.formContainer,
-                canCancel: false,
-                color: "#007bff",
-            });
+            let loader = this.setupLoader()
 
-            this.nodeAccountData = await this.getNodeAccountData();
-
-            let code = this.nodeAccountData["script"]["code"];
-            let data = this.nodeAccountData["script"]["storage"];
+            let contractsData = await this.getContractsData();
+            let code = contractsData["script"]["code"];
+            let data = contractsData["script"]["storage"];
 
             await this.buildSchemas(code)
 
-            this.typeMap = this.resultForStorage["type_map"];
-            this.collapsedTree = this.resultForStorage["collapsed_tree"];
             this.decoded_data = decode_data(data, this.resultForStorage);
             this.decoded_schema = decode_schema(this.resultForStorage["collapsed_tree"])
             this.parameterSchema = decode_schema(this.resultForParameter["collapsed_tree"]);
 
+            // move this to getTxData interface
             this.txInfo.maxPages = Math.ceil(await this.getPages() / 20);
             this.txInfo.data = await this.getTransactionData();
             this.txInfo.currentPage += 1;
-            this.txInfo.data = this.txInfo.data.map(this.rebuildTx);
+            //
 
-            if (this.txInfo.data.length == 20) {
-                this.txInfo.data = this.moveInternalTxToTemp(this.txInfo.data);
-            }
+            this.groups = this.buildGroups(this.txInfo.data);
+            this.txInfo.levels = this.unique(this.txInfo.data.map(this.getLevels));
 
-            this.groups = this.buildTxGroups(this.txInfo.data);
+            let operationGroups = await this.getAllNodeDataByLevels(this.txInfo.levels);
 
-            Object.keys(this.groups).forEach(function(hash) {
-                (this.groups[hash]).forEach(function(tx) {
-                    let item = {}
-
-                    if (tx["str_parameters"] != undefined) {
-                        item = JSON.parse(tx["str_parameters"]);
-                    }
-
-                    tx["decoded_data"] = decode_data(item, this.resultForParameter);
-                    tx["result"] = null;
-                }, this)
-            }, this);
-
-            let final_data = await this.getAllNodeData(this.groups)
-
-            final_data.forEach(function(node_data) {
-                let big_map_diff = node_data["contents"][0]["metadata"]["operation_result"]["big_map_diff"];
-                
-                if (big_map_diff && (node_data["hash"] in this.groups)) {
-                    let schema = {};
-
-                    schema["type_map"] = this.typeMap;
-                    schema["collapsed_tree"] = this.collapsedTree;
-
-                    this.groups[node_data["hash"]][0]["result"] = bigMapDiffDecode(big_map_diff, schema)
-                }
-            }, this)
+            this.pushOperationsToGroups(operationGroups, this.groups);
+            this.buildBigMapAndParams(this.groups)
 
             this.isReady = true;
             loader.hide();
         },
         async initApp() {
-            this.typeMap = {};
-            this.collapsedTree = {};
             this.isReady = false;
             this.decoded_data = {};
             this.decoded_schema = {};
             this.parameterSchema = {};
+            this.resultForParameter = {},
+            this.resultForStorage = {},
             this.activetab = 1;
             this.txInfo.maxPages = 0;
             this.txInfo.currentPage = 0;
-            this.txInfo.tempTxStack = [];
             this.txInfo.data = [];
+            this.txInfo.levels = [];
             this.groups = {};
-            this.nodeAccountData = {};
         },
-        async getNodeAccountData() {
-            let res = await axios.get(`${this.baseApiURL}/node_account/${this.address}`)
+        async getContractsData() {
+            let res = await axios.get(`${this.baseNodeApiURL}/head/context/contracts/${this.address}`)
             return res.data;
+        },
+        setupLoader() {
+            return this.$loading.show({
+                container: this.$refs.formContainer,
+                canCancel: false,
+                color: "#76a34e",
+            });
+        },
+        unique(arr) {
+            return [...new Set(arr)]
+        },
+        isRelated(tx) {
+            return (tx["kind"] == "transaction") && ([tx["destination"], tx["source"]].includes(this.address))
+        },
+        getLevels(tx) {
+            return tx["type"]["operations"][0]["op_level"]
+        },
+        async getAllNodeDataByLevels(levels) {
+            let links = await this.buildNodeLinksByBlock(levels);
+            let promiseArray = links.map( url => axios.get(url) );
+
+            return axios.all( promiseArray )
+            .then((results) => {
+                return results.map( el => el.data ).reduce((a, b) => [...a, ...b], [])
+            })
+        },
+        async buildNodeLinksByBlock(levels) {
+            let links = [];
+
+            levels.forEach(function(level) {
+                links.push(`${this.baseNodeApiURL}/${level}/operations/3`)
+            }, this)
+
+            return links
+        },
+        buildGroups(transactions) {
+            groups = {}
+
+            transactions.forEach(function(tx) {
+                let operation = tx["type"]["operations"][0]
+                let dateObj = new Date(operation["timestamp"]);
+
+                groups[tx["hash"]] = {
+                    "time": dateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+                    "date": dateObj.toLocaleString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' }),
+                    "level": operation["op_level"],
+                    "operations": [],
+                }
+            })
+
+            return groups
+        },
+        badgeClass: function(status) {
+            if (status == "failed") {
+                return "badge-danger"
+            } else if (status == "skipped") {
+                return "badge-warning"
+            } else if (status == "applied") {
+                return "badge-success"
+            } else if (status == "backtracked") {
+                return "badge-primary"
+            }
+
+            return "badge-secondary"
+        },
+        pushOperationsToGroups(operationGroups, groups) {
+            operationGroups.forEach(function(group) {
+                group["contents"].forEach(function(operation) {
+                    if (this.isRelated(operation)) {
+                        groups[group["hash"]].operations.push(operation)
+                    }
+
+                    if (operation["metadata"]["internal_operation_results"] != undefined) {
+                        operation["metadata"]["internal_operation_results"].forEach(function(op) {
+                            if (this.isRelated(op)) {
+                                groups[group["hash"]].operations.push(op)
+                            }
+                        }, this)
+                    }
+                }, this)
+            }, this)
+        },
+        buildBigMapAndParams(groups) {
+            Object.keys(groups).forEach(function(hash) {
+                groups[hash]["operations"].forEach(function(operation) {
+                    if (operation["result"] != undefined) {
+                        operation["status"] = operation["result"]["status"]
+                    } else if (operation["metadata"]["operation_result"] != undefined) {
+                        operation["status"] = operation["metadata"]["operation_result"]["status"];
+                    }
+
+                    if (operation["destination"] == this.address) {
+                        if (operation["metadata"] != undefined) {
+                            let bigMapDiff = operation["metadata"]["operation_result"]["big_map_diff"];
+                            if (bigMapDiff != undefined) {
+                                operation["decodedBigMapDiff"] = bigMapDiffDecode(bigMapDiff, this.resultForStorage)
+                            }
+                        }
+                        if (operation["parameters"] != undefined) {
+                            operation["decodedParameters"] = decode_data(operation["parameters"], this.resultForParameter);
+                        }
+                    }
+                }, this)
+            }, this)
         },
         async buildSchemas(code) {
             code.forEach(function(element) {
@@ -194,72 +258,11 @@ var app = new Vue({
             let res = await axios.get(`${this.baseApiURL}/operations/${this.address}?type=Transaction&p=${this.txInfo.currentPage}`)
             return res.data;
         },
-        rebuildTx(tx) {
-            let operation = tx["type"]["operations"][0]
-            let dateObj = new Date(operation["timestamp"]);
-
-            return {
-                "hash": tx["hash"],
-                "block_hash": tx["block_hash"],
-                "failed": operation["failed"],
-                "src": operation["src"]["tz"],
-                "dst": operation["destination"]["tz"],
-                "amount": operation["amount"],
-                "fee": operation["fee"],
-                "str_parameters": operation["str_parameters"],
-                "internal": operation["internal"],
-                "op_level": operation["op_level"],
-                "decoded_data": null,
-                "time": dateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
-                "date": dateObj.toLocaleString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' })
-            }
-        },
-        moveInternalTxToTemp(data) {
-            for (let i = data.length - 1; i >= 0; i--) {
-                if (data[i]["internal"] == true) {
-                    this.txInfo.tempTxStack.push(data[i])
-                } else {
-                    return data.slice(0, i + 1)
-                }
-            }
-        },
-        buildTxGroups(data) {
-            let res = {};
-            for (let i = 0; i < data.length; i++) {
-                let txHash = data[i]["hash"];
-                if (txHash in res) {
-                    res[txHash].unshift(data[i])
-                } else {
-                    res[txHash] = new Array(data[i])
-                }
-            }
-
-            return res
-        },
-        async buildNodeLinks(groups) {
-            let links = [];
-
-            Object.keys(groups).forEach(function(hash) {
-                let block_hash = groups[hash][0]["block_hash"];
-                links.push(`${this.baseNodeApiURL}/${block_hash}/operations/3`)
-            }, this)
-
-            return links
-        },
-        async getAllNodeData(groups) {
-            let links = await this.buildNodeLinks(groups);
-            let promiseArray = links.map( url => axios.get(url) );
-
-            return axios.all( promiseArray )
-            .then((results) => { 
-                return results.map( el => el.data ).reduce((a, b) => [...a, ...b], [])
-            })
-        },
         formatAddress(address) {
             return address.substr(0,4) + "..." + address.substr(address.length - 4,4)
         },
         formatXTZ(amount) {
-            if (amount == 0) {
+            if (amount == 0 || amount == undefined) {
                 return "0 ꜩ"
             }
             return (amount / Math.pow(10, 6)).toString() + " ꜩ"
@@ -273,49 +276,27 @@ var app = new Vue({
             this.explore()
         },
         async loadMore() {
-            let loader = this.$loading.show({
-                container: this.$refs.formContainer,
-                canCancel: false,
-                color: "#007bff",
-            });
-
+            let loader = this.setupLoader();
+            
+            // move this to getTxData interface
             let data = await this.getTransactionData();
-            let currentTxStack = this.txInfo.tempTxStack;
-
             this.txInfo.currentPage += 1;
+            //
 
-            data = data.map(this.rebuildTx);
+            let levels = this.unique(data.map(this.getLevels));
+            let newLevels = [];
 
-            if (data.length == 20) {
-                this.txInfo.tempTxStack = [];
-                data = this.moveInternalTxToTemp(data);
-            }
-
-            currentTxStack = currentTxStack.concat(data);
-            let newGroups = this.buildTxGroups(currentTxStack);
-
-            Object.keys(newGroups).forEach(function(hash) {
-                (newGroups[hash]).forEach(function(tx) {
-                    let item = {}
-
-                    if (tx["str_parameters"] != undefined) {
-                        item = JSON.parse(tx["str_parameters"]);
-                    }
-
-                    tx["decoded_data"] = decode_data(item, this.resultForParameter);
-                    tx["result"] = null;
-                }, this)
-            }, this);
-
-            let final_data = await this.getAllNodeData(newGroups)
-
-            final_data.forEach(function(node_data) {
-                let big_map_diff = node_data["contents"][0]["metadata"]["operation_result"]["big_map_diff"];
-                
-                if (big_map_diff && (node_data["hash"] in newGroups)) {
-                    newGroups[node_data["hash"]][0]["result"] = bigMapDiffDecode(big_map_diff, this.resultForStorage)
+            levels.forEach(function(level) {
+                if (!this.txInfo.levels.includes(level)) {
+                    newLevels.push(level)
                 }
             }, this)
+
+            let newGroups = this.buildGroups(data);
+            let newOperationGroups = await this.getAllNodeDataByLevels(newLevels);
+
+            this.pushOperationsToGroups(newOperationGroups, newGroups);
+            this.buildBigMapAndParams(newGroups)
 
             this.groups = extend(this.groups, newGroups)
 
