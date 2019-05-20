@@ -59,6 +59,9 @@ var app = new Vue({
         }, {
             net: "alpha",
             address: "KT1Qx7PRNAVHgam1qb2MuJohggnSdHTeBWyc"
+        }, {
+            net: "main",
+            address: "KT1Q1kfbvzteafLvnGz92DGvkdypXfTGfEA3"
         }]
     }),
     computed: {
@@ -108,17 +111,7 @@ var app = new Vue({
             this.decoded_data = decode_data(data, this.resultForStorage);
             this.decoded_schema = decode_schema(this.resultForStorage["collapsed_tree"])
             this.parameterSchema = decode_schema(this.resultForParameter["collapsed_tree"]);
-
-            // move this to getTxData interface
-            this.txInfo.data = await this.getTransactionData();
-
-            this.txInfo.levels = this.unique(this.txInfo.data.map(this.getLevels));
-            this.tezaurus = this.buildTezaurus(this.txInfo.data);
-
-            let operationGroups = await this.getAllNodeDataByLevels(this.txInfo.levels);
-
-            this.groups = this.pushOperationsToGroups(operationGroups);
-            this.buildBigMapAndParams(this.groups)
+            this.groups = await this.buildGroups()
 
             this.isReady = true;
             loader.hide();
@@ -154,14 +147,8 @@ var app = new Vue({
                 color: "#76a34e",
             });
         },
-        unique(arr) {
-            return [...new Set(arr)]
-        },
         isRelated(tx) {
             return (tx["kind"] == "transaction") && ([tx["destination"], tx["source"]].includes(this.address))
-        },
-        getLevels(tx) {
-            return tx["type"]["operations"][0]["op_level"]
         },
         async getAllNodeDataByLevels(levels) {
             let links = await this.buildNodeLinksByBlock(levels);
@@ -200,18 +187,16 @@ var app = new Vue({
 
             return tezaurus
         },
-        badgeClass: function(status) {
-            if (status == "failed") {
-                return "badge-danger"
-            } else if (status == "skipped") {
-                return "badge-warning"
-            } else if (status == "applied") {
-                return "badge-success"
-            } else if (status == "backtracked") {
-                return "badge-primary"
-            }
+        removeDuplicates(tezaurus) {
+            let res = {}
 
-            return "badge-secondary"
+            Object.keys(tezaurus).forEach(function(level) {
+                if (!(level in this.tezaurus)) {
+                    res[level] = tezaurus[level];
+                }
+            }, this);
+
+            return res
         },
         pushOperationsToGroups(operationGroups) {
             let groups = {};
@@ -258,6 +243,20 @@ var app = new Vue({
 
             return groups;
         },
+        async buildGroups() {
+            let data = await this.getTransactionData();
+            let tezaurus = this.buildTezaurus(data);
+            tezaurus = this.removeDuplicates(tezaurus);
+            let levels = Object.keys(tezaurus).sort(function(a, b){return b-a});
+
+            let operationGroups = await this.getAllNodeDataByLevels(levels);
+            this.tezaurus = extend(this.tezaurus, tezaurus);
+
+            let groups = this.pushOperationsToGroups(operationGroups);
+            this.buildBigMapAndParams(groups);
+
+            return groups
+        },
         buildBigMapAndParams(groups) {
             Object.keys(groups).forEach(function(hash) {
                 groups[hash]["operations"].forEach(function(operation) {
@@ -303,6 +302,19 @@ var app = new Vue({
 
             return res.data;
         },
+        badgeClass: function(status) {
+            if (status == "failed") {
+                return "badge-danger"
+            } else if (status == "skipped") {
+                return "badge-warning"
+            } else if (status == "applied") {
+                return "badge-success"
+            } else if (status == "backtracked") {
+                return "badge-primary"
+            }
+
+            return "badge-secondary"
+        },
         formatAddress(address) {
             return address.substr(0,4) + "..." + address.substr(address.length - 4,4)
         },
@@ -323,26 +335,7 @@ var app = new Vue({
         async loadMore() {
             let loader = this.setupLoader();
 
-            // move this to getTxData interface
-            let data = await this.getTransactionData();
-
-            let levels = this.unique(data.map(this.getLevels));
-            let newTezaurus = this.buildTezaurus(data);
-            this.tezaurus = extend(this.tezaurus, newTezaurus);
-
-            let newLevels = [];
-
-            levels.forEach(function(level) {
-                if (!this.txInfo.levels.includes(level)) {
-                    newLevels.push(level)
-                    this.txInfo.levels.push(level)
-                }
-            }, this)
-
-            let newOperationGroups = await this.getAllNodeDataByLevels(newLevels);
-            newGroups = this.pushOperationsToGroups(newOperationGroups);
-            this.buildBigMapAndParams(newGroups)
-
+            newGroups = await this.buildGroups()
             this.groups = extend(this.groups, newGroups)
 
             this.activetab = 2;
@@ -406,12 +399,12 @@ class Nested extends Object {}
 class Route extends Object {}
 
 function getAnnotation(x, prefix, def=undefined) {
-    let ret = []
+    let ret = [];
 
     if (x["annots"]) {
         x["annots"].forEach(function(a) {
             if (a[0] == prefix) {
-                ret.push(a.slice(1, a.length))
+                ret.push(a.slice(1, a.length));
             }
         })
     }
@@ -420,15 +413,15 @@ function getAnnotation(x, prefix, def=undefined) {
 }
 
 function buildSchema(code) {
-    let type_map = {}
+    let type_map = {};
 
     function parseNode(node, path="0", parent_prim=undefined) {
         if (["storage", "parameter"].includes(node["prim"])) {
-            return parseNode(node['args'][0])
+            return parseNode(node['args'][0]);
         }
 
-        type_map[path] = {"prim": node['prim']}
-        let typename = getAnnotation(node, ':')
+        type_map[path] = {"prim": node['prim']};
+        let typename = getAnnotation(node, ':');
 
         let args = [];
         let nodeArgs = node["args"];
@@ -556,7 +549,7 @@ function decode_data(data, schema, annotations=true, literals=true, rootNode='0'
                     res[elt[0]] = elt[1]
                 });
             } else {
-                args = [];
+                let args = [];
 
                 node.forEach(function (item) {
                     args.push(decode_node(item, path + "0"))
