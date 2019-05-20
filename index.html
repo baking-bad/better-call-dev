@@ -68,6 +68,10 @@
 
             </div>
 
+            <div class="col-lg-12 mb-3 text-center" v-if="notFound">
+                <img width="300" src="https://i.pinimg.com/originals/ed/a4/d6/eda4d64864873b5ee6ef4abe1700cf50.jpg">
+            </div>
+
             <div class="col-lg-12 mb-3" v-if="isReady">
                 <div id="tabs">
                     <div class="tabs">
@@ -102,7 +106,7 @@
                                                 <mark
                                                     v-if="address == tx.destination">{{ formatAddress(tx.destination) }}</mark>
                                                 <a v-else-if="tx.destination[0] == 'K'" target="_blank"
-                                                    :href="baseAppURL + tx.destination">
+                                                    :href="baseAppURL + tezosNet + ':' + tx.destination">
                                                     {{ formatAddress(tx.destination) }}
                                                 </a>
                                                 <span v-else>{{ formatAddress(tx.destination) }}</span>
@@ -129,7 +133,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div v-if="txInfo.currentPage != txInfo.maxPages" class="row styled-row">
+                                <div v-if="this.txInfo.morePages" class="row styled-row">
                                     <div class="col-lg-12 text-center mb-3">
                                         <button type="button" class="btn btn-link" @click="loadMore">Load More</button>
                                     </div>

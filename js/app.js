@@ -11,18 +11,20 @@ var app = new Vue({
         tezosNet: "alpha",
         activetab: 1,
         isReady: false,
+        notFound: false,
         resultForParameter: {},
         resultForStorage: {},
         decoded_data: {},
         decoded_schema: {},
         parameterSchema: {},
         txInfo: {
-            maxPages: 0,
+            morePages: false,
             currentPage: 0,
             data: [],
             levels: []
         },
-        groups: {},   
+        groups: {},  
+        tezaurus: {}, 
         baseAppURL: "https://baking-bad.github.io/better-call-dev/#",
         demoAddresses: [{
             net: "alpha",
@@ -69,9 +71,9 @@ var app = new Vue({
         },
         baseNodeApiURL: function() {
             if (this.tezosNet === "main") {
-                return "https://mainnet-node.tzscan.io/chains/main/blocks"
+                return "https://rpc.tezrpc.me/chains/main/blocks"
             } else {
-                return "https://alphanet-node.tzscan.io/chains/main/blocks"
+                return "https://alphanet.tezrpc.me/chains/main/blocks"
             }
         }
     },
@@ -87,32 +89,35 @@ var app = new Vue({
         async explore() {
             await this.initApp();
 
-            window.location.hash = `#${this.tezosNet}:${this.address}`
+            window.location.hash = `#${this.tezosNet}:${this.address}`;
 
-            let loader = this.setupLoader()
+            let loader = this.setupLoader();
 
             let contractsData = await this.getContractsData();
+            if (contractsData == undefined) {
+                this.notFound = true;
+                loader.hide();
+                return
+            }
+            
             let code = contractsData["script"]["code"];
             let data = contractsData["script"]["storage"];
 
-            await this.buildSchemas(code)
+            await this.buildSchemas(code);
 
             this.decoded_data = decode_data(data, this.resultForStorage);
             this.decoded_schema = decode_schema(this.resultForStorage["collapsed_tree"])
             this.parameterSchema = decode_schema(this.resultForParameter["collapsed_tree"]);
 
             // move this to getTxData interface
-            this.txInfo.maxPages = Math.ceil(await this.getPages() / 20);
             this.txInfo.data = await this.getTransactionData();
-            this.txInfo.currentPage += 1;
-            //
 
-            this.groups = this.buildGroups(this.txInfo.data);
             this.txInfo.levels = this.unique(this.txInfo.data.map(this.getLevels));
+            this.tezaurus = this.buildTezaurus(this.txInfo.data);
 
             let operationGroups = await this.getAllNodeDataByLevels(this.txInfo.levels);
 
-            this.pushOperationsToGroups(operationGroups, this.groups);
+            this.groups = this.pushOperationsToGroups(operationGroups);
             this.buildBigMapAndParams(this.groups)
 
             this.isReady = true;
@@ -120,21 +125,27 @@ var app = new Vue({
         },
         async initApp() {
             this.isReady = false;
+            this.notFound = false;
             this.decoded_data = {};
             this.decoded_schema = {};
             this.parameterSchema = {};
             this.resultForParameter = {},
             this.resultForStorage = {},
             this.activetab = 1;
-            this.txInfo.maxPages = 0;
+            this.txInfo.morePages = false;
             this.txInfo.currentPage = 0;
             this.txInfo.data = [];
             this.txInfo.levels = [];
             this.groups = {};
+            this.tezaurus = {};
         },
         async getContractsData() {
-            let res = await axios.get(`${this.baseNodeApiURL}/head/context/contracts/${this.address}`)
-            return res.data;
+            let res = {}
+            await axios
+                .get(`${this.baseNodeApiURL}/head/context/contracts/${this.address}`)
+                .then((response) => { res = response.data })
+                .catch((error) => { res = undefined });
+            return res
         },
         setupLoader() {
             return this.$loading.show({
@@ -156,10 +167,19 @@ var app = new Vue({
             let links = await this.buildNodeLinksByBlock(levels);
             let promiseArray = links.map( url => axios.get(url) );
 
-            return axios.all( promiseArray )
-            .then((results) => {
-                return results.map( el => el.data ).reduce((a, b) => [...a, ...b], [])
-            })
+            let res = [];
+
+            await axios.all( promiseArray )
+            .then(axios.spread((...args) => {
+                for (let i = 0; i < args.length; i++) {
+                    args[i].data.forEach((opGroup) => {
+                        opGroup["level"] = levels[i]
+                        res.push(opGroup)
+                    })
+                }
+            }))
+
+            return res
         },
         async buildNodeLinksByBlock(levels) {
             let links = [];
@@ -170,22 +190,15 @@ var app = new Vue({
 
             return links
         },
-        buildGroups(transactions) {
-            groups = {}
+        buildTezaurus(transactions) {
+            tezaurus = {}
 
             transactions.forEach(function(tx) {
                 let operation = tx["type"]["operations"][0]
-                let dateObj = new Date(operation["timestamp"]);
-
-                groups[tx["hash"]] = {
-                    "time": dateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
-                    "date": dateObj.toLocaleString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' }),
-                    "level": operation["op_level"],
-                    "operations": [],
-                }
+                tezaurus[operation["op_level"]] = operation["timestamp"];
             })
 
-            return groups
+            return tezaurus
         },
         badgeClass: function(status) {
             if (status == "failed") {
@@ -200,22 +213,50 @@ var app = new Vue({
 
             return "badge-secondary"
         },
-        pushOperationsToGroups(operationGroups, groups) {
+        pushOperationsToGroups(operationGroups) {
+            let groups = {};
+
             operationGroups.forEach(function(group) {
+                let operations = [];
+                let weFound = false;
+
                 group["contents"].forEach(function(operation) {
+                    if (operation["kind"] == "transaction") {
+                        operations.push(operation);
+                    }
+
                     if (this.isRelated(operation)) {
-                        groups[group["hash"]].operations.push(operation)
+                        weFound = true;
                     }
 
                     if (operation["metadata"]["internal_operation_results"] != undefined) {
                         operation["metadata"]["internal_operation_results"].forEach(function(op) {
+                            if (op["kind"] == "transaction") {
+                                operations.push(op);
+                            }
+
                             if (this.isRelated(op)) {
-                                groups[group["hash"]].operations.push(op)
+                                weFound = true;
                             }
                         }, this)
                     }
                 }, this)
+
+                if (weFound) {
+                    let groupHash = group["hash"];
+                    let level = group["level"];
+                    let dateObj = new Date(this.tezaurus[level]);
+
+                    groups[groupHash] = {
+                        operations: operations,
+                        level: level,
+                        date: dateObj.toLocaleString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' }),
+                        time: dateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+                    }
+                }
             }, this)
+
+            return groups;
         },
         buildBigMapAndParams(groups) {
             Object.keys(groups).forEach(function(hash) {
@@ -255,7 +296,11 @@ var app = new Vue({
             return res.data;
         },
         async getTransactionData() {
-            let res = await axios.get(`${this.baseApiURL}/operations/${this.address}?type=Transaction&p=${this.txInfo.currentPage}`)
+            let res = await axios.get(`${this.baseApiURL}/operations/${this.address}?type=Transaction&number=10&p=${this.txInfo.currentPage}`)
+            
+            this.txInfo.morePages = (res.data.length === 10)
+            this.txInfo.currentPage += 1;
+
             return res.data;
         },
         formatAddress(address) {
@@ -277,25 +322,25 @@ var app = new Vue({
         },
         async loadMore() {
             let loader = this.setupLoader();
-            
+
             // move this to getTxData interface
             let data = await this.getTransactionData();
-            this.txInfo.currentPage += 1;
-            //
 
             let levels = this.unique(data.map(this.getLevels));
+            let newTezaurus = this.buildTezaurus(data);
+            this.tezaurus = extend(this.tezaurus, newTezaurus);
+
             let newLevels = [];
 
             levels.forEach(function(level) {
                 if (!this.txInfo.levels.includes(level)) {
                     newLevels.push(level)
+                    this.txInfo.levels.push(level)
                 }
             }, this)
 
-            let newGroups = this.buildGroups(data);
             let newOperationGroups = await this.getAllNodeDataByLevels(newLevels);
-
-            this.pushOperationsToGroups(newOperationGroups, newGroups);
+            newGroups = this.pushOperationsToGroups(newOperationGroups);
             this.buildBigMapAndParams(newGroups)
 
             this.groups = extend(this.groups, newGroups)
