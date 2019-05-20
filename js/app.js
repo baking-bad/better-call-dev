@@ -422,6 +422,7 @@ function buildSchema(code) {
 
         type_map[path] = {"prim": node['prim']};
         let typename = getAnnotation(node, ':');
+        let name = getAnnotation(node, '%', typename);
 
         let args = [];
         let nodeArgs = node["args"];
@@ -458,13 +459,15 @@ function buildSchema(code) {
             } else {
                 return res;
             }
+        } else if ((node["prim"] == "option") && (name == undefined)) {
+            name = args[0]["name"];
         }
 
         return {
             "prim": node["prim"],
             "path": path,
             "args": args,
-            "name": getAnnotation(node, "%", typename)
+            "name": name
         }
     }
 
@@ -647,6 +650,10 @@ function decode_schema(collapsed_tree) {
             var res = {}
             res[decode_node(node['args'][0])] = decode_node(node['args'][1]);
             return res
+        }
+
+        if (node["prim"] == "option") {
+            return decode_node(node["args"][0]);
         }
 
         return `#${node["prim"]}`
