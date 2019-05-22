@@ -111,6 +111,7 @@ export default {
       let item = this.demoAddresses[pick];
 
       this.localAddress = item["address"];
+      this.localNet = item["net"];
       this.$emit("demo", item);
     },
     explore() {
