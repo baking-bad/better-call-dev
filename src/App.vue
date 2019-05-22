@@ -4,7 +4,14 @@
     <b-container>
       <Loader :status="isLoading"/>
       <b-row>
-        <SearchForm :address="address" :tezosNet="tezosNet" @explore="explore" @demo="demo"/>
+        <SearchForm
+          :address="address"
+          :tezosNet="tezosNet"
+          @update="updateAddress"
+          @updateNet="updateNet"
+          @explore="explore"
+          @demo="demo"
+        />
         <NotFound :status="notFound"/>
         <Results
           :address="address"
@@ -60,58 +67,7 @@ export default {
       data: []
     },
     groups: {},
-    tezaurus: {},
-    baseAppURL: "https://baking-bad.github.io/better-call-dev/#",
-    demoAddresses: [
-      {
-        net: "alpha",
-        address: "KT1SufMDx6d2tuVe3n6tSYUBNjtV9GgaLgtV"
-      },
-      {
-        net: "alpha",
-        address: "KT1FU74GimCeEVRAEZGURb6TWU8jK1N6zFJy"
-      },
-      {
-        net: "alpha",
-        address: "KT19iGCL4YrVpT6ezEzbDH37Yxbas8jWQz4s"
-      },
-      {
-        net: "alpha",
-        address: "KT1QiAJocHUKYN29BegaCnCaSQ9FT2ZXGfuJ"
-      },
-      {
-        net: "alpha",
-        address: "KT1HnvV5Z53naoh51jYvPF7w168nW8nfyx5v"
-      },
-      {
-        net: "alpha",
-        address: "KT19yAMFum5MmD99kusQiCBGpTEVC1B52f9Q"
-      },
-      {
-        net: "alpha",
-        address: "KT1Sefu81jFomBUTiJgK6VvCyY5rGrkhPszt"
-      },
-      {
-        net: "alpha",
-        address: "KT1TpKkwKzGwMrWrGnPp9KixhraD2dtE5wE5"
-      },
-      {
-        net: "alpha",
-        address: "KT1P3j1VonQytW3b2SzCnGVpjdf3oWajM79E"
-      },
-      {
-        net: "alpha",
-        address: "KT1XtauF2tnmAKBzbLA2gNoMji9zSzSyYq9w"
-      },
-      {
-        net: "alpha",
-        address: "KT1Qx7PRNAVHgam1qb2MuJohggnSdHTeBWyc"
-      },
-      {
-        net: "main",
-        address: "KT1Q1kfbvzteafLvnGz92DGvkdypXfTGfEA3"
-      }
-    ]
+    tezaurus: {}
   }),
   computed: {
     baseApiURL() {
@@ -127,7 +83,7 @@ export default {
       return "https://alphanet.tezrpc.me/chains/main/blocks";
     }
   },
-  mounted() {
+  beforeMount() {
     if (window.location.hash) {
       const params = window.location.hash.substring(1).split(":");
       this.tezosNet = params[0];
@@ -180,6 +136,12 @@ export default {
       this.txInfo.data = [];
       this.groups = {};
       this.tezaurus = {};
+    },
+    updateNet(value) {
+      this.tezosNet = value;
+    },
+    updateAddress(value) {
+      this.address = value;
     },
     async getContractsData() {
       let res = {};
@@ -366,10 +328,7 @@ export default {
 
       return res.data;
     },
-    demo() {
-      const pick = randomInteger(0, this.demoAddresses.length - 1);
-      const item = this.demoAddresses[pick];
-
+    demo(item) {
       this.tezosNet = item.net;
       this.address = item.address;
       this.explore();
@@ -387,12 +346,6 @@ export default {
     }
   }
 };
-
-function randomInteger(min, max) {
-  let rand = min + Math.random() * (max + 1 - min);
-  rand = Math.floor(rand);
-  return rand;
-}
 
 function get_flat_nested(nested) {
   let flat_args = [];
