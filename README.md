@@ -5,7 +5,7 @@
 Yet another Tezos explorer created specifically for smart contract developers.  
 Try it at https://baking-bad.github.io/better-call-dev/
 
-[![Better Call Dev](https://i.imgflip.com/30gi1v.jpg?)](https://baking-bad.github.io/better-call-dev/)
+[![Better Call Dev](https://i.imgflip.com/30gi1v.jpg?)](https://baking-bad.github.io/better-call-dev/dist/index.html)
 
 ### No more nested data structures
 (Pair (Pair)) is a Tuple, (Or (Or)) is an Enum.
