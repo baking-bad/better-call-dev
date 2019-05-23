@@ -10,56 +10,24 @@
       <div class="content">
         <div v-if="activetab === 1" class="tabcontent">
           <b-container>
-            <b-row class="styled-row" v-for="group in groups" :key="group.level">
-              <b-col lg="1">
-                <div class="info-block">
-                  <div class="one-four-six">{{ group.level }}</div>
-                  <div>{{ group.date }}</div>
-                  <div>{{ group.time }}</div>
-                </div>
+            <b-row class="styled-row" v-for="(group, hash) in groups" :key="group.level">
+              <b-col lg="2">
+                <GroupInfo :group="group" :hash="hash"/>
               </b-col>
-              <b-col lg="11" class="mb-3">
+              <b-col lg="10" class="mb-3">
                 <b-row v-for="tx in group['operations']" :key="tx.hash">
-                  <b-col lg="6">
-                    <mark v-if="address == tx.source">{{ formatAddress(tx.source) }}</mark>
-                    <a
-                      v-else-if="tx.source.substring(0,3) == 'KT'"
-                      target="_blank"
-                      :href="baseAppURL + tx.source"
-                    >{{ formatAddress(tx.source) }}</a>
-                    <span v-else>{{ formatAddress(tx.source) }}</span>
-
-                    <span style="font-size: 90%;">&nbsp;⟶&nbsp;</span>
-
-                    <mark v-if="address == tx.destination">{{ formatAddress(tx.destination) }}</mark>
-                    <a
-                      v-else-if="tx.destination[0] == 'K'"
-                      target="_blank"
-                      :href="baseAppURL + tezosNet + ':' + tx.destination"
-                    >{{ formatAddress(tx.destination) }}</a>
-                    <span v-else>{{ formatAddress(tx.destination) }}</span>
-                    <span style="font-size: 90%;">&nbsp;for</span>
-                    {{ formatXTZ(tx.amount) }}
-                    <span style="font-size: 90%;">with</span>
-                    {{ formatXTZ(tx.fee) }}
-                    <span
-                      style="font-size: 90%;"
-                    >fee&nbsp;</span>
-                    <span v-if="tx.status" :class="'badge ' + badgeClass(tx.status)">{{ tx.status }}</span>
-                    <br>
-                    <div style="font-size: 75%;">
-                      parameters
-                      <br>
-                      <JsonView :data="tx.decodedParameters"/>
-                    </div>
-                    <br>
-                  </b-col>
-                  <b-col lg="6" style="font-size: 75%;">
+                  <TxInfo
+                    :tx="tx"
+                    :gasLimit="group.gasLimit"
+                    :address="address"
+                    :tezosNet="tezosNet"
+                  />
+                  <!-- <b-col lg="6" style="font-size: 75%;">
                     <br>
                     <br>big_map_diff
                     <br>
                     <JsonView :data="tx.decodedBigMapDiff"/>
-                  </b-col>
+                  </b-col>-->
                 </b-row>
               </b-col>
             </b-row>
@@ -104,15 +72,16 @@
 
 <script>
 import JsonView from "./JsonView.vue";
+import GroupInfo from "./GroupInfo.vue";
+import TxInfo from "./TxInfo.vue";
 
 export default {
   name: "Results",
   components: {
-    JsonView
+    JsonView,
+    GroupInfo,
+    TxInfo
   },
-  data: () => ({
-    baseAppURL: "https://baking-bad.github.io/better-call-dev/#"
-  }),
   props: {
     address: String,
     tezosNet: String,
@@ -130,34 +99,6 @@ export default {
     },
     tab(value) {
       this.$emit("changeTab", value);
-    },
-    formatAddress(address) {
-      return `${address.substr(0, 4)}...${address.substr(
-        address.length - 4,
-        4
-      )}`;
-    },
-    formatXTZ(amount) {
-      if (amount == 0 || amount == undefined) {
-        return "0 ꜩ";
-      }
-      return `${(amount / Math.pow(10, 6)).toString()} ꜩ`;
-    },
-    badgeClass(status) {
-      if (status == "failed") {
-        return "badge-danger";
-      }
-      if (status == "skipped") {
-        return "badge-warning";
-      }
-      if (status == "applied") {
-        return "badge-success";
-      }
-      if (status == "backtracked") {
-        return "badge-primary";
-      }
-
-      return "badge-secondary";
     }
   }
 };
@@ -209,13 +150,6 @@ export default {
   border: 1px solid #ccc;
   border-bottom: none;
   box-shadow: 3px 3px 6px #e1e1e1;
-}
-
-.info-block {
-  font-size: 80%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
 .one-four-six {

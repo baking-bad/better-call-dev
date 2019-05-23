@@ -1,4 +1,5 @@
 # Better Call Dev
+[![Build Status](https://travis-ci.org/baking-bad/better-call-dev.svg?branch=master)](https://travis-ci.org/baking-bad/better-call-dev)
 [![Made With: Vue.js](https://img.shields.io/badge/vue-2.6.10-green.svg?)](https://vuejs.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
