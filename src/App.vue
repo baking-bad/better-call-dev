@@ -113,9 +113,7 @@ export default {
 
       this.decoded_data = decode_data(data, this.resultForStorage);
       this.decoded_schema = decode_schema(this.resultForStorage.collapsed_tree);
-      this.parameterSchema = decode_schema(
-        this.resultForParameter.collapsed_tree
-      );
+      this.parameterSchema = decode_schema(this.resultForParameter.collapsed_tree);
       this.groups = await this.buildGroups();
 
       this.isReady = true;
@@ -156,10 +154,7 @@ export default {
       return res;
     },
     isRelated(tx) {
-      return (
-        tx.kind === "transaction" &&
-        [tx.destination, tx.source].includes(this.address)
-      );
+      return tx.kind === "transaction" && [tx.destination, tx.source].includes(this.address);
     },
     async getAllNodeDataByLevels(levels) {
       const links = await this.buildNodeLinksByBlock(levels);
@@ -229,6 +224,7 @@ export default {
           if (operation.metadata.internal_operation_results != undefined) {
             operation.metadata.internal_operation_results.forEach(function(op) {
               if (op.kind === "transaction") {
+                op["internal"] = true;
                 operations.push(op);
               }
 
@@ -247,6 +243,9 @@ export default {
           groups[groupHash] = {
             operations,
             level,
+            fee: operations[0]["fee"],
+            gasLimit: operations[0]["gas_limit"],
+            storageLimit: operations[0]["storage_limit"],
             date: dateObj.toLocaleString("en-GB", {
               day: "numeric",
               month: "short",
@@ -281,19 +280,19 @@ export default {
         groups[hash].operations.forEach(function(operation) {
           if (operation.result != undefined) {
             operation.status = operation.result.status;
+            operation.consumedGas = operation.result.consumed_gas;
+            operation.paidStorageDiff = operation.result.paid_storage_size_diff;
           } else if (operation.metadata.operation_result != undefined) {
             operation.status = operation.metadata.operation_result.status;
+            operation.consumedGas = operation.metadata.operation_result.consumed_gas;
+            operation.paidStorageDiff = operation.metadata.operation_result.paid_storage_size_diff;
           }
 
           if (operation.destination === this.address) {
             if (operation.metadata != undefined) {
-              const bigMapDiff =
-                operation.metadata.operation_result.big_map_diff;
+              const bigMapDiff = operation.metadata.operation_result.big_map_diff;
               if (bigMapDiff != undefined) {
-                operation.decodedBigMapDiff = bigMapDiffDecode(
-                  bigMapDiff,
-                  this.resultForStorage
-                );
+                operation.decodedBigMapDiff = bigMapDiffDecode(bigMapDiff, this.resultForStorage);
               }
             }
             if (operation.parameters != undefined) {
@@ -318,9 +317,9 @@ export default {
     },
     async getTransactionData() {
       const res = await axios.get(
-        `${this.baseApiURL}/operations/${
-          this.address
-        }?type=Transaction&number=10&p=${this.txInfo.currentPage}`
+        `${this.baseApiURL}/operations/${this.address}?type=Transaction&number=10&p=${
+          this.txInfo.currentPage
+        }`
       );
 
       this.txInfo.morePages = res.data.length === 10;
@@ -464,13 +463,7 @@ function buildSchema(code) {
   };
 }
 
-function decode_data(
-  data,
-  schema,
-  annotations = true,
-  literals = true,
-  rootNode = "0"
-) {
+function decode_data(data, schema, annotations = true, literals = true, rootNode = "0") {
   function decode_node(node, path = "0") {
     let res = {};
     let type_info = {};
