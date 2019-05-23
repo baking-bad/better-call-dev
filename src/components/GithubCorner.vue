@@ -37,6 +37,11 @@ export default {
 </script>
 
 <style scoped>
+.github-corner {
+  display: block;
+  z-index: 10;
+}
+
 .github-corner:hover .octo-arm {
   animation: octocat-wave 560ms ease-in-out;
 }

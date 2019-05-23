@@ -100,7 +100,7 @@ export default {
       this.isLoading = true;
 
       const contractsData = await this.getContractsData();
-      if (contractsData == undefined) {
+      if (contractsData === undefined) {
         this.notFound = true;
         this.isLoading = false;
         return;
@@ -394,7 +394,7 @@ function getAnnotation(x, prefix, def = undefined) {
 
   if (x.annots) {
     x.annots.forEach(a => {
-      if (a[0] == prefix) {
+      if (a[0] === prefix) {
         ret.push(a.slice(1, a.length));
       }
     });
@@ -445,7 +445,7 @@ function buildSchema(code) {
       } else {
         return res;
       }
-    } else if (node.prim == "option" && name == undefined) {
+    } else if (node.prim === "option" && name === undefined) {
       name = args[0].name;
     }
 
@@ -508,7 +508,7 @@ function decode_data(
           }
         }
       } else if (["Left", "Right"].includes(node.prim)) {
-        const arg_path = path + (node.prim == "Left" ? "0" : "1");
+        const arg_path = path + (node.prim === "Left" ? "0" : "1");
         res = new Route();
         res.path = arg_path;
         res.value = decode_node(node.args[0], arg_path);
@@ -516,7 +516,7 @@ function decode_data(
         if (type_info.children != undefined) {
           const terminal = get_route_terminal(res);
 
-          if (type_info.props != undefined && annotations == true) {
+          if (type_info.props != undefined && annotations === true) {
             const index = type_info.children.indexOf(terminal.path);
             res = {};
             res[type_info.props[index]] = terminal.value;
@@ -524,11 +524,11 @@ function decode_data(
             res = terminal.value;
           }
         }
-      } else if (node.prim == "Elt") {
+      } else if (node.prim === "Elt") {
         res = args;
-      } else if (node.prim == "Some") {
+      } else if (node.prim === "Some") {
         res = args[0];
-      } else if (node.prim == "None") {
+      } else if (node.prim === "None") {
         res = undefined;
       } else if (literals) {
         res = decode_literal(node, type_info.prim);
@@ -549,9 +549,9 @@ function decode_data(
           args.push(decode_node(item, `${path}0`));
         });
 
-        if (type_info.prim == "set") {
+        if (type_info.prim === "set") {
           res = args.filter(onlyUnique);
-        } else if (type_info.prim == "list") {
+        } else if (type_info.prim === "list") {
           res = args;
         } else {
           // eslint-disable-next-line
@@ -579,18 +579,25 @@ function decode_literal(node, prim) {
     return parseInt(value);
   }
 
-  if (prim == "timestamp") {
-    const ts = parseInt(value) * 1000;
-    const date = new Date(ts);
-    return date.toLocaleString("en-GB");
+  if (prim === "timestamp") {
+    let date;
+
+    if (core_type === "string") {
+      date = new Date(value);
+    } else {
+      let ts = parseInt(value) * 1000;
+      date = new Date(ts);
+    }
+
+    return date.toLocaleString("en-GB", { timeZone: "GMT" });
   }
-  if (prim == "mutez") {
+  if (prim === "mutez") {
     return (parseInt(value) / Math.pow(10, 6)).toFixed(6);
   }
-  if (prim == "bool") {
-    return value == true;
+  if (prim === "bool") {
+    return value === true;
   }
-  if (prim == "address" && core_type == "bytes") {
+  if (prim === "address" && core_type === "bytes") {
     // eslint-disable-next-line
     console.log("Houston we have a problem: ", prim, core_type, value);
     return value;
@@ -601,7 +608,7 @@ function decode_literal(node, prim) {
 
 function decode_schema(collapsed_tree) {
   function decode_node(node) {
-    if (node.prim == "or") {
+    if (node.prim === "or") {
       var res = {};
 
       node.args.forEach((arg, i) => {
@@ -615,13 +622,13 @@ function decode_schema(collapsed_tree) {
       return res;
     }
 
-    if (node.prim == "pair") {
+    if (node.prim === "pair") {
       let flag = false;
       const values = [];
       let res = {};
 
       node.args.forEach(arg => {
-        if (arg.name == undefined) {
+        if (arg.name === undefined) {
           flag = true;
         }
 
@@ -634,11 +641,11 @@ function decode_schema(collapsed_tree) {
       return flag ? values : res;
     }
 
-    if (node.prim == "set") {
+    if (node.prim === "set") {
       return [decode_node(node.args[0])];
     }
 
-    if (node.prim == "list") {
+    if (node.prim === "list") {
       return [decode_node(node.args[0])];
     }
 
@@ -648,7 +655,7 @@ function decode_schema(collapsed_tree) {
       return res;
     }
 
-    if (node.prim == "option") {
+    if (node.prim === "option") {
       return decode_node(node.args[0]);
     }
 
@@ -661,7 +668,7 @@ function decode_schema(collapsed_tree) {
 function getBigMapSchema(typeMap) {
   const res = {};
   Object.keys(typeMap).forEach(key => {
-    if (typeMap[key].prim == "big_map") {
+    if (typeMap[key].prim === "big_map") {
       res.key_path = `${key.toString()}0`;
       res.val_path = `${key.toString()}1`;
     }
