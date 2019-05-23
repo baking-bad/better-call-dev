@@ -1,5 +1,5 @@
 <template>
-  <b-col lg="12" class="mt-3">
+  <b-col lg="6" class="mt-3">
     <b-form-group>
       <b-form-radio-group
         id="radio-group"
