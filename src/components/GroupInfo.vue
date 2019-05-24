@@ -1,25 +1,28 @@
 <template>
   <div class="info-block">
-    <code>{{ formatAddress(hash) }}</code>
+    <code class="hash-address">{{ formatAddress(hash) }}</code>
     <div>{{ group.date }}, {{ group.time }}</div>
     <br>
     <div align-h="start">
-      <div>
+      <span v-b-tooltip.hover title="Block" placement="topleft">
         <font-awesome-icon icon="cube"/>
         {{ group.level }}
-      </div>
-      <div>
+      </span>
+      <br>
+      <span v-b-tooltip.hover title="Fee">
         <font-awesome-icon icon="receipt"/>
         {{ formatXTZ(group.fee) }}
-      </div>
-      <div>
+      </span>
+      <br>
+      <span v-b-tooltip.hover title="Gas Limit">
         <font-awesome-icon icon="burn"/>
         {{ group.gasLimit }}
-      </div>
-      <div>
+      </span>
+      <br>
+      <span v-b-tooltip.hover title="Storage Limit">
         <font-awesome-icon icon="database"/>
         {{ group.storageLimit }}
-      </div>
+      </span>
     </div>
   </div>
 </template>
@@ -53,12 +56,16 @@ export default {
 </script>
 
 <style scoped>
+.hash-address {
+  font-size: 14px;
+}
 .info-block {
-  font-size: 80%;
+  font-size: 75%;
   display: flex;
   flex-direction: column;
   align-items: left;
   margin-bottom: 15px;
+  margin-left: 10px;
 }
 
 code {

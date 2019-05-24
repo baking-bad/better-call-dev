@@ -1,6 +1,5 @@
 <template>
   <b-col lg="12">
-    <span style="font-family: Arial" v-if="tx.internal === true">⤷&nbsp;&nbsp;</span>
     <code>
       <mark v-if="address == tx.source">{{ formatAddress(tx.source) }}</mark>
       <a
@@ -27,15 +26,16 @@
       v-if="tx.status"
       :class="'badge badge-outline ' + badgeClass(tx.status)"
     >{{ tx.status }}</span>
-    <span v-if="tx.amount != 0">
+    &nbsp;&nbsp;
+    <span class="add-info" v-if="tx.amount != 0">
       <font-awesome-icon icon="receipt"/>
       {{ formatXTZ(tx.amount) }}
     </span>
-    <span v-if="tx.consumedGas">
+    <span class="add-info" v-if="tx.consumedGas">
       <font-awesome-icon icon="burn"/>
       {{ tx.consumedGas }} ({{spentPercent(tx.consumedGas)}})
     </span>
-    <span v-if="tx.paidStorageDiff">
+    <span class="add-info" v-if="tx.paidStorageDiff">
       <font-awesome-icon icon="database"/>
       {{ tx.paidStorageDiff }}
     </span>
@@ -107,6 +107,14 @@ export default {
 </script>
 
 <style scoped>
+.add-info {
+  font-size: 75%;
+}
+
+mark {
+  padding: 0;
+}
+
 code {
   color: rgb(42, 42, 42);
 }
