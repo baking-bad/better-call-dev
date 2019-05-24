@@ -152,10 +152,6 @@ export default {
   box-shadow: 3px 3px 6px #e1e1e1;
 }
 
-.one-four-six {
-  font-size: 146%;
-}
-
 .storage-tab,
 .parameters-tab {
   padding: 30px;
