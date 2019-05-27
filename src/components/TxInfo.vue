@@ -21,35 +21,37 @@
       >{{ formatAddress(tx.destination) }}</a>
       <span v-else>{{ formatAddress(tx.destination) }}</span>
     </code>
-    &nbsp;
     <span
       v-if="tx.status"
-      :class="'badge badge-outline ' + badgeClass(tx.status)"
+      :class="'ml-3 mr-3 badge badge-outline ' + badgeClass(tx.status)"
     >{{ tx.status }}</span>
-    &nbsp;&nbsp;
-    <span class="add-info" v-if="tx.amount != 0">
+    <span class="add-info mr-2" v-if="tx.amount != 0" v-b-tooltip.hover title="Fee">
       <font-awesome-icon icon="receipt"/>
       {{ formatXTZ(tx.amount) }}
     </span>
-    <span class="add-info" v-if="tx.consumedGas">
+    <span class="add-info mr-2" v-if="tx.consumedGas" v-b-tooltip.hover title="Consumed Gas">
       <font-awesome-icon icon="burn"/>
       {{ tx.consumedGas }} ({{spentPercent(tx.consumedGas)}})
     </span>
-    <span class="add-info" v-if="tx.paidStorageDiff">
+    <span class="add-info" v-if="tx.paidStorageDiff" v-b-tooltip.hover title="Paid Storage Diff">
       <font-awesome-icon icon="database"/>
       {{ tx.paidStorageDiff }}
     </span>
     <br>
     <div style="font-size: 75%;" v-if="tx.decodedParameters != null">
-      parameters
-      <br>
       <JsonView :data="tx.decodedParameters"/>
     </div>
     <br>
+    <vue-json-compare
+      :oldData="tx.storage"
+      :newData="tx.decodedBigMapDiff"
+      v-if="tx.decodedBigMapDiff"
+    ></vue-json-compare>
   </b-col>
 </template>
 
 <script>
+import vueJsonCompare from "vue-json-compare";
 import utils from "@/app/utils";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faReceipt, faBurn, faDatabase } from "@fortawesome/free-solid-svg-icons";
@@ -62,7 +64,8 @@ export default {
   name: "GroupInfo",
   components: {
     FontAwesomeIcon,
-    JsonView
+    JsonView,
+    vueJsonCompare
   },
   props: {
     tx: Object,
