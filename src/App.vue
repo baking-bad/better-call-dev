@@ -294,6 +294,10 @@ export default {
               if (bigMapDiff != undefined) {
                 operation.decodedBigMapDiff = bigMapDiffDecode(bigMapDiff, this.resultForStorage);
               }
+              operation.storage = decode_data(
+                operation.metadata.operation_result.storage,
+                this.resultForStorage
+              );
             }
             if (operation.parameters != undefined) {
               operation.decodedParameters = decode_data(

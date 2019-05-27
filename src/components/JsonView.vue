@@ -1,15 +1,14 @@
 <template>
-  <print-object :printable-object="data"></print-object>
+  <TreeView :data="data" max-depth="7"/>
 </template>
 
 <script>
-import PrintObject from "vue-print-object";
-import "vue-print-object/dist/vue-print-object.css";
+import TreeView from "./TreeView.vue";
 
 export default {
   name: "JsonView",
   components: {
-    PrintObject
+    TreeView
   },
   props: {
     data: Object
