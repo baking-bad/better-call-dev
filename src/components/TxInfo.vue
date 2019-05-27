@@ -42,11 +42,7 @@
       <JsonView :data="tx.decodedParameters"/>
     </div>
     <br>
-    <vue-json-compare
-      :oldData="tx.storage"
-      :newData="tx.decodedBigMapDiff"
-      v-if="tx.decodedBigMapDiff"
-    ></vue-json-compare>
+    <vue-json-compare :oldData="{}" :newData="tx.storage"></vue-json-compare>
   </b-col>
 </template>
 
