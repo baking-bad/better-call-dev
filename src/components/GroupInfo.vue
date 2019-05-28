@@ -20,7 +20,7 @@
       </span>
       <br>
       <span v-b-tooltip.hover title="Storage Limit">
-        <font-awesome-icon icon="database"/>
+        <font-awesome-icon icon="coins"/>
         {{ group.storageLimit }}
       </span>
     </div>
@@ -30,10 +30,10 @@
 <script>
 import utils from "@/app/utils";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faCube, faBurn, faDatabase, faReceipt } from "@fortawesome/free-solid-svg-icons";
+import { faCube, faBurn, faReceipt, faCoins } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
-library.add(faCube, faBurn, faDatabase, faReceipt);
+library.add(faCube, faBurn, faReceipt, faCoins);
 
 export default {
   name: "GroupInfo",

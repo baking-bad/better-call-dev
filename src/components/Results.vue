@@ -21,6 +21,7 @@
                     :gasLimit="group.gasLimit"
                     :address="address"
                     :tezosNet="tezosNet"
+                    :storageLimit="group.storageLimit"
                   />
                   <!-- <b-col lg="6" style="font-size: 75%;">
                     <br>
@@ -148,7 +149,6 @@ export default {
 .tabcontent {
   padding-top: 10px;
   border: 1px solid #ccc;
-  border-bottom: none;
   box-shadow: 3px 3px 6px #e1e1e1;
 }
 
