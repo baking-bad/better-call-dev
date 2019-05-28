@@ -33,16 +33,24 @@
       <font-awesome-icon icon="burn"/>
       {{ tx.consumedGas }} ({{spentPercent(tx.consumedGas)}})
     </span>
-    <span class="add-info" v-if="tx.paidStorageDiff" v-b-tooltip.hover title="Paid Storage Diff">
+    <span class="add-info mr-2" v-if="tx.storageSize" v-b-tooltip.hover title="Storage Size">
       <font-awesome-icon icon="database"/>
-      {{ tx.paidStorageDiff }}
+      {{ tx.storageSize }} ({{storagePercent(tx.storageSize)}})
+    </span>
+    <span class="add-info" v-if="tx.paidStorageDiff" v-b-tooltip.hover title="Paid Storage Diff">
+      <font-awesome-icon icon="coins"/>
+      {{ tx.paidStorageDiff }} ({{paidStoragePercent(tx.paidStorageDiff)}})
     </span>
     <br>
     <div style="font-size: 75%;" v-if="tx.decodedParameters != null">
       <JsonView :data="tx.decodedParameters"/>
     </div>
     <br>
-    <vue-json-compare :oldData="{}" :newData="tx.storage"></vue-json-compare>
+    <vue-json-compare
+      v-if="tx.storage && tx.prevStorage"
+      :oldData="tx.prevStorage"
+      :newData="tx.storage"
+    ></vue-json-compare>
   </b-col>
 </template>
 
@@ -50,11 +58,11 @@
 import vueJsonCompare from "vue-json-compare";
 import utils from "@/app/utils";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faReceipt, faBurn, faDatabase } from "@fortawesome/free-solid-svg-icons";
+import { faReceipt, faBurn, faDatabase, faCoins } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import JsonView from "./JsonView.vue";
 
-library.add(faReceipt, faBurn, faDatabase);
+library.add(faReceipt, faBurn, faDatabase, faCoins);
 
 export default {
   name: "GroupInfo",
@@ -67,7 +75,8 @@ export default {
     tx: Object,
     gasLimit: String,
     address: String,
-    tezosNet: String
+    tezosNet: String,
+    storageLimit: String
   },
   data: () => ({
     baseAppURL: "https://baking-bad.github.io/better-call-dev/#"
@@ -78,6 +87,17 @@ export default {
       let currentGas = parseInt(gas);
 
       return Math.round((currentGas / gasLimit) * 100) + "%";
+    },
+    storagePercent(size) {
+      let currentStorageSize = parseInt(size);
+
+      return Math.round((currentStorageSize / 60000) * 100) + "%";
+    },
+    paidStoragePercent(diff) {
+      let storageLimit = parseInt(this.storageLimit);
+      let paidStorageDiff = parseInt(diff);
+
+      return Math.round((paidStorageDiff / storageLimit) * 100) + "%";
     },
     formatAddress(address) {
       return utils.formatAddress(address);
