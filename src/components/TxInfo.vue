@@ -45,12 +45,21 @@
     <div style="font-size: 75%;" v-if="tx.decodedParameters != null">
       <JsonView :data="tx.decodedParameters"/>
     </div>
+    <!-- <br>PREV STORAGE:
+    <div style="font-size: 75%;" v-if="tx.prevStorage != null">
+      <JsonView :data="tx.prevStorage"/>
+    </div>
     <br>
-    <vue-json-compare
+    DIFF: {{tx.diffStorage}}-->
+    <div style="font-size: 75%;" v-if="tx.prevStorage != null">
+      <PatchView :prev-data="tx.prevStorage" :data="tx.storage" :max-depth="7"/>
+    </div>
+    <br>
+    <!-- <vue-json-compare
       v-if="tx.storage && tx.prevStorage"
       :oldData="tx.prevStorage"
       :newData="tx.storage"
-    ></vue-json-compare>
+    ></vue-json-compare>-->
   </b-col>
 </template>
 
@@ -61,6 +70,7 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faReceipt, faBurn, faDatabase, faCoins } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import JsonView from "./JsonView.vue";
+import PatchView from "./PatchView.vue";
 
 library.add(faReceipt, faBurn, faDatabase, faCoins);
 
@@ -69,7 +79,8 @@ export default {
   components: {
     FontAwesomeIcon,
     JsonView,
-    vueJsonCompare
+    vueJsonCompare,
+    PatchView
   },
   props: {
     tx: Object,
@@ -128,6 +139,7 @@ export default {
 <style scoped>
 .add-info {
   font-size: 75%;
+  opacity: 0.8;
 }
 
 mark {

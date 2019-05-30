@@ -34,6 +34,7 @@
 <script>
 import axios from "axios";
 import { bigMapDiffDecode, decodeData, decodeSchema, buildSchema } from "@/app/decode";
+import diff from "rfc6902-json-diff";
 
 import GithubCorner from "./components/GithubCorner.vue";
 import Loader from "./components/Loader.vue";
@@ -278,8 +279,6 @@ export default {
       return groups;
     },
     async getOldStorage(groups) {
-      /* eslint-disable */
-
       let hashes = Object.keys(groups).reverse();
       let firstHash = hashes[0];
       let prevBlock = groups[firstHash]["level"] - 1;
@@ -291,6 +290,7 @@ export default {
           currentStorage = response.data.script.storage;
         })
         .catch(error => {
+          // eslint-disable-next-line
           console.log(error);
         });
 
@@ -300,10 +300,9 @@ export default {
       for (let i = 0; i < hashes.length; i++) {
         let group = groups[hashes[i]];
         group["operations"].forEach(function(tx) {
-          console.log(tx);
           if (tx["status"] === "applied") {
-            console.log("TX STORAGE", tx["storage"]);
             tx["prevStorage"] = currentStorage;
+            tx["diffStorage"] = diff(tx["prevStorage"], tx["storage"]);
             currentStorage = tx["storage"];
           }
         });
