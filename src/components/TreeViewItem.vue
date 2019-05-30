@@ -22,7 +22,7 @@
         v-show="isOpen()"
         v-for="child in data.children"
         :data="child"
-        :key="child"
+        :key="child.id"
       />
     </div>
     <div v-if="isArray(data)" class="tree-view-item-leaf">
@@ -47,10 +47,10 @@
         v-show="isOpen()"
         v-for="child in data.children"
         :data="child"
-        :key="child"
+        :key="child.id"
       />
     </div>
-    <div class="tree-view-item-leaf" v-if="isValue(data)">
+    <div :class="'tree-view-item-leaf ' + getColor(data.op)" v-if="isValue(data)">
       <span class="tree-view-item-key">{{getKey(data)}}</span>
       <span class="tree-view-item-value">{{getValue(data)}}</span>
     </div>
@@ -101,6 +101,16 @@ export default {
     },
     isRootObject: function(value) {
       return value.isRoot;
+    },
+    getColor(op) {
+      if (op === "add") {
+        return "green-bg";
+      } else if (op === "replace") {
+        return "yellow-bg";
+      } else if (op === "remove") {
+        return "red-bg";
+      }
+      return "";
     }
   }
 };
@@ -110,6 +120,18 @@ export default {
 /* The Tree View should only fill out available space, scroll when 
    necessary.
 */
+
+.green-bg {
+  background-color: rgba(40, 167, 69, 0.6);
+}
+
+.yellow-bg {
+  background-color: rgba(255, 193, 7, 0.6);
+}
+
+.red-bg {
+  background-color: rgba(220, 53, 69, 0.6);
+}
 
 .tree-view-item {
   font-family: monospace;

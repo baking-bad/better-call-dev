@@ -161,4 +161,8 @@ export default {
   border-bottom: 1px solid #ccc;
   margin-top: 15px;
 }
+
+.styled-row:last-of-type {
+  border-bottom: none;
+}
 </style>
