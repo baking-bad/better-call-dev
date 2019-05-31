@@ -1,24 +1,7 @@
 <template>
   <div class="tree-view-wrapper">
-    <!-- <TreeViewItem
-      class="tree-view-item-root"
-      :data="diffData()"
-      :max-depth="maxDepth"
-      :currentDepth="0"
-    />-->
-    <JsonView :data="this.oldData"/>
-    <span>----------------</span>
-    <JsonView :data="this.newData"/>
-    <span>----------------</span>
-    <JsonView :data="this.makeDiff(this.oldData, this.newData, 'storage', 'none')"/>
-    <!-- <TreeViewItem
-      class="tree-view-item-root"
-      :data="this.makeDiff(this.oldData, this.newData, 'storage', 'none')"
-      :max-depth="maxDepth"
-      :currentDepth="0"
-    />-->
-
-    <div>{{this.makeDiff(this.oldData, this.newData, 'storage', 'none')}}</div>
+    <!-- {{this.showMe()}} -->
+    <TreeViewItem class="tree-view-item-root" :data="diffData" :max-depth="7" :currentDepth="0"/>
   </div>
 </template>
 
@@ -26,8 +9,6 @@
 import _ from "lodash";
 import TreeViewItem from "./TreeViewItem.vue";
 import JsonView from "./JsonView.vue";
-// import diff from "rfc6902-json-diff";
-// import { createPatch } from "rfc6902";
 
 export default {
   name: "PatchView",
@@ -35,21 +16,14 @@ export default {
     TreeViewItem,
     JsonView
   },
-  data: () => ({
-    oldData: {
-      a: "hello",
-      b: "arr",
-      c: [2, 3]
-    },
-    newData: {
-      b: "why",
-      c: [1, 2, 3, { g: 4 }],
-      d: [{ f: 0 }]
-    }
-  }),
   props: ["prevData", "data", "max-depth"],
   methods: {
-    makeDiff: function(a, b, key, op) {
+    // showMe: function() {
+    //   console.log("MY SHIT", this.makeDiff(this.prevData, this.data, "storage", "none", true));
+    //   console.log("PREV DATA:", this.prevData);
+    //   console.log("DATA:", this.data);
+    // },
+    makeDiff: function(a, b, key, op, isRoot = false) {
       if (this.isObject(a) && this.isObject(b)) {
         let unionKeys = [...new Set(Object.keys(a).concat(Object.keys(b)))];
         let children = [];
@@ -59,8 +33,8 @@ export default {
             children.push(this.makeDiff(undefined, b[k], k, "add"));
           } else if (b[k] === undefined) {
             children.push(this.makeDiff(a[k], undefined, k, "remove"));
-          } else if (a[k] != b[k]) {
-            children.push(this.makeDiff(a[k], b[k], k, "replace"));
+          } else if (!this.isEqual(a[k], b[k])) {
+            children.push(this.makeDiff(a[k], b[k], k, "none"));
           } else {
             children.push(this.transform(undefined, a[k], k, "none"));
           }
@@ -70,13 +44,18 @@ export default {
           key: key,
           type: "object",
           op: op,
+          isRoot: isRoot,
           children: children
         };
       } else if (this.isArray(a) && this.isArray(b)) {
+        if (this.isEqual(a, b)) {
+          return this.transform(a, b, key, "none", isRoot);
+        }
         return {
           key: key,
           type: "array",
           op: op,
+          isRoot: isRoot,
           children: this.generateArrayChildren(a, b)
         };
       } else {
@@ -95,7 +74,7 @@ export default {
         return this.transform(a, b, key, "none");
       }
     },
-    transform: function(prevValue, value, key, op) {
+    transform: function(prevValue, value, key, op, isRoot = false) {
       if (op === "add") {
         if (this.isValue(value)) {
           return {
@@ -107,11 +86,11 @@ export default {
         }
 
         if (this.isObject(value)) {
-          return this.transformObject(value, key, op);
+          return this.transformObject(value, key, op, isRoot);
         }
 
         if (this.isArray(value)) {
-          return this.transformArray(value, key, op);
+          return this.transformArray(value, key, op, isRoot);
         }
       } else if (op === "remove") {
         if (this.isValue(prevValue)) {
@@ -124,11 +103,11 @@ export default {
         }
 
         if (this.isObject(prevValue)) {
-          return this.transformObject(prevValue, key, op);
+          return this.transformObject(prevValue, key, op, isRoot);
         }
 
         if (this.isArray(prevValue)) {
-          return this.transformArray(prevValue, key, op);
+          return this.transformArray(prevValue, key, op, isRoot);
         }
       } else if (op === "replace") {
         if (this.isValue(prevValue)) {
@@ -151,17 +130,17 @@ export default {
         }
 
         if (this.isObject(value)) {
-          return this.transformObject(value, key, op);
+          return this.transformObject(value, key, op, isRoot);
         }
 
         if (this.isArray(value)) {
-          return this.transformArray(value, key, op);
+          return this.transformArray(value, key, op, isRoot);
         }
       }
     },
     generateArrayChildren: function(from, to) {
       let matrix = this.generateMatrix(from, to);
-      let children = this.matrixToChildren(matrix, from.length - 1, to.length - 1, from, to);
+      let children = this.matrixToChildren(matrix, from.length, to.length, from, to);
 
       return children;
     },
@@ -170,11 +149,11 @@ export default {
         return [];
       } else if (i === 0) {
         return this.matrixToChildren(matrix, i, j - 1, from, to).concat(
-          this.transform(from[i], to[j], j, "add")
+          this.transform(undefined, to[j - 1], j - 1, "add")
         );
       } else if (j === 0) {
         return this.matrixToChildren(matrix, i - 1, j, from, to).concat(
-          this.transform(from[i], to[j], j - 1, "remove")
+          this.transform(from[i - 1], undefined, j - 1, "remove")
         );
       } else {
         var left = matrix[i][j - 1];
@@ -184,20 +163,20 @@ export default {
         if (upleft <= up && upleft <= left) {
           if (upleft === matrix[i][j]) {
             return this.matrixToChildren(matrix, i - 1, j - 1, from, to).concat(
-              this.transform(from[i], to[j], j - 1, "none")
+              this.transform(from[i - 1], to[j - 1], j - 1, "none")
             );
           } else {
             return this.matrixToChildren(matrix, i - 1, j - 1, from, to).concat(
-              this.transform(from[i], to[j], j - 1, "replace")
+              this.transform(from[i - 1], to[j - 1], j - 1, "replace")
             );
           }
         } else if (left <= upleft && left <= up) {
           return this.matrixToChildren(matrix, i, j - 1, from, to).concat(
-            this.transform(from[i], to[j], j - 1, "add")
+            this.transform(undefined, to[j - 1], j - 1, "add")
           );
         } else {
           return this.matrixToChildren(matrix, i - 1, j, from, to).concat(
-            this.transform(from[i], to[j], j - 1, "remove")
+            this.transform(from[i - 1], undefined, j - 1, "remove")
           );
         }
       }
@@ -233,8 +212,7 @@ export default {
 
       return d;
     },
-    // Transformer for the non-Collection types,
-    // like String, Integer of Float
+
     transformValue: function(valueToTransform, keyForValue, operation) {
       return {
         key: keyForValue,
@@ -244,9 +222,6 @@ export default {
       };
     },
 
-    // Since we use lodash, the _.map method will work on
-    // both Objects and Arrays, returning either the Key as
-    // a string or the Index as an integer
     generateChildrenFromCollection: function(collection, operation) {
       return _.map(collection, (value, keyOrIndex) => {
         if (this.isObject(value)) {
@@ -261,17 +236,16 @@ export default {
       });
     },
 
-    // Transformer for the Array type
-    transformArray: function(arrayToTransform, keyForArray, op) {
+    transformArray: function(arrayToTransform, keyForArray, op, isRootArray = false) {
       return {
         key: keyForArray,
         type: "array",
+        isRoot: isRootArray,
         op: op,
         children: this.generateChildrenFromCollection(arrayToTransform, op)
       };
     },
 
-    // Transformer for the Object type
     transformObject: function(objectToTransform, keyForObject, op, isRootObject = false) {
       return {
         key: keyForObject,
@@ -282,7 +256,6 @@ export default {
       };
     },
 
-    // Helper Methods for value type detection
     isObject: function(value) {
       return _.isPlainObject(value);
     },
@@ -307,26 +280,8 @@ export default {
       return !this.isObject(value) && !this.isArray(value);
     },
 
-    // diffData: function() {
-    //   // let patchGroup = diff(this.prevData, this.data);
-    //   let patchGroup = createPatch(first, second);
-    //   console.log("GREAT DIFFFF", patchGroup);
-    //   let result = this.parsedData;
-    //   console.log("TREE", result);
-
-    //   patchGroup.forEach(function(patch) {
-    //     let splitPath = patch.path.split("/").slice(1);
-    //     if (patch.path != "") {
-    //       result = this.insertPatch(result, splitPath, patch.op, patch.value);
-    //     }
-    //   }, this);
-
-    //   return result;
-    // },
-
     insertPatch: function(data, path, operation, value) {
       let current = path.shift();
-      //  content      /0
 
       if (path.length === 0) {
         if (operation === "add") {
@@ -363,92 +318,18 @@ export default {
 
       return data;
     }
+  },
+  computed: {
+    diffData: function() {
+      return this.makeDiff(this.prevData, this.data, "storage", "none");
+    }
   }
-  // mounted() {
-  //   let res = this.makeDiff(this.oldData, this.newData, "storage", undefined);
-  //   // eslint-disable-next-line
-  //   console.log("RESULT:", res);
-  // }
-  // computed: {
-  //   parsedData: function() {
-  //     // Take the JSON data and transform
-  //     // it into the Tree View DSL
-  //     // if (this.isValue(this.prevData)) {
-  //     //   return this.transformValue(this.prevData, "parameter");
-  //     // }
-  //     // return this.transformObject(this.prevData, "parameters", true);
-  //     if (this.isValue(first)) {
-  //       return this.transformValue(first, "parameter");
-  //     }
-  //     return this.transformObject(first, "parameters", true);
-  //   }
-  // }
 };
 </script>
 
-<style scoped>
-/* The Tree View should only fill out available space, scroll when 
-   necessary.
-*/
-
-.tree-view-item {
-  font-family: monospace;
-  font-size: 14px;
-  margin-left: 18px;
-}
-
+<style>
 .tree-view-wrapper {
+  margin-left: -15px;
   overflow: auto;
-}
-
-/* Find the first nested node and override the indentation */
-.tree-view-item-root > .tree-view-item-leaf > .tree-view-item {
-  margin-left: 0;
-}
-
-/* Root node should not be indented */
-.tree-view-item-root {
-  margin-left: 0;
-}
-
-.tree-view-item-node {
-  cursor: pointer;
-  position: relative;
-  white-space: nowrap;
-}
-
-.tree-view-item-leaf {
-  white-space: nowrap;
-}
-
-.tree-view-item-key {
-  font-weight: bold;
-}
-
-.tree-view-item-key-with-chevron {
-  padding-left: 14px;
-}
-
-.tree-view-item-key-with-chevron.opened::before {
-  top: 4px;
-  transform: rotate(90deg);
-  -webkit-transform: rotate(90deg);
-}
-
-.tree-view-item-key-with-chevron::before {
-  color: #444;
-  content: "\25b6";
-  font-size: 10px;
-  left: 1px;
-  position: absolute;
-  top: 3px;
-  transition: -webkit-transform 0.1s ease;
-  transition: transform 0.1s ease;
-  transition: transform 0.1s ease, -webkit-transform 0.1s ease;
-  -webkit-transition: -webkit-transform 0.1s ease;
-}
-
-.tree-view-item-hint {
-  color: #ccc;
 }
 </style>

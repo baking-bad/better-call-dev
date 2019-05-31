@@ -310,7 +310,7 @@ function decode_literal(node, prim) {
     return date.toLocaleString("en-GB", { timeZone: "GMT" });
   }
   if (prim === "mutez") {
-    return (parseInt(value) / Math.pow(10, 6)).toFixed(6);
+    return (parseInt(value) / Math.pow(10, 6)).toFixed(6) + ' ꜩ';
   }
   if (prim === "bool") {
     return value === true;

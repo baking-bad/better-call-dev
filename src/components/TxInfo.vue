@@ -42,24 +42,19 @@
       {{ tx.paidStorageDiff }} ({{paidStoragePercent(tx.paidStorageDiff)}})
     </span>
     <br>
-    <div style="font-size: 75%;" v-if="tx.decodedParameters != null">
-      <JsonView :data="tx.decodedParameters"/>
-    </div>
-    <!-- <br>PREV STORAGE:
-    <div style="font-size: 75%;" v-if="tx.prevStorage != null">
-      <JsonView :data="tx.prevStorage"/>
-    </div>
+    <b-row>
+      <b-col lg="4">
+        <div style="font-size: 75%;" v-if="tx.decodedParameters != null">
+          <JsonView :data="tx.decodedParameters"/>
+        </div>
+      </b-col>
+      <b-col lg="8">
+        <div style="font-size: 75%;" v-if="address == tx.destination && tx.status === 'applied'">
+          <PatchView :prev-data="tx.prevStorage" :data="tx.storage" :max-depth="7"/>
+        </div>
+      </b-col>
+    </b-row>
     <br>
-    DIFF: {{tx.diffStorage}}-->
-    <div style="font-size: 75%;" v-if="tx.prevStorage != null">
-      <PatchView :prev-data="tx.prevStorage" :data="tx.storage" :max-depth="7"/>
-    </div>
-    <br>
-    <!-- <vue-json-compare
-      v-if="tx.storage && tx.prevStorage"
-      :oldData="tx.prevStorage"
-      :newData="tx.storage"
-    ></vue-json-compare>-->
   </b-col>
 </template>
 

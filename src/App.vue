@@ -80,9 +80,9 @@ export default {
     },
     baseNodeApiURL() {
       if (this.tezosNet === "main") {
-        return "https://rpc.tezrpc.me/chains/main/blocks";
+        return "https://rpc.tzbeta.net/chains/main/blocks";
       }
-      return "https://alphanet.tezrpc.me/chains/main/blocks";
+      return "https://rpcalpha.tzbeta.net/chains/main/blocks";
     }
   },
   beforeMount() {
@@ -300,12 +300,12 @@ export default {
       for (let i = 0; i < hashes.length; i++) {
         let group = groups[hashes[i]];
         group["operations"].forEach(function(tx) {
-          if (tx["status"] === "applied") {
+          if (tx["status"] === "applied" && tx.destination === this.address) {
             tx["prevStorage"] = currentStorage;
             tx["diffStorage"] = diff(tx["prevStorage"], tx["storage"]);
             currentStorage = tx["storage"];
           }
-        });
+        }, this);
       }
 
       return groups;

@@ -1,12 +1,12 @@
 <template>
   <div class="tree-view-item">
-    <div v-if="isObject(data)" class="tree-view-item-leaf">
+    <div v-if="isObject(data)" :class="'tree-view-item-leaf ' + getColor(data.op)">
       <div class="tree-view-item-node" @click.stop="toggleOpen()">
         <span
           :class="{opened: isOpen()}"
           v-if="!isRootObject(data)"
           class="tree-view-item-key tree-view-item-key-with-chevron"
-        >{{getKey(data)}}</span>
+        >{{formatLiqEntry(getKey(data))}}</span>
         <span
           class="tree-view-item-hint"
           v-show="!isOpen() && data.children.length === 1"
@@ -25,7 +25,7 @@
         :key="child.id"
       />
     </div>
-    <div v-if="isArray(data)" class="tree-view-item-leaf">
+    <div v-if="isArray(data)" :class="'tree-view-item-leaf ' + getColor(data.op)">
       <div class="tree-view-item-node" @click.stop="toggleOpen()">
         <span
           :class="{opened: isOpen()}"
@@ -50,9 +50,17 @@
         :key="child.id"
       />
     </div>
-    <div :class="'tree-view-item-leaf ' + getColor(data.op)" v-if="isValue(data)">
+    <div
+      style="word-wrap: break-word"
+      :class="'tree-view-item-leaf ' + getColor(data.op)"
+      v-if="isValue(data)"
+    >
       <span class="tree-view-item-key">{{getKey(data)}}</span>
-      <span class="tree-view-item-value">{{getValue(data)}}</span>
+      <span
+        style="word-break: break-all;"
+        class="tree-view-item-value make-big-data"
+        @click="changeLen($event, getValue(data))"
+      >{{makeShort(getValue(data))}}</span>
     </div>
   </div>
 </template>
@@ -69,6 +77,23 @@ export default {
     };
   },
   methods: {
+    formatLiqEntry: function(key) {
+      if (key.includes("_Liq_entry_")) {
+        return key.substring(11);
+      }
+      return key;
+    },
+
+    changeLen: function(e, str) {
+      let target = e.currentTarget;
+      target.innerHTML = str;
+    },
+    makeShort: function(str) {
+      if (str.length > 30) {
+        return str.substr(0, 10) + "..." + str.substr(str.length - 10, 10);
+      }
+      return str;
+    },
     isOpen: function() {
       return this.isRootObject(this.data) || this.open;
     },
@@ -88,6 +113,12 @@ export default {
       return value.key + ": ";
     },
     getValue: function(value) {
+      if (value.op === "remove") {
+        value.value = value.prevValue;
+      }
+      if (value.op === "replace") {
+        value.value = `${value.prevValue} => ${value.value}`;
+      }
       if (_.isNumber(value.value)) {
         return value.value;
       }
@@ -121,16 +152,20 @@ export default {
    necessary.
 */
 
+.make-big-data {
+  cursor: pointer;
+}
+
 .green-bg {
-  background-color: rgba(40, 167, 69, 0.6);
+  background-color: rgba(40, 167, 69, 1);
 }
 
 .yellow-bg {
-  background-color: rgba(255, 193, 7, 0.6);
+  background-color: rgba(255, 193, 7, 1);
 }
 
 .red-bg {
-  background-color: rgba(220, 53, 69, 0.6);
+  background-color: rgba(220, 53, 69, 1);
 }
 
 .tree-view-item {
@@ -139,19 +174,10 @@ export default {
   margin-left: 18px;
 }
 
-.tree-view-wrapper {
-  overflow: auto;
-}
-
 /* Find the first nested node and override the indentation */
-.tree-view-item-root > .tree-view-item-leaf > .tree-view-item {
+/* .tree-view-item-root > .tree-view-item-leaf > .tree-view-item {
   margin-left: 0;
-}
-
-/* Root node should not be indented */
-.tree-view-item-root {
-  margin-left: 0;
-}
+} */
 
 .tree-view-item-node {
   cursor: pointer;
@@ -159,9 +185,9 @@ export default {
   white-space: nowrap;
 }
 
-.tree-view-item-leaf {
+/* .tree-view-item-leaf {
   white-space: nowrap;
-}
+} */
 
 .tree-view-item-key {
   font-weight: bold;
