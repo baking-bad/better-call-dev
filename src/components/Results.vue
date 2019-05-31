@@ -83,17 +83,28 @@ export default {
     GroupInfo,
     TxInfo
   },
-  props: {
-    address: String,
-    tezosNet: String,
-    status: Boolean,
-    activetab: Number,
-    groups: Object,
-    morePages: Boolean,
-    decodedData: Object,
-    decodedSchema: Object,
-    parameterSchema: Object
-  },
+  props: [
+    "address",
+    "tezosNet",
+    "status",
+    "activetab",
+    "groups",
+    "morePages",
+    "decodedData",
+    "decodedSchema",
+    "parameterSchema"
+  ],
+  // props: {
+  //   address: String,
+  //   tezosNet: String,
+  //   status: Boolean,
+  //   activetab: Number,
+  //   groups: Object,
+  //   morePages: Boolean,
+  //   decodedData: Object,
+  //   decodedSchema: Object,
+  //   parameterSchema: Object
+  // },
   methods: {
     loadMore() {
       this.$emit("loadmore");
