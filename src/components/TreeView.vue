@@ -82,8 +82,24 @@ export default {
   computed: {
     parsedData: function() {
       if (this.isValue(this.data)) {
-        return this.transformValue(this.data, "parameter");
+        return this.transformArray([this.data], "parameter");
       }
+      if (this.isArray(this.data)) {
+        return this.transformArray(this.data, "parameter");
+      }
+
+      let keys = Object.keys(this.data);
+
+      if (keys.length === 1) {
+        let value = this.data[keys[0]];
+
+        if (value === "Unit") {
+          this.data[keys[0]] = [];
+        } else if (this.isValue(value)) {
+          this.data[keys[0]] = [value];
+        }
+      }
+
       return this.transformObject(this.data, "parameters", true);
     }
   }

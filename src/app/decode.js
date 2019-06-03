@@ -97,12 +97,12 @@ export function decodeData(data, schema, annotations = true, literals = true, ro
           res = args;
         } else {
           // eslint-disable-next-line
-          console.log("Houston we have a problem: ", node, type_info);
+          // console.log("Houston we have a problem: ", node, type_info);
         }
       }
     } else {
       // eslint-disable-next-line
-      console.log("Houston we have a problem: ", node, type_info);
+      // console.log("Houston we have a problem: ", node, type_info);
     }
 
     return res;
@@ -317,7 +317,7 @@ function decode_literal(node, prim) {
   }
   if (prim === "address" && core_type === "bytes") {
     // eslint-disable-next-line
-    console.log("Houston we have a problem: ", prim, core_type, value);
+    // console.log("Houston we have a problem: ", prim, core_type, value);
     return value;
   }
 
