@@ -34,7 +34,6 @@
 <script>
 import axios from "axios";
 import { bigMapDiffDecode, decodeData, decodeSchema, buildSchema } from "@/app/decode";
-import diff from "rfc6902-json-diff";
 
 import GithubCorner from "./components/GithubCorner.vue";
 import Loader from "./components/Loader.vue";
@@ -60,6 +59,7 @@ export default {
     notFound: false,
     resultForParameter: {},
     resultForStorage: {},
+    bigMapJsonPath: "",
     decoded_data: {},
     decoded_schema: {},
     parameterSchema: {},
@@ -302,7 +302,6 @@ export default {
         group["operations"].forEach(function(tx) {
           if (tx["status"] === "applied" && tx.destination === this.address) {
             tx["prevStorage"] = currentStorage;
-            tx["diffStorage"] = diff(tx["prevStorage"], tx["storage"]);
             currentStorage = tx["storage"];
           }
         }, this);
@@ -311,6 +310,7 @@ export default {
       return groups;
     },
     buildBigMapAndParams(groups) {
+      console.log("JSON PATH:", this.bigMapJsonPath);
       Object.keys(groups).forEach(function(hash) {
         groups[hash].operations.forEach(function(operation) {
           if (operation.result != undefined) {
@@ -335,6 +335,19 @@ export default {
                 operation.metadata.operation_result.storage,
                 this.resultForStorage
               );
+
+              let current = operation.storage;
+
+              for (let i = 0; i < this.bigMapJsonPath.length; i++) {
+                let key = this.bigMapJsonPath[i];
+
+                if (i + 1 === this.bigMapJsonPath.length) {
+                  current[key] = Object.assign(current[key], operation.decodedBigMapDiff);
+                  break;
+                }
+
+                current = current[key];
+              }
             }
             if (operation.parameters != undefined) {
               operation.decodedParameters = decodeData(
@@ -346,6 +359,38 @@ export default {
         }, this);
       }, this);
     },
+    getBigMapPath(typeMap) {
+      let res = "";
+      Object.keys(typeMap).forEach(function(path) {
+        if (typeMap[path]["prim"] === "big_map") {
+          res = path;
+          return;
+        }
+      });
+
+      return res;
+    },
+    getJsonPath(typeMap, path) {
+      let typeInfo = typeMap[path[0]];
+      let jsonPath = [];
+
+      path
+        .substring(1)
+        .split("")
+        .forEach(function(i) {
+          let index = parseInt(i);
+
+          if (typeInfo["props"] !== undefined) {
+            jsonPath.push(typeInfo["props"][index]);
+          } else {
+            jsonPath.push(i);
+          }
+
+          typeInfo = typeMap[typeInfo["children"][index]];
+        });
+
+      return jsonPath;
+    },
     async buildSchemas(code) {
       code.forEach(function(element) {
         if (element.prim === "storage") {
@@ -355,6 +400,9 @@ export default {
           this.resultForParameter = buildSchema(element);
         }
       }, this);
+
+      let binaryPath = this.getBigMapPath(this.resultForStorage.type_map);
+      this.bigMapJsonPath = this.getJsonPath(this.resultForStorage.type_map, binaryPath);
     },
     async getTransactionData() {
       const res = await axios.get(

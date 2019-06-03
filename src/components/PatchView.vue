@@ -1,6 +1,5 @@
 <template>
   <div class="tree-view-wrapper">
-    <!-- {{this.showMe()}} -->
     <TreeViewItem class="tree-view-item-root" :data="diffData" :max-depth="7" :currentDepth="0"/>
   </div>
 </template>
@@ -18,11 +17,6 @@ export default {
   },
   props: ["prevData", "data", "max-depth"],
   methods: {
-    // showMe: function() {
-    //   console.log("MY SHIT", this.makeDiff(this.prevData, this.data, "storage", "none", true));
-    //   console.log("PREV DATA:", this.prevData);
-    //   console.log("DATA:", this.data);
-    // },
     makeDiff: function(a, b, key, op, isRoot = false) {
       if (this.isObject(a) && this.isObject(b)) {
         let unionKeys = [...new Set(Object.keys(a).concat(Object.keys(b)))];
@@ -34,7 +28,7 @@ export default {
           } else if (b[k] === undefined) {
             children.push(this.makeDiff(a[k], undefined, k, "remove"));
           } else if (!this.isEqual(a[k], b[k])) {
-            children.push(this.makeDiff(a[k], b[k], k, "none"));
+            children.push(this.makeDiff(a[k], b[k], k, "deeper"));
           } else {
             children.push(this.transform(undefined, a[k], k, "none"));
           }
@@ -97,7 +91,7 @@ export default {
           return {
             key: key,
             type: "value",
-            prevValue: prevValue,
+            value: prevValue,
             op: op
           };
         }
@@ -119,6 +113,8 @@ export default {
             op: op
           };
         }
+
+        return this.makeDiff(prevValue, value, key, "deeper", isRoot);
       } else if (op === "none") {
         if (this.isValue(value)) {
           return {
@@ -139,9 +135,11 @@ export default {
       }
     },
     generateArrayChildren: function(from, to) {
+      console.log("OPYAT TUT");
       let matrix = this.generateMatrix(from, to);
+      console.log("matrix", matrix);
       let children = this.matrixToChildren(matrix, from.length, to.length, from, to);
-
+      console.log("children", children);
       return children;
     },
     matrixToChildren: function(matrix, i, j, from, to) {
@@ -166,6 +164,7 @@ export default {
               this.transform(from[i - 1], to[j - 1], j - 1, "none")
             );
           } else {
+            console.log(i, j);
             return this.matrixToChildren(matrix, i - 1, j - 1, from, to).concat(
               this.transform(from[i - 1], to[j - 1], j - 1, "replace")
             );
@@ -321,7 +320,10 @@ export default {
   },
   computed: {
     diffData: function() {
-      return this.makeDiff(this.prevData, this.data, "storage", "none");
+      console.log("PREV", this.prevData);
+      console.log("DATA", this.data);
+      console.log("TREE", this.makeDiff(this.prevData, this.data, "storage", "deeper"));
+      return this.makeDiff(this.prevData, this.data, "storage", "deeper");
     }
   }
 };

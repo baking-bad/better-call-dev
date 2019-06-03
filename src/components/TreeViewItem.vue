@@ -6,7 +6,7 @@
           :class="{opened: isOpen()}"
           v-if="!isRootObject(data)"
           class="tree-view-item-key tree-view-item-key-with-chevron"
-        >{{formatLiqEntry(getKey(data))}}</span>
+        >{{getKey(data)}}</span>
         <span
           class="tree-view-item-hint"
           v-show="!isOpen() && data.children.length === 1"
@@ -59,8 +59,8 @@
       <span
         style="word-break: break-all;"
         class="tree-view-item-value make-big-data"
-        @click="changeLen($event, getValue(data))"
-      >{{makeShort(getValue(data))}}</span>
+        @click="changeLen($event, data)"
+      >{{getValue(data)}}</span>
     </div>
   </div>
 </template>
@@ -73,7 +73,7 @@ export default {
   props: ["data", "max-depth", "current-depth"],
   data: function() {
     return {
-      open: this.currentDepth < this.maxDepth
+      open: this.currentDepth < this.maxDepth && this.data.op !== "none"
     };
   },
   methods: {
@@ -84,18 +84,36 @@ export default {
       return key;
     },
 
-    changeLen: function(e, str) {
+    changeLen: function(e, data) {
       let target = e.currentTarget;
-      target.innerHTML = str;
+      let res = "";
+
+      if (data.op === undefined || data.op === "none" || data.op === "add") {
+        res = data.value;
+      }
+      if (data.op === "remove") {
+        res = data.value;
+      }
+      if (data.op === "replace") {
+        res = `${data.prevValue} => ${data.value}`;
+      }
+      if (_.isNull(data.value)) {
+        res = "null";
+      }
+      if (_.isString(data.value)) {
+        // i am alive
+      }
+      target.innerHTML = res;
     },
     makeShort: function(str) {
       if (str.length > 30) {
-        return str.substr(0, 10) + "..." + str.substr(str.length - 10, 10);
+        return str.substr(0, 7) + "..." + str.substr(str.length - 7, 7);
       }
       return str;
     },
     isOpen: function() {
       return this.isRootObject(this.data) || this.open;
+      // return (this.isRootObject(this.data) || this.open) && this.data.children.length > 0;
     },
     toggleOpen: function() {
       this.open = !this.open;
@@ -110,17 +128,17 @@ export default {
       return value.type === "value";
     },
     getKey: function(value) {
-      return value.key + ": ";
+      return this.formatLiqEntry(value.key + ": ");
     },
     getValue: function(value) {
       if (value.op === "remove") {
-        value.value = value.prevValue;
+        return this.makeShort(value.value);
       }
       if (value.op === "replace") {
-        value.value = `${value.prevValue} => ${value.value}`;
+        return `${this.makeShort(value.prevValue)} => ${this.makeShort(value.value)}`;
       }
       if (_.isNumber(value.value)) {
-        return value.value;
+        return this.makeShort(value.value);
       }
       if (_.isNull(value.value)) {
         return "null";
@@ -128,7 +146,7 @@ export default {
       if (_.isString(value.value)) {
         // i am alive
       }
-      return value.value;
+      return this.makeShort(value.value);
     },
     isRootObject: function(value) {
       return value.isRoot;
@@ -148,10 +166,6 @@ export default {
 </script>
 
 <style scoped>
-/* The Tree View should only fill out available space, scroll when 
-   necessary.
-*/
-
 .make-big-data {
   cursor: pointer;
 }
@@ -174,20 +188,11 @@ export default {
   margin-left: 18px;
 }
 
-/* Find the first nested node and override the indentation */
-/* .tree-view-item-root > .tree-view-item-leaf > .tree-view-item {
-  margin-left: 0;
-} */
-
 .tree-view-item-node {
   cursor: pointer;
   position: relative;
   white-space: nowrap;
 }
-
-/* .tree-view-item-leaf {
-  white-space: nowrap;
-} */
 
 .tree-view-item-key {
   font-weight: bold;
