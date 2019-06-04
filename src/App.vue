@@ -82,7 +82,8 @@ export default {
       if (this.tezosNet === "main") {
         return "https://rpc.tzbeta.net/chains/main/blocks";
       }
-      return "https://rpcalpha.tzbeta.net/chains/main/blocks";
+      return "https://alphanet-node.tzscan.io/chains/main/blocks";
+      // return "https://rpcalpha.tzbeta.net/chains/main/blocks";
     }
   },
   beforeMount() {
@@ -112,6 +113,8 @@ export default {
       const data = contractsData.script.storage;
 
       await this.buildSchemas(code);
+
+      console.log(this.resultForStorage);
 
       this.decoded_data = decodeData(data, this.resultForStorage);
       this.decoded_schema = decodeSchema(this.resultForStorage.collapsed_tree);
@@ -278,10 +281,61 @@ export default {
 
       return groups;
     },
+    buildPostLinksForNode(miniTezaurus, block) {
+      const links = [];
+
+      Object.keys(miniTezaurus).forEach(function(key) {
+        miniTezaurus[key].forEach(function(bigMap) {
+          links.push({
+            link: `${this.baseNodeApiURL}/${block}/context/contracts/${this.address}/big_map_get`,
+            postParams: {
+              key: bigMap["key"],
+              type: {
+                prim: Object.keys(bigMap["key"])[0]
+              }
+            },
+            headers: {
+              headers: { "Content-Type": "application/json" }
+            },
+            key: key
+          });
+        }, this);
+      }, this);
+
+      return links;
+    },
+    async getAllBigMapFromNode(links) {
+      let promiseArray = links.map(l => axios.post(l.link, l.postParams, l.headers));
+
+      let res = {};
+
+      await axios.all(promiseArray).then(
+        axios.spread((...args) => {
+          for (let i = 0; i < args.length; i++) {
+            if (args[i].data !== null) {
+              let key = links[i]["key"];
+              res[key] = args[i].data;
+            }
+          }
+        })
+      );
+
+      return res;
+    },
     async getOldStorage(groups) {
       let hashes = Object.keys(groups).reverse();
       let firstHash = hashes[0];
       let prevBlock = groups[firstHash]["level"] - 1;
+
+      let keys = this.buildBigMapTezaurus(groups, hashes);
+      let links = this.buildPostLinksForNode(keys, prevBlock);
+      let miniTezaurus = await this.getAllBigMapFromNode(links);
+
+      Object.keys(miniTezaurus).forEach(function(item) {
+        miniTezaurus[item] = bigMapDiffDecode(miniTezaurus[item], this.resultForStorage);
+      }, this);
+
+      console.log("keys:", miniTezaurus);
 
       let currentStorage = {};
       await axios
@@ -300,64 +354,92 @@ export default {
       for (let i = 0; i < hashes.length; i++) {
         let group = groups[hashes[i]];
         group["operations"].forEach(function(tx) {
-          if (tx["status"] === "applied" && tx.destination === this.address) {
-            tx["prevStorage"] = currentStorage;
-            currentStorage = tx["storage"];
+          if (tx.status === "applied" && tx.destination === this.address) {
+            tx.prevStorage = currentStorage;
+            currentStorage = tx.storage;
+            console.log("DO:", currentStorage);
+
+            tx.storage = this.mergeBigMapToStorage(tx.storage, tx.decodedBigMapDiff);
+            console.log("POSLE", currentStorage);
+
+            Object.keys(tx.decodedBigMapDiff).forEach(function(key) {
+              if (miniTezaurus[key] !== undefined) {
+                tx.prevStorage = this.mergeBigMapToStorage(tx.prevStorage, miniTezaurus[key]);
+              }
+
+              miniTezaurus[key] = tx.decodedBigMapDiff;
+            }, this);
           }
         }, this);
       }
 
       return groups;
     },
+    buildBigMapTezaurus(groups, hashes) {
+      let tezaurus = {};
+
+      for (let i = 0; i < hashes.length; i++) {
+        let group = groups[hashes[i]];
+        group["operations"].forEach(function(tx) {
+          if (tx.status === "applied" && tx.destination === this.address) {
+            Object.keys(tx.decodedBigMapDiff).forEach(function(key) {
+              if (tezaurus[key] === undefined) {
+                tezaurus[key] = tx.bigMapDiff;
+              }
+            });
+          }
+        }, this);
+      }
+
+      return tezaurus;
+    },
     buildBigMapAndParams(groups) {
-      console.log("JSON PATH:", this.bigMapJsonPath);
       Object.keys(groups).forEach(function(hash) {
-        groups[hash].operations.forEach(function(operation) {
-          if (operation.result != undefined) {
-            operation.status = operation.result.status;
-            operation.consumedGas = operation.result.consumed_gas;
-            operation.paidStorageDiff = operation.result.paid_storage_size_diff;
-            operation.storageSize = operation.result.storage_size;
-          } else if (operation.metadata.operation_result != undefined) {
-            operation.status = operation.metadata.operation_result.status;
-            operation.consumedGas = operation.metadata.operation_result.consumed_gas;
-            operation.paidStorageDiff = operation.metadata.operation_result.paid_storage_size_diff;
-            operation.storageSize = operation.metadata.operation_result.storage_size;
+        groups[hash].operations.forEach(function(op) {
+          if (op.result != undefined) {
+            op.status = op.result.status;
+            op.consumedGas = op.result.consumed_gas;
+            op.paidStorageDiff = op.result.paid_storage_size_diff;
+            op.storageSize = op.result.storage_size;
+          } else if (op.metadata.operation_result != undefined) {
+            op.status = op.metadata.operation_result.status;
+            op.consumedGas = op.metadata.operation_result.consumed_gas;
+            op.paidStorageDiff = op.metadata.operation_result.paid_storage_size_diff;
+            op.storageSize = op.metadata.operation_result.storage_size;
           }
 
-          if (operation.destination === this.address) {
-            if (operation.metadata != undefined) {
-              const bigMapDiff = operation.metadata.operation_result.big_map_diff;
+          if (op.destination === this.address) {
+            if (op.metadata != undefined) {
+              const bigMapDiff = op.metadata.operation_result.big_map_diff;
               if (bigMapDiff != undefined) {
-                operation.decodedBigMapDiff = bigMapDiffDecode(bigMapDiff, this.resultForStorage);
+                op.bigMapDiff = bigMapDiff;
+                op.decodedBigMapDiff = bigMapDiffDecode(bigMapDiff, this.resultForStorage);
               }
-              operation.storage = decodeData(
-                operation.metadata.operation_result.storage,
-                this.resultForStorage
-              );
-
-              let current = operation.storage;
-
-              for (let i = 0; i < this.bigMapJsonPath.length; i++) {
-                let key = this.bigMapJsonPath[i];
-
-                if (i + 1 === this.bigMapJsonPath.length) {
-                  current[key] = Object.assign(current[key], operation.decodedBigMapDiff);
-                  break;
-                }
-
-                current = current[key];
-              }
+              op.storage = decodeData(op.metadata.operation_result.storage, this.resultForStorage);
+              // op.storage = this.mergeBigMapToStorage(op.storage, op.decodedBigMapDiff);
             }
-            if (operation.parameters != undefined) {
-              operation.decodedParameters = decodeData(
-                operation.parameters,
-                this.resultForParameter
-              );
+            if (op.parameters != undefined) {
+              op.decodedParameters = decodeData(op.parameters, this.resultForParameter);
             }
           }
         }, this);
       }, this);
+    },
+    mergeBigMapToStorage(storage, decodedBigMapDiff) {
+      let current = storage;
+
+      for (let i = 0; i < this.bigMapJsonPath.length; i++) {
+        let key = this.bigMapJsonPath[i];
+
+        if (i + 1 === this.bigMapJsonPath.length) {
+          current[key] = Object.assign(current[key], decodedBigMapDiff);
+          break;
+        }
+
+        current = current[key];
+      }
+
+      return current;
     },
     getBigMapPath(typeMap) {
       let res = "";

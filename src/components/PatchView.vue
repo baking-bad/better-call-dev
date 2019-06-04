@@ -7,13 +7,11 @@
 <script>
 import _ from "lodash";
 import TreeViewItem from "./TreeViewItem.vue";
-import JsonView from "./JsonView.vue";
 
 export default {
   name: "PatchView",
   components: {
-    TreeViewItem,
-    JsonView
+    TreeViewItem
   },
   props: ["prevData", "data", "max-depth"],
   methods: {
@@ -135,11 +133,8 @@ export default {
       }
     },
     generateArrayChildren: function(from, to) {
-      console.log("OPYAT TUT");
       let matrix = this.generateMatrix(from, to);
-      console.log("matrix", matrix);
       let children = this.matrixToChildren(matrix, from.length, to.length, from, to);
-      console.log("children", children);
       return children;
     },
     matrixToChildren: function(matrix, i, j, from, to) {
@@ -164,7 +159,6 @@ export default {
               this.transform(from[i - 1], to[j - 1], j - 1, "none")
             );
           } else {
-            console.log(i, j);
             return this.matrixToChildren(matrix, i - 1, j - 1, from, to).concat(
               this.transform(from[i - 1], to[j - 1], j - 1, "replace")
             );
@@ -320,9 +314,6 @@ export default {
   },
   computed: {
     diffData: function() {
-      console.log("PREV", this.prevData);
-      console.log("DATA", this.data);
-      console.log("TREE", this.makeDiff(this.prevData, this.data, "storage", "deeper"));
       return this.makeDiff(this.prevData, this.data, "storage", "deeper");
     }
   }

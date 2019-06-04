@@ -17,10 +17,7 @@
     "i": "^0.3.6",
     "lodash": "^4.17.11",
     "npm": "^6.9.0",
-    "rfc6902": "^3.0.2",
-    "rfc6902-json-diff": "^0.2.1",
     "vue": "^2.6.10",
-    "vue-json-compare": "^2.0.4",
     "vue-loading-overlay": "^3.2.0"
   },
   "devDependencies": {
