@@ -25,8 +25,8 @@
       v-if="tx.status"
       :class="'ml-3 mr-3 badge badge-outline ' + badgeClass(tx.status)"
     >{{ tx.status }}</span>
-    <span class="add-info mr-2" v-if="tx.amount != 0" v-b-tooltip.hover title="Fee">
-      <font-awesome-icon icon="receipt"/>
+    <span class="add-info mr-2" v-b-tooltip.hover title="Amount">
+      <font-awesome-icon icon="money-bill-alt"/>
       {{ formatXTZ(tx.amount) }}
     </span>
     <span class="add-info mr-2" v-if="tx.consumedGas" v-b-tooltip.hover title="Consumed Gas">
@@ -59,22 +59,20 @@
 </template>
 
 <script>
-import vueJsonCompare from "vue-json-compare";
 import utils from "@/app/utils";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faReceipt, faBurn, faDatabase, faCoins } from "@fortawesome/free-solid-svg-icons";
+import { faReceipt, faBurn, faDatabase, faCoins, faMoneyBillAlt } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import JsonView from "./JsonView.vue";
 import PatchView from "./PatchView.vue";
 
-library.add(faReceipt, faBurn, faDatabase, faCoins);
+library.add(faReceipt, faBurn, faDatabase, faCoins, faMoneyBillAlt);
 
 export default {
   name: "GroupInfo",
   components: {
     FontAwesomeIcon,
     JsonView,
-    vueJsonCompare,
     PatchView
   },
   props: {

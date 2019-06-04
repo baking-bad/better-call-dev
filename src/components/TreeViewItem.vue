@@ -182,6 +182,16 @@ export default {
   background-color: rgba(220, 53, 69, 1);
 }
 
+.red-bg .tree-view-item-value,
+.yellow-bg .tree-view-item-value,
+.green-bg .tree-view-item-value {
+  color: #000;
+}
+
+.tree-view-item-value {
+  color: #28a745;
+}
+
 .tree-view-item {
   font-family: monospace;
   font-size: 14px;
@@ -192,10 +202,6 @@ export default {
   cursor: pointer;
   position: relative;
   white-space: nowrap;
-}
-
-.tree-view-item-key {
-  font-weight: bold;
 }
 
 .tree-view-item-key-with-chevron {
