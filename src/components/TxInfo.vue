@@ -61,7 +61,13 @@
 <script>
 import utils from "@/app/utils";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faReceipt, faBurn, faDatabase, faCoins, faMoneyBillAlt } from "@fortawesome/free-solid-svg-icons";
+import {
+  faReceipt,
+  faBurn,
+  faDatabase,
+  faCoins,
+  faMoneyBillAlt
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import JsonView from "./JsonView.vue";
 import PatchView from "./PatchView.vue";

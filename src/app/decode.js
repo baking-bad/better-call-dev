@@ -3,7 +3,16 @@ export function bigMapDiffDecode(data, schema) {
   const res = {};
 
   data.forEach(item => {
-    const key = decodeData(item.key, schema, true, true, paths.key_path);
+    let key = ""
+
+    if (item.key !== undefined) {
+      key = decodeData(item.key, schema, true, true, paths.key_path);
+    } else if (item.decodedKey !== undefined) {
+      key = item.decodedKey;
+    } else {
+      // eslint-disable-next-line
+      console.log("Error. Item:", item)
+    }
     const val = decodeData(item.value, schema, true, true, paths.val_path);
 
     res[key] = val;
@@ -97,12 +106,12 @@ export function decodeData(data, schema, annotations = true, literals = true, ro
           res = args;
         } else {
           // eslint-disable-next-line
-          // console.log("Houston we have a problem: ", node, type_info);
+          console.log("Houston we have a problem: ", node, type_info);
         }
       }
     } else {
       // eslint-disable-next-line
-      // console.log("Houston we have a problem: ", node, type_info);
+      console.log("Houston we have a problem: ", node, type_info);
     }
 
     return res;
@@ -317,7 +326,7 @@ function decode_literal(node, prim) {
   }
   if (prim === "address" && core_type === "bytes") {
     // eslint-disable-next-line
-    // console.log("Houston we have a problem: ", prim, core_type, value);
+    console.log("Houston we have a problem: ", prim, core_type, value);
     return value;
   }
 

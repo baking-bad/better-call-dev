@@ -114,8 +114,6 @@ export default {
 
       await this.buildSchemas(code);
 
-      console.log(this.resultForStorage);
-
       this.decoded_data = decodeData(data, this.resultForStorage);
       this.decoded_schema = decodeSchema(this.resultForStorage.collapsed_tree);
       this.parameterSchema = decodeSchema(this.resultForParameter.collapsed_tree);
@@ -307,14 +305,16 @@ export default {
     async getAllBigMapFromNode(links) {
       let promiseArray = links.map(l => axios.post(l.link, l.postParams, l.headers));
 
-      let res = {};
+      let res = [];
 
       await axios.all(promiseArray).then(
         axios.spread((...args) => {
           for (let i = 0; i < args.length; i++) {
             if (args[i].data !== null) {
-              let key = links[i]["key"];
-              res[key] = args[i].data;
+              res.push({
+                decodedKey: links[i]["key"],
+                value: args[i].data
+              });
             }
           }
         })
@@ -329,13 +329,8 @@ export default {
 
       let keys = this.buildBigMapTezaurus(groups, hashes);
       let links = this.buildPostLinksForNode(keys, prevBlock);
-      let miniTezaurus = await this.getAllBigMapFromNode(links);
-
-      Object.keys(miniTezaurus).forEach(function(item) {
-        miniTezaurus[item] = bigMapDiffDecode(miniTezaurus[item], this.resultForStorage);
-      }, this);
-
-      console.log("keys:", miniTezaurus);
+      let result = await this.getAllBigMapFromNode(links);
+      let miniTezaurus = bigMapDiffDecode(result, this.resultForStorage);
 
       let currentStorage = {};
       await axios
@@ -355,19 +350,19 @@ export default {
         let group = groups[hashes[i]];
         group["operations"].forEach(function(tx) {
           if (tx.status === "applied" && tx.destination === this.address) {
-            tx.prevStorage = currentStorage;
-            currentStorage = tx.storage;
-            console.log("DO:", currentStorage);
+            tx.prevStorage = JSON.parse(JSON.stringify(currentStorage));
+            currentStorage = JSON.parse(JSON.stringify(tx.storage));
 
             tx.storage = this.mergeBigMapToStorage(tx.storage, tx.decodedBigMapDiff);
-            console.log("POSLE", currentStorage);
 
             Object.keys(tx.decodedBigMapDiff).forEach(function(key) {
               if (miniTezaurus[key] !== undefined) {
-                tx.prevStorage = this.mergeBigMapToStorage(tx.prevStorage, miniTezaurus[key]);
+                let temp = {};
+                temp[key] = miniTezaurus[key];
+                tx.prevStorage = this.mergeBigMapToStorage(tx.prevStorage, temp);
               }
 
-              miniTezaurus[key] = tx.decodedBigMapDiff;
+              miniTezaurus[key] = tx.decodedBigMapDiff[key];
             }, this);
           }
         }, this);
@@ -416,7 +411,6 @@ export default {
                 op.decodedBigMapDiff = bigMapDiffDecode(bigMapDiff, this.resultForStorage);
               }
               op.storage = decodeData(op.metadata.operation_result.storage, this.resultForStorage);
-              // op.storage = this.mergeBigMapToStorage(op.storage, op.decodedBigMapDiff);
             }
             if (op.parameters != undefined) {
               op.decodedParameters = decodeData(op.parameters, this.resultForParameter);
