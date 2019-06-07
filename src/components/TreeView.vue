@@ -92,11 +92,10 @@ export default {
 
       if (keys.length === 1) {
         let value = this.data[keys[0]];
-
-        if (value === "Unit") {
-          this.data[keys[0]] = [];
+        if (value === "Unit" || value === null) {
+          return this.transformArray([], keys[0]);
         } else if (this.isValue(value)) {
-          this.data[keys[0]] = [value];
+          return this.transformArray([value], keys[0]);
         }
       }
 

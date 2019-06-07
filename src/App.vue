@@ -69,7 +69,8 @@ export default {
       data: []
     },
     groups: {},
-    tezaurus: {}
+    tezaurus: {},
+    contractBalance: 0
   }),
   computed: {
     baseApiURL() {
@@ -103,7 +104,7 @@ export default {
       this.isLoading = true;
 
       const contractsData = await this.getContractsData();
-      if (contractsData === undefined) {
+      if (contractsData === undefined || contractsData.script === undefined) {
         this.notFound = true;
         this.isLoading = false;
         return;
@@ -111,6 +112,7 @@ export default {
 
       const code = contractsData.script.code;
       const data = contractsData.script.storage;
+      this.contractBalance = parseInt(contractsData.balance);
 
       await this.buildSchemas(code);
 
@@ -137,6 +139,7 @@ export default {
       this.txInfo.data = [];
       this.groups = {};
       this.tezaurus = {};
+      this.contractBalance = 0;
     },
     updateNet(value) {
       this.tezosNet = value;
@@ -283,21 +286,14 @@ export default {
       const links = [];
 
       Object.keys(miniTezaurus).forEach(function(key) {
-        miniTezaurus[key].forEach(function(bigMap) {
-          links.push({
-            link: `${this.baseNodeApiURL}/${block}/context/contracts/${this.address}/big_map_get`,
-            postParams: {
-              key: bigMap["key"],
-              type: {
-                prim: Object.keys(bigMap["key"])[0]
-              }
-            },
-            headers: {
-              headers: { "Content-Type": "application/json" }
-            },
-            key: key
-          });
-        }, this);
+        links.push({
+          link: `${this.baseNodeApiURL}/${block}/context/contracts/${this.address}/big_map_get`,
+          postParams: miniTezaurus[key],
+          headers: {
+            headers: { "Content-Type": "application/json" }
+          },
+          key: miniTezaurus[key].key
+        });
       }, this);
 
       return links;
@@ -312,7 +308,7 @@ export default {
           for (let i = 0; i < args.length; i++) {
             if (args[i].data !== null) {
               res.push({
-                decodedKey: links[i]["key"],
+                key: links[i]["key"],
                 value: args[i].data
               });
             }
@@ -353,17 +349,19 @@ export default {
             tx.prevStorage = JSON.parse(JSON.stringify(currentStorage));
             currentStorage = JSON.parse(JSON.stringify(tx.storage));
 
-            tx.storage = this.mergeBigMapToStorage(tx.storage, tx.decodedBigMapDiff);
+            if (tx.decodedBigMapDiff) {
+              tx.storage = this.mergeBigMapToStorage(tx.storage, tx.decodedBigMapDiff);
 
-            Object.keys(tx.decodedBigMapDiff).forEach(function(key) {
-              if (miniTezaurus[key] !== undefined) {
-                let temp = {};
-                temp[key] = miniTezaurus[key];
-                tx.prevStorage = this.mergeBigMapToStorage(tx.prevStorage, temp);
-              }
+              Object.keys(tx.decodedBigMapDiff).forEach(function(key) {
+                if (miniTezaurus[key] !== undefined) {
+                  let temp = {};
+                  temp[key] = miniTezaurus[key];
+                  tx.prevStorage = this.mergeBigMapToStorage(tx.prevStorage, temp);
+                }
 
-              miniTezaurus[key] = tx.decodedBigMapDiff[key];
-            }, this);
+                miniTezaurus[key] = tx.decodedBigMapDiff[key];
+              }, this);
+            }
           }
         }, this);
       }
@@ -376,34 +374,85 @@ export default {
       for (let i = 0; i < hashes.length; i++) {
         let group = groups[hashes[i]];
         group["operations"].forEach(function(tx) {
-          if (tx.status === "applied" && tx.destination === this.address) {
-            Object.keys(tx.decodedBigMapDiff).forEach(function(key) {
-              if (tezaurus[key] === undefined) {
-                tezaurus[key] = tx.bigMapDiff;
-              }
-            });
+          if (tx.bigMapDiff) {
+            tx.bigMapDiff.forEach(function(item) {
+              let key = item.key[Object.keys(item.key)[0]];
+              let type = { prim: this.resultForStorage.type_map["000"]["prim"] };
+              tezaurus[key] = {
+                key: item.key,
+                type: type
+              };
+            }, this);
           }
         }, this);
       }
 
       return tezaurus;
     },
+    getUniqueErrors(errors, status) {
+      if (status !== "failed") {
+        return [];
+      }
+
+      let ret = [];
+      let seenErr = [];
+
+      errors.forEach(function(err) {
+        if (!seenErr.includes(err.id)) {
+          let id = err.id;
+          let msg = "";
+          if (err.with !== undefined) {
+            msg = err.with.string;
+          }
+          ret.push({ id: id, msg: msg });
+          seenErr.push(id);
+        }
+      });
+
+      return ret;
+    },
+    changeBalance(balanceUpdates) {
+      if (balanceUpdates === undefined) {
+        return 0;
+      }
+      let changes = 0;
+
+      balanceUpdates.forEach(function(balance) {
+        if (balance.kind === "contract" && balance.contract === this.address) {
+          changes += parseInt(balance.change);
+        }
+      }, this);
+
+      return changes;
+    },
     buildBigMapAndParams(groups) {
+      let currentBalanceChange;
+
       Object.keys(groups).forEach(function(hash) {
+        groups[hash].balance = this.contractBalance;
+        currentBalanceChange = 0;
+
         groups[hash].operations.forEach(function(op) {
           if (op.result != undefined) {
             op.status = op.result.status;
+            op.errors = this.getUniqueErrors(op.result.errors, op.status);
             op.consumedGas = op.result.consumed_gas;
             op.paidStorageDiff = op.result.paid_storage_size_diff;
             op.storageSize = op.result.storage_size;
+            currentBalanceChange += this.changeBalance(op.result.balance_updates);
           } else if (op.metadata.operation_result != undefined) {
             op.status = op.metadata.operation_result.status;
+            op.errors = this.getUniqueErrors(op.metadata.operation_result.errors, op.status);
             op.consumedGas = op.metadata.operation_result.consumed_gas;
             op.paidStorageDiff = op.metadata.operation_result.paid_storage_size_diff;
             op.storageSize = op.metadata.operation_result.storage_size;
+            currentBalanceChange += this.changeBalance(
+              op.metadata.operation_result.balance_updates
+            );
           }
 
           if (op.destination === this.address) {
+            groups[hash].storageSize = op.storageSize;
             if (op.metadata != undefined) {
               const bigMapDiff = op.metadata.operation_result.big_map_diff;
               if (bigMapDiff != undefined) {
@@ -417,6 +466,8 @@ export default {
             }
           }
         }, this);
+
+        this.contractBalance -= currentBalanceChange;
       }, this);
     },
     mergeBigMapToStorage(storage, decodedBigMapDiff) {
@@ -434,17 +485,6 @@ export default {
       }
 
       return current;
-    },
-    getBigMapPath(typeMap) {
-      let res = "";
-      Object.keys(typeMap).forEach(function(path) {
-        if (typeMap[path]["prim"] === "big_map") {
-          res = path;
-          return;
-        }
-      });
-
-      return res;
     },
     getJsonPath(typeMap, path) {
       let typeInfo = typeMap[path[0]];
@@ -477,8 +517,12 @@ export default {
         }
       }, this);
 
-      let binaryPath = this.getBigMapPath(this.resultForStorage.type_map);
-      this.bigMapJsonPath = this.getJsonPath(this.resultForStorage.type_map, binaryPath);
+      if (
+        this.resultForStorage.type_map["00"] !== undefined &&
+        this.resultForStorage.type_map["00"]["prim"] === "big_map"
+      ) {
+        this.bigMapJsonPath = this.getJsonPath(this.resultForStorage.type_map, "00");
+      }
     },
     async getTransactionData() {
       const res = await axios.get(
