@@ -12,7 +12,12 @@
           <b-container>
             <b-row class="styled-row" v-for="(group, hash) in groups" :key="group.level">
               <b-col lg="2">
-                <GroupInfo :group="group" :hash="hash"/>
+                <GroupInfo
+                  :group="group"
+                  :hash="hash"
+                  :balance="group.balance"
+                  :storageSize="group.storageSize"
+                />
               </b-col>
               <b-col lg="10" class="mb-3">
                 <b-row v-for="tx in group['operations']" :key="tx.hash">
@@ -23,12 +28,6 @@
                     :tezosNet="tezosNet"
                     :storageLimit="group.storageLimit"
                   />
-                  <!-- <b-col lg="6" style="font-size: 75%;">
-                    <br>
-                    <br>big_map_diff
-                    <br>
-                    <JsonView :data="tx.decodedBigMapDiff"/>
-                  </b-col>-->
                 </b-row>
               </b-col>
             </b-row>

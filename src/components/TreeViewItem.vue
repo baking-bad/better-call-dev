@@ -26,7 +26,7 @@
       />
     </div>
     <div v-if="isArray(data)" :class="'tree-view-item-leaf ' + getColor(data.op)">
-      <div class="tree-view-item-node" @click.stop="toggleOpen()">
+      <div class="tree-view-item-node array-node" @click.stop="toggleOpen()">
         <span
           :class="{opened: isOpen()}"
           v-if="!isRootObject(data)"
@@ -112,8 +112,13 @@ export default {
       return str;
     },
     isOpen: function() {
-      return this.isRootObject(this.data) || this.open;
-      // return (this.isRootObject(this.data) || this.open) && this.data.children.length > 0;
+      let flag = true;
+      if (this.data.children !== undefined) {
+        if (this.data.children.length === 0) {
+          flag = false;
+        }
+      }
+      return (this.isRootObject(this.data) || this.open) && flag;
     },
     toggleOpen: function() {
       this.open = !this.open;
@@ -171,15 +176,36 @@ export default {
 }
 
 .green-bg {
-  background-color: rgba(40, 167, 69, 1);
+  background-color: #d4edda;
+  color: #155724;
+  padding-left: 5px;
+  border-radius: 0.25rem;
+}
+
+.green-bg .tree-view-item-key {
+  color: #155724;
 }
 
 .yellow-bg {
-  background-color: rgba(255, 193, 7, 1);
+  background-color: #fff3cd;
+  color: #856404;
+  padding-left: 5px;
+  border-radius: 0.25rem;
+}
+
+.yellow-bg .tree-view-item-key {
+  color: #856404;
 }
 
 .red-bg {
-  background-color: rgba(220, 53, 69, 1);
+  background-color: #f8d7da;
+  color: #721c24;
+  padding-left: 5px;
+  border-radius: 0.25rem;
+}
+
+.red-bg .tree-view-item-key {
+  color: #721c24;
 }
 
 .red-bg .tree-view-item-value,
@@ -188,12 +214,15 @@ export default {
   color: #000;
 }
 
+.tree-view-item-key {
+  color: rgb(44, 44, 44);
+}
+
 .tree-view-item-value {
-  color: #28a745;
+  color: rgb(107, 161, 59);
 }
 
 .tree-view-item {
-  font-family: monospace;
   font-size: 14px;
   margin-left: 18px;
 }
@@ -229,5 +258,9 @@ export default {
 
 .tree-view-item-hint {
   color: #ccc;
+}
+
+.tree-view-item-root > .tree-view-item-leaf > .array-node {
+  margin-left: 18px;
 }
 </style>

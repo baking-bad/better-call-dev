@@ -23,6 +23,18 @@
         <font-awesome-icon icon="coins"/>
         {{ group.storageLimit }}
       </span>
+      <br>
+      <br>
+      <br>
+      <span v-b-tooltip.hover title="Resulting Balance">
+        <font-awesome-icon icon="cash-register"/>
+        {{ formatXTZ(balance, 0) }}
+      </span>
+      <br>
+      <span class="add-info mr-2" v-b-tooltip.hover title="Storage Size">
+        <font-awesome-icon icon="database"/>
+        {{ storageSize }} ({{storagePercent(storageSize)}})
+      </span>
     </div>
   </div>
 </template>
@@ -30,10 +42,17 @@
 <script>
 import utils from "@/app/utils";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faCube, faBurn, faReceipt, faCoins } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCube,
+  faBurn,
+  faReceipt,
+  faCoins,
+  faCashRegister,
+  faDatabase
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
-library.add(faCube, faBurn, faReceipt, faCoins);
+library.add(faCube, faBurn, faReceipt, faCoins, faCashRegister, faDatabase);
 
 export default {
   name: "GroupInfo",
@@ -42,14 +61,21 @@ export default {
   },
   props: {
     group: Object,
-    hash: String
+    hash: String,
+    balance: Number,
+    storageSize: String
   },
   methods: {
     formatAddress(address) {
       return utils.formatAddress(address);
     },
-    formatXTZ(amount) {
-      return utils.formatXTZ(amount);
+    formatXTZ(amount, decimals) {
+      return utils.formatXTZ(amount, decimals);
+    },
+    storagePercent(size) {
+      let currentStorageSize = parseInt(size);
+
+      return Math.round((currentStorageSize / 60000) * 100) + "%";
     }
   }
 };

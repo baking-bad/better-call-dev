@@ -1,47 +1,42 @@
 <template>
   <b-col lg="12">
-    <code>
-      <mark v-if="address == tx.source">{{ formatAddress(tx.source) }}</mark>
-      <a
-        v-else-if="tx.source[0] == 'K'"
-        target="_blank"
-        :href="baseAppURL + tezosNet + ':' + tx.source"
-      >{{ formatAddress(tx.source) }}</a>
-      <span v-else>{{ formatAddress(tx.source) }}</span>
-    </code>
+    <b-row>
+      <code>
+        <mark v-if="address == tx.source">{{ formatAddress(tx.source) }}</mark>
+        <a
+          v-else-if="tx.source[0] == 'K'"
+          target="_blank"
+          :href="baseAppURL + tezosNet + ':' + tx.source"
+        >{{ formatAddress(tx.source) }}</a>
+        <span v-else>{{ formatAddress(tx.source) }}</span>
+      </code>
 
-    <span style="font-family: Arial">&nbsp;&nbsp;⟶&nbsp;&nbsp;</span>
+      <span style="font-family: Arial">&nbsp;&nbsp;⟶&nbsp;&nbsp;</span>
+      <span class="add-info" v-b-tooltip.hover title="Amount">{{ formatXTZ(tx.amount) }}</span>
+      <span style="font-family: Arial">&nbsp;&nbsp;⟶&nbsp;&nbsp;</span>
 
-    <code>
-      <mark v-if="address == tx.destination">{{ formatAddress(tx.destination) }}</mark>
-      <a
-        v-else-if="tx.destination[0] == 'K'"
-        target="_blank"
-        :href="baseAppURL + tezosNet + ':' + tx.destination"
-      >{{ formatAddress(tx.destination) }}</a>
-      <span v-else>{{ formatAddress(tx.destination) }}</span>
-    </code>
-    <span
-      v-if="tx.status"
-      :class="'ml-3 mr-3 badge badge-outline ' + badgeClass(tx.status)"
-    >{{ tx.status }}</span>
-    <span class="add-info mr-2" v-b-tooltip.hover title="Amount">
-      <font-awesome-icon icon="money-bill-alt"/>
-      {{ formatXTZ(tx.amount) }}
-    </span>
-    <span class="add-info mr-2" v-if="tx.consumedGas" v-b-tooltip.hover title="Consumed Gas">
-      <font-awesome-icon icon="burn"/>
-      {{ tx.consumedGas }} ({{spentPercent(tx.consumedGas)}})
-    </span>
-    <span class="add-info mr-2" v-if="tx.storageSize" v-b-tooltip.hover title="Storage Size">
-      <font-awesome-icon icon="database"/>
-      {{ tx.storageSize }} ({{storagePercent(tx.storageSize)}})
-    </span>
-    <span class="add-info" v-if="tx.paidStorageDiff" v-b-tooltip.hover title="Paid Storage Diff">
-      <font-awesome-icon icon="coins"/>
-      {{ tx.paidStorageDiff }} ({{paidStoragePercent(tx.paidStorageDiff)}})
-    </span>
-    <br>
+      <code>
+        <mark v-if="address == tx.destination">{{ formatAddress(tx.destination) }}</mark>
+        <a
+          v-else-if="tx.destination[0] == 'K'"
+          target="_blank"
+          :href="baseAppURL + tezosNet + ':' + tx.destination"
+        >{{ formatAddress(tx.destination) }}</a>
+        <span v-else>{{ formatAddress(tx.destination) }}</span>
+      </code>
+      <span
+        v-if="tx.status"
+        :class="'ml-3 mr-3 badge badge-outline ' + badgeClass(tx.status)"
+      >{{ tx.status }}</span>
+      <span class="add-info mr-2" v-if="tx.consumedGas" v-b-tooltip.hover title="Consumed Gas">
+        <font-awesome-icon icon="burn"/>
+        {{ tx.consumedGas }} ({{spentPercent(tx.consumedGas)}})
+      </span>
+      <span class="add-info" v-if="tx.paidStorageDiff" v-b-tooltip.hover title="Paid Storage Diff">
+        <font-awesome-icon icon="coins"/>
+        {{ tx.paidStorageDiff }} ({{paidStoragePercent(tx.paidStorageDiff)}})
+      </span>
+    </b-row>
     <b-row>
       <b-col lg="4">
         <div style="font-size: 75%;" v-if="tx.decodedParameters != null">
@@ -54,6 +49,19 @@
         </div>
       </b-col>
     </b-row>
+    <b-row class="mt-2" v-if="tx.status === 'failed'">
+      <b-col lg="6">
+        <div v-for="error in tx.errors" :key="error.id">
+          <b-alert class="mr-2" variant="danger" show style="font-size: 75%;">
+            <b>{{ Errors[error.id].title }}</b>
+            <br>
+            {{ Errors[error.id].descr }}
+            <br>
+            <i v-if="error.msg">{{error.msg}}</i>
+          </b-alert>
+        </div>
+      </b-col>
+    </b-row>
     <br>
   </b-col>
 </template>
@@ -61,6 +69,7 @@
 <script>
 import utils from "@/app/utils";
 import { library } from "@fortawesome/fontawesome-svg-core";
+import Errors from "@/app/tezosErrors";
 import {
   faReceipt,
   faBurn,
@@ -89,7 +98,8 @@ export default {
     storageLimit: String
   },
   data: () => ({
-    baseAppURL: "https://baking-bad.github.io/better-call-dev/#"
+    baseAppURL: "https://baking-bad.github.io/better-call-dev/#",
+    Errors
   }),
   methods: {
     spentPercent(gas) {
@@ -97,11 +107,6 @@ export default {
       let currentGas = parseInt(gas);
 
       return Math.round((currentGas / gasLimit) * 100) + "%";
-    },
-    storagePercent(size) {
-      let currentStorageSize = parseInt(size);
-
-      return Math.round((currentStorageSize / 60000) * 100) + "%";
     },
     paidStoragePercent(diff) {
       let storageLimit = parseInt(this.storageLimit);
@@ -136,6 +141,10 @@ export default {
 </script>
 
 <style scoped>
+.alert {
+  padding: 0.45rem 0.75rem;
+}
+
 .add-info {
   font-size: 75%;
   opacity: 0.8;
@@ -143,6 +152,8 @@ export default {
 
 mark {
   padding: 0;
+  background-color: transparent;
+  color: #e83e8c;
 }
 
 code {
