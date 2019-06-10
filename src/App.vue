@@ -1,10 +1,10 @@
 <template>
   <div id="app">
-    <GithubCorner/>
+    <!-- <GithubCorner/> -->
     <b-container>
       <Loader :status="isLoading"/>
       <b-row>
-        <SearchForm
+        <NavBar
           :address="address"
           :tezosNet="tezosNet"
           @update="updateAddress"
@@ -12,6 +12,8 @@
           @explore="explore"
           @demo="demo"
         />
+      </b-row>
+      <b-row>
         <NotFound :status="notFound"/>
         <Results
           :address="address"
@@ -40,6 +42,7 @@ import Loader from "./components/Loader.vue";
 import NotFound from "./components/NotFound.vue";
 import Results from "./components/Results.vue";
 import SearchForm from "./components/SearchForm.vue";
+import NavBar from "./components/NavBar.vue";
 
 export default {
   name: "app",
@@ -48,7 +51,8 @@ export default {
     Loader,
     NotFound,
     Results,
-    SearchForm
+    SearchForm,
+    NavBar
   },
   data: () => ({
     isLoading: false,

@@ -1,13 +1,74 @@
 <template>
-  <b-col lg="12" class="mb-3" v-if="status">
+  <b-col lg="12" class="mb-3 pl-0 pr-0" v-if="status">
+    <div class="magic-top-divider"></div>
     <div id="tabs">
-      <div class="tabs">
+      <b-tabs pills card vertical>
+        <b-tab active class="pl-0 pr-0 pt-0">
+          <template slot="title">
+            <font-awesome-icon icon="exchange-alt"/>
+          </template>
+          <b-container>
+            <b-row class="styled-row" v-for="(group, hash) in groups" :key="group.level">
+              <b-col lg="2" class="pt-3 group-wrapper">
+                <GroupInfo
+                  :group="group"
+                  :hash="hash"
+                  :balance="group.balance"
+                  :storageSize="group.storageSize"
+                />
+              </b-col>
+              <b-col lg="10" class="mb-3 pt-3">
+                <b-row v-for="tx in group['operations']" :key="tx.hash">
+                  <TxInfo
+                    :tx="tx"
+                    :gasLimit="group.gasLimit"
+                    :address="address"
+                    :tezosNet="tezosNet"
+                    :storageLimit="group.storageLimit"
+                  />
+                </b-row>
+              </b-col>
+            </b-row>
+            <b-row v-if="morePages" class="styled-row">
+              <b-col lg="12" class="text-center mb-3">
+                <button type="button" class="btn btn-link" @click="loadMore">Load More</button>
+              </b-col>
+            </b-row>
+          </b-container>
+        </b-tab>
+
+        <b-tab title="Storage" class="pl-0 pr-0">
+          <template slot="title">
+            <font-awesome-icon icon="code"/>
+          </template>
+          <b-container>
+            <b-row>
+              <b-col lg="4">
+                <span>storage</span>
+                <br>
+                <JsonView :data="decodedData"/>
+              </b-col>
+              <b-col lg="4">
+                <span>schema</span>
+                <br>
+                <JsonView :data="decodedSchema"/>
+              </b-col>
+              <b-col lg="4">
+                <span>schema</span>
+                <br>
+                <JsonView :data="parameterSchema"/>
+              </b-col>
+            </b-row>
+          </b-container>
+        </b-tab>
+      </b-tabs>
+      <!-- <div class="tabs">
         <a @click="tab(1)" :class="[ activetab === 1 ? 'active' : '' ]">Operations</a>
         <a @click="tab(2)" :class="[ activetab === 2 ? 'active' : '' ]">Storage</a>
         <a @click="tab(3)" :class="[ activetab === 3 ? 'active' : '' ]">Parameters</a>
-      </div>
+      </div>-->
 
-      <div class="content">
+      <!-- <div class="content">
         <div v-if="activetab === 1" class="tabcontent">
           <b-container>
             <b-row class="styled-row" v-for="(group, hash) in groups" :key="group.level">
@@ -65,7 +126,7 @@
             </b-row>
           </b-container>
         </div>
-      </div>
+      </div>-->
     </div>
   </b-col>
 </template>
@@ -75,12 +136,19 @@ import JsonView from "./JsonView.vue";
 import GroupInfo from "./GroupInfo.vue";
 import TxInfo from "./TxInfo.vue";
 
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faExchangeAlt, faCode } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+
+library.add(faExchangeAlt, faCode);
+
 export default {
   name: "Results",
   components: {
     JsonView,
     GroupInfo,
-    TxInfo
+    TxInfo,
+    FontAwesomeIcon
   },
   props: [
     "address",
@@ -167,12 +235,33 @@ export default {
   padding: 30px;
 }
 
+/* new era */
+
+.tab-pane {
+  outline: none;
+}
+
+.tabs .card-header {
+  padding: 0rem 1.25rem;
+}
+
 .styled-row {
-  border-bottom: 1px solid #ccc;
-  margin-top: 15px;
+  border-bottom: 10px solid rgba(0, 0, 0, 0.05);
 }
 
 .styled-row:last-of-type {
   border-bottom: none;
+}
+
+.magic-top-divider {
+  height: 10px;
+  width: 100%;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+</style>
+
+<style>
+.card-header {
+  background-color: rgba(0, 0, 0, 0.05);
 }
 </style>
