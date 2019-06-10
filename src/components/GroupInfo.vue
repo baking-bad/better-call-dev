@@ -31,7 +31,7 @@
         {{ formatXTZ(balance, 0) }}
       </span>
       <br>
-      <span class="add-info mr-2" v-b-tooltip.hover title="Storage Size">
+      <span class="add-info mr-2" v-if="storageSize" v-b-tooltip.hover title="Storage Size">
         <font-awesome-icon icon="database"/>
         {{ storageSize }} ({{storagePercent(storageSize)}})
       </span>

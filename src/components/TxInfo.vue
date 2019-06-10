@@ -35,7 +35,7 @@
       <font-awesome-icon icon="coins"/>
       {{ tx.paidStorageDiff }} ({{paidStoragePercent(tx.paidStorageDiff)}})
     </span>
-    <b-row>
+    <b-row class="mt-2">
       <b-col lg="4">
         <div style="font-size: 75%;" v-if="tx.decodedParameters != null">
           <JsonView :data="tx.decodedParameters"/>
