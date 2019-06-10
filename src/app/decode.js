@@ -1,3 +1,7 @@
+import bs58check from 'bs58check'
+// eslint-disable-next-line
+Buffer = require("buffer/").Buffer;
+
 export function bigMapDiffDecode(data, schema) {
   const paths = getBigMapSchema(schema.type_map);
   const res = {};
@@ -315,13 +319,64 @@ function decode_literal(node, prim) {
   if (prim === "bool") {
     return value === true;
   }
-  if (prim === "address" && core_type === "bytes") {
+  if (["address", "contract"].includes(prim) && core_type === "bytes") {
     // eslint-disable-next-line
-    // console.log("Houston we have a problem: ", prim, core_type, value);
-    return value;
+    console.log("Houston we have a problem: ", prim, core_type, value);
+
+    if (value.substring(0, 2) === "00") {
+      const prefix = {
+        '0000': new Uint8Array([6, 161, 159]),
+        '0001': new Uint8Array([6, 161, 161]),
+        '0002': new Uint8Array([6, 161, 164])
+      }
+
+      return b58cencode(value.substring(4), prefix[value.substring(0, 4)])
+    }
+
+    return b58cencode(value.substring(2, 42), new Uint8Array([2,90,121]))
+  }
+  if (prim === "key" && core_type === "bytes") {
+    if (value[0] === "0") {
+      const prefix = {
+        '00': new Uint8Array([13, 15, 37, 217]),
+        '01': new Uint8Array([3, 254, 226, 86]),
+        '02': new Uint8Array([3, 178, 139, 127])
+      }
+
+      return b58cencode(value.substring(2), prefix[value.substring(0, 2)])
+    }
+    // eslint-disable-next-line
+    console.log("Houston we have a problem with PREFIX: ", prim, core_type, value);
+
+    return value
+  }
+  if (prim === "key_hash" && core_type === "bytes") {
+    if (value[0] === "0") {
+      const prefix = {
+        '00': new Uint8Array([6, 161, 159]),
+        '01': new Uint8Array([6, 161, 161]),
+        '02': new Uint8Array([6, 161, 164])
+      }
+
+      return b58cencode(value.substring(2), prefix[value.substring(0, 2)])
+    }
+    // eslint-disable-next-line
+    console.log("Houston we have a problem with PREFIX: ", prim, core_type, value);
+
+    return value
   }
 
   return value;
+}
+
+function b58cencode(payload, prefix) {
+  payload = Uint8Array.from(Buffer.from(payload, 'hex'));
+
+  const n = new Uint8Array(prefix.length + payload.length);
+  n.set(prefix);
+  n.set(payload, prefix.length);
+
+  return bs58check.encode(Buffer.from(n.buffer));
 }
 
 function getBigMapSchema(typeMap) {

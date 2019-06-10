@@ -1,42 +1,40 @@
 <template>
   <b-col lg="12">
-    <b-row>
-      <code>
-        <mark v-if="address == tx.source">{{ formatAddress(tx.source) }}</mark>
-        <a
-          v-else-if="tx.source[0] == 'K'"
-          target="_blank"
-          :href="baseAppURL + tezosNet + ':' + tx.source"
-        >{{ formatAddress(tx.source) }}</a>
-        <span v-else>{{ formatAddress(tx.source) }}</span>
-      </code>
+    <code>
+      <mark v-if="address == tx.source">{{ formatAddress(tx.source) }}</mark>
+      <a
+        v-else-if="tx.source[0] == 'K'"
+        target="_blank"
+        :href="baseAppURL + tezosNet + ':' + tx.source"
+      >{{ formatAddress(tx.source) }}</a>
+      <span v-else>{{ formatAddress(tx.source) }}</span>
+    </code>
 
-      <span style="font-family: Arial">&nbsp;&nbsp;⟶&nbsp;&nbsp;</span>
-      <span class="add-info" v-b-tooltip.hover title="Amount">{{ formatXTZ(tx.amount) }}</span>
-      <span style="font-family: Arial">&nbsp;&nbsp;⟶&nbsp;&nbsp;</span>
+    <span style="font-family: Arial">&nbsp;&nbsp;⟶&nbsp;&nbsp;</span>
+    <span class="add-info" v-b-tooltip.hover title="Amount">{{ formatXTZ(tx.amount) }}</span>
+    <span style="font-family: Arial">&nbsp;&nbsp;⟶&nbsp;&nbsp;</span>
 
-      <code>
-        <mark v-if="address == tx.destination">{{ formatAddress(tx.destination) }}</mark>
-        <a
-          v-else-if="tx.destination[0] == 'K'"
-          target="_blank"
-          :href="baseAppURL + tezosNet + ':' + tx.destination"
-        >{{ formatAddress(tx.destination) }}</a>
-        <span v-else>{{ formatAddress(tx.destination) }}</span>
-      </code>
-      <span
-        v-if="tx.status"
-        :class="'ml-3 mr-3 badge badge-outline ' + badgeClass(tx.status)"
-      >{{ tx.status }}</span>
-      <span class="add-info mr-2" v-if="tx.consumedGas" v-b-tooltip.hover title="Consumed Gas">
-        <font-awesome-icon icon="burn"/>
-        {{ tx.consumedGas }} ({{spentPercent(tx.consumedGas)}})
-      </span>
-      <span class="add-info" v-if="tx.paidStorageDiff" v-b-tooltip.hover title="Paid Storage Diff">
-        <font-awesome-icon icon="coins"/>
-        {{ tx.paidStorageDiff }} ({{paidStoragePercent(tx.paidStorageDiff)}})
-      </span>
-    </b-row>
+    <code>
+      <mark v-if="address == tx.destination">{{ formatAddress(tx.destination) }}</mark>
+      <a
+        v-else-if="tx.destination[0] == 'K'"
+        target="_blank"
+        :href="baseAppURL + tezosNet + ':' + tx.destination"
+      >{{ formatAddress(tx.destination) }}</a>
+      <span v-else>{{ formatAddress(tx.destination) }}</span>
+    </code>
+    <span
+      v-if="tx.status"
+      :class="'ml-3 mr-3 badge badge-outline ' + badgeClass(tx.status)"
+    >{{ tx.status }}</span>
+    <span class="add-info mr-2" v-if="tx.consumedGas" v-b-tooltip.hover title="Consumed Gas">
+      <font-awesome-icon icon="burn"/>
+      {{ tx.consumedGas }} ({{spentPercent(tx.consumedGas)}})
+    </span>
+    <span class="add-info" v-if="tx.paidStorageDiff" v-b-tooltip.hover title="Paid Storage Diff">
+      <font-awesome-icon icon="coins"/>
+      {{ tx.paidStorageDiff }} ({{paidStoragePercent(tx.paidStorageDiff)}})
+    </span>
     <b-row>
       <b-col lg="4">
         <div style="font-size: 75%;" v-if="tx.decodedParameters != null">
