@@ -36,13 +36,13 @@
       {{ tx.paidStorageDiff }} ({{paidStoragePercent(tx.paidStorageDiff)}})
     </span>
     <b-row class="mt-2">
-      <b-col lg="4">
+      <b-col lg="5">
         <div style="font-size: 75%;" v-if="tx.decodedParameters != null">
           <JsonView :data="tx.decodedParameters"/>
         </div>
       </b-col>
-      <b-col lg="8">
-        <div style="font-size: 75%;" v-if="address == tx.destination && tx.status === 'applied'">
+      <b-col lg="7">
+        <div style="font-size: 75%;" v-if="tx.status === 'applied'">
           <PatchView :prev-data="tx.prevStorage" :data="tx.storage" :max-depth="7"/>
         </div>
       </b-col>

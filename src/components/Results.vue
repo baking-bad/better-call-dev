@@ -5,11 +5,13 @@
       <b-tabs pills card vertical>
         <b-tab active class="pl-0 pr-0 pt-0">
           <template slot="title">
-            <font-awesome-icon icon="exchange-alt"/>
+            <span v-b-tooltip.hover title="Operations">
+              <font-awesome-icon icon="exchange-alt"/>
+            </span>
           </template>
-          <b-container class="groups-wrapper">
+          <b-container class="tab-wrapper">
             <b-row class="styled-row" v-for="(group, hash) in groups" :key="group.level">
-              <b-col lg="2" class="pt-3 info-wrapper">
+              <b-col lg="12" class="pt-3 info-wrapper">
                 <GroupInfo
                   :group="group"
                   :hash="hash"
@@ -17,7 +19,7 @@
                   :storageSize="group.storageSize"
                 />
               </b-col>
-              <b-col lg="10" class="mb-3 pt-3">
+              <b-col lg="12" class="mb-3 pt-3 pl-4">
                 <b-row v-for="tx in group['operations']" :key="tx.hash">
                   <TxInfo
                     :tx="tx"
@@ -37,26 +39,31 @@
           </b-container>
         </b-tab>
 
-        <b-tab title="Storage" class="pl-0 pr-0">
+        <b-tab title="Storage" class="pl-0 pr-0 pt-0 pb-0">
           <template slot="title">
-            <font-awesome-icon icon="code"/>
+            <span v-b-tooltip.hover title="Schemas">
+              <font-awesome-icon icon="code"/>
+            </span>
           </template>
-          <b-container>
-            <b-row>
-              <b-col lg="4">
-                <span>storage</span>
-                <br>
-                <JsonView :data="decodedData"/>
+          <b-container class="tab-wrapper">
+            <b-row class="schemas">
+              <b-col lg="6" class="styled-row mr-3 pl-0 pr-0">
+                <div class="schema-title p-3">storage</div>
+                <div class="p-3">
+                  <JsonView :data="decodedData"/>
+                </div>
               </b-col>
-              <b-col lg="4">
-                <span>schema</span>
-                <br>
-                <JsonView :data="decodedSchema"/>
+              <b-col lg="5" class="styled-row mr-1 pl-0 pr-0">
+                <div class="schema-title p-3">schema</div>
+                <div class="p-3">
+                  <JsonView :data="decodedSchema"/>
+                </div>
               </b-col>
-              <b-col lg="4">
-                <span>schema</span>
-                <br>
-                <JsonView :data="parameterSchema"/>
+              <b-col lg="6" class="styled-row pl-0 pr-0">
+                <div class="schema-title p-3">parameter schema</div>
+                <div class="p-3">
+                  <JsonView :data="parameterSchema"/>
+                </div>
               </b-col>
             </b-row>
           </b-container>
@@ -123,7 +130,7 @@ export default {
   padding: 0rem 1.25rem;
 }
 
-.groups-wrapper {
+.tab-wrapper {
   background-color: #fafafa;
   padding-top: 20px;
   padding-left: 40px;
@@ -138,13 +145,18 @@ export default {
 }
 
 .info-wrapper {
-  border-right: 1px solid rgba(0, 0, 0, 0.12);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.schema-title {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  font-size: 14px;
 }
 </style>
 
 <style>
 .card-header {
-  background-color: none;
+  background-color: transparent;
   padding-top: 20px;
   border-right: 1px solid rgba(0, 0, 0, 0.12);
 }
