@@ -320,9 +320,6 @@ function decode_literal(node, prim) {
     return value === true;
   }
   if (["address", "contract"].includes(prim) && core_type === "bytes") {
-    // eslint-disable-next-line
-    console.log("Houston we have a problem: ", prim, core_type, value);
-
     if (value.substring(0, 2) === "00") {
       const prefix = {
         '0000': new Uint8Array([6, 161, 159]),
