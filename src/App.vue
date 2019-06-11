@@ -1,6 +1,5 @@
 <template>
   <div id="app">
-    <!-- <GithubCorner/> -->
     <b-container>
       <Loader :status="isLoading"/>
       <b-row>
@@ -19,14 +18,12 @@
           :address="address"
           :tezosNet="tezosNet"
           :status="isReady"
-          :activetab="activetab"
           :groups="groups"
           :morePages="txInfo.morePages"
           :decodedData="decoded_data"
           :decodedSchema="decoded_schema"
           :parameterSchema="parameterSchema"
           @loadmore="loadMore"
-          @changeTab="changeTab"
         />
       </b-row>
     </b-container>
@@ -37,28 +34,23 @@
 import axios from "axios";
 import { bigMapDiffDecode, decodeData, decodeSchema, buildSchema } from "@/app/decode";
 
-import GithubCorner from "./components/GithubCorner.vue";
 import Loader from "./components/Loader.vue";
 import NotFound from "./components/NotFound.vue";
 import Results from "./components/Results.vue";
-import SearchForm from "./components/SearchForm.vue";
 import NavBar from "./components/NavBar.vue";
 
 export default {
   name: "app",
   components: {
-    GithubCorner,
     Loader,
     NotFound,
     Results,
-    SearchForm,
     NavBar
   },
   data: () => ({
     isLoading: false,
     address: "",
     tezosNet: "alpha",
-    activetab: 1,
     isReady: false,
     notFound: false,
     resultForParameter: {},
@@ -137,7 +129,6 @@ export default {
       this.parameterSchema = {};
       this.resultForParameter = {};
       this.resultForStorage = {};
-      this.activetab = 1;
       this.txInfo.morePages = false;
       this.txInfo.currentPage = 0;
       this.txInfo.data = [];
@@ -552,9 +543,6 @@ export default {
       this.groups = Object.assign({}, this.groups, newGroups);
 
       this.isLoading = false;
-    },
-    changeTab(value) {
-      this.activetab = value;
     }
   }
 };
