@@ -434,6 +434,7 @@ export default {
             op.consumedGas = op.result.consumed_gas;
             op.paidStorageDiff = op.result.paid_storage_size_diff;
             op.storageSize = op.result.storage_size;
+            op.expand = false;
             currentBalanceChange += this.changeBalance(op.result.balance_updates);
           } else if (op.metadata.operation_result != undefined) {
             op.status = op.metadata.operation_result.status;
@@ -441,6 +442,7 @@ export default {
             op.consumedGas = op.metadata.operation_result.consumed_gas;
             op.paidStorageDiff = op.metadata.operation_result.paid_storage_size_diff;
             op.storageSize = op.metadata.operation_result.storage_size;
+            op.expand = false;
             currentBalanceChange += this.changeBalance(
               op.metadata.operation_result.balance_updates
             );
