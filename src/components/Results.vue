@@ -27,6 +27,7 @@
                     :address="address"
                     :tezosNet="tezosNet"
                     :storageLimit="group.storageLimit"
+                    @expand="expand(tx)"
                   />
                 </b-row>
               </b-col>
@@ -116,6 +117,9 @@ export default {
   methods: {
     loadMore() {
       this.$emit("loadmore");
+    },
+    expand(tx) {
+      tx.expand = !tx.expand;
     }
   }
 };

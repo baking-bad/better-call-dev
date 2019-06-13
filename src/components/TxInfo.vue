@@ -1,50 +1,83 @@
 <template>
   <b-col lg="12">
-    <code>
-      <mark v-if="address == tx.source">{{ formatAddress(tx.source) }}</mark>
+    <div class="my-title">
+      <span v-if="tx.internal">internal&nbsp;</span>transaction
+    </div>
+    <span class="tx-hash">
+      <mark v-if="address == tx.source">{{ tx.source }}</mark>
       <a
         v-else-if="tx.source[0] == 'K'"
         target="_blank"
         :href="baseAppURL + tezosNet + ':' + tx.source"
-      >{{ formatAddress(tx.source) }}</a>
-      <span v-else>{{ formatAddress(tx.source) }}</span>
-    </code>
+      >{{ tx.source }}</a>
+      <span v-else>{{ tx.source }}</span>
+    </span>
 
     <span style="font-family: Arial">&nbsp;&nbsp;⟶&nbsp;&nbsp;</span>
-    <span class="add-info" v-b-tooltip.hover title="Amount">{{ formatXTZ(tx.amount) }}</span>
-    <span style="font-family: Arial">&nbsp;&nbsp;⟶&nbsp;&nbsp;</span>
 
-    <code>
-      <mark v-if="address == tx.destination">{{ formatAddress(tx.destination) }}</mark>
+    <span class="tx-hash">
+      <mark v-if="address == tx.destination">{{ tx.destination }}</mark>
       <a
         v-else-if="tx.destination[0] == 'K'"
         target="_blank"
         :href="baseAppURL + tezosNet + ':' + tx.destination"
-      >{{ formatAddress(tx.destination) }}</a>
-      <span v-else>{{ formatAddress(tx.destination) }}</span>
-    </code>
-    <span
-      v-if="tx.status"
-      :class="'ml-3 mr-3 badge badge-outline ' + badgeClass(tx.status)"
-    >{{ tx.status }}</span>
-    <span class="add-info mr-2" v-if="tx.consumedGas" v-b-tooltip.hover title="Consumed Gas">
-      <font-awesome-icon icon="burn"/>
-      {{ tx.consumedGas }} ({{spentPercent(tx.consumedGas)}})
-    </span>
-    <span class="add-info" v-if="tx.paidStorageDiff" v-b-tooltip.hover title="Paid Storage Diff">
-      <font-awesome-icon icon="coins"/>
-      {{ tx.paidStorageDiff }} ({{paidStoragePercent(tx.paidStorageDiff)}})
+      >{{ tx.destination }}</a>
+      <span v-else>{{ tx.destination }}</span>
     </span>
     <b-row class="mt-2">
-      <b-col lg="5">
-        <div style="font-size: 75%;" v-if="tx.decodedParameters != null">
-          <JsonView :data="tx.decodedParameters"/>
+      <b-col lg="12">
+        <div class="mb-2" style="display: flex;">
+          <div class="mr-4" v-if="tx.status">
+            <div class="my-subtitle">Status</div>
+            <span :class="'badge badge-outline ' + badgeClass(tx.status)">{{ tx.status }}</span>
+          </div>
+          <div class="mr-4">
+            <div class="my-subtitle">Amount</div>
+            <span style="font-size: 75%;">
+              <font-awesome-icon icon="receipt"/>
+              {{ formatXTZ(tx.amount) }}
+            </span>
+          </div>
+          <div class="mr-4" v-if="tx.consumedGas">
+            <div class="my-subtitle">Consumed Gas</div>
+            <span style="font-size: 75%;">
+              <font-awesome-icon icon="burn"/>
+              {{ tx.consumedGas }} ({{spentPercent(tx.consumedGas)}})
+            </span>
+          </div>
+          <div class="mr-4" v-if="tx.paidStorageDiff">
+            <div class="my-subtitle">Paid Storage Diff</div>
+            <span style="font-size: 75%;">
+              <font-awesome-icon icon="coins"/>
+              {{ tx.paidStorageDiff }} ({{paidStoragePercent(tx.paidStorageDiff)}})
+            </span>
+          </div>
+          <div v-if="tx.decodedParameters">
+            <div class="my-subtitle">Parameter / Storage</div>
+            <span>
+              <button class="my-button" @click="expand(tx)" v-if="tx.expand">hide</button>
+              <button class="my-button" @click="expand(tx)" v-else>show</button>
+            </span>
+          </div>
         </div>
       </b-col>
-      <b-col lg="7">
-        <div style="font-size: 75%;" v-if="tx.status === 'applied'">
-          <PatchView :prev-data="tx.prevStorage" :data="tx.storage" :max-depth="7"/>
-        </div>
+      <b-col lg="12" v-if="tx.expand">
+        <b-card>
+          <b-row>
+            <b-col lg="5">
+              <div v-if="tx.decodedParameters != null">
+                <div class="my-subtitle">Parameters</div>
+                <JsonView :data="tx.decodedParameters"/>
+              </div>
+            </b-col>
+            <b-col lg="7">
+              <div v-if="tx.status === 'applied'">
+                <div class="my-subtitle" v-if="tx.storage != null">Storage</div>
+                <PatchView :prev-data="tx.prevStorage" :data="tx.storage" :max-depth="7"/>
+              </div>
+            </b-col>
+          </b-row>
+        </b-card>
       </b-col>
     </b-row>
     <b-row class="mt-2" v-if="tx.status === 'failed'">
@@ -133,12 +166,52 @@ export default {
       }
 
       return "badge-secondary";
+    },
+    expand() {
+      this.$emit("expand");
     }
   }
 };
 </script>
 
 <style scoped>
+.my-button {
+  padding: 0.1rem 0.5rem;
+  font-size: 0.7rem;
+  line-height: 1.5;
+  border-radius: 0.2rem;
+  color: #fff;
+  background-color: #6c757d;
+  border-color: #6c757d;
+  display: inline-block;
+  font-weight: 400;
+}
+
+.my-button:hover {
+  background-color: #5f6569;
+  border-color: #5f6569;
+}
+
+.my-button:focus {
+  outline: none;
+}
+
+.tx-hash {
+  font-size: 12px;
+}
+
+.my-title {
+  font-size: 12px;
+  color: #76a34e;
+  text-transform: uppercase;
+}
+
+.my-subtitle {
+  font-size: 10px;
+  color: rgba(155, 155, 155, 0.8);
+  text-transform: uppercase;
+}
+
 .alert {
   padding: 0.45rem 0.75rem;
 }
