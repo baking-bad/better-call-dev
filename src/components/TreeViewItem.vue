@@ -62,6 +62,13 @@
         @click="changeLen($event, data)"
       >{{getValue(data)}}</span>
     </div>
+    <div
+      style="word-wrap: break-word"
+      :class="'tree-view-item-leaf ' + getColor(data.op)"
+      v-if="isConst(data)"
+    >
+      <span class="tree-view-item-key tree-view-item-const">{{getConst(data)}}</span>
+    </div>
   </div>
 </template>
 
@@ -131,6 +138,12 @@ export default {
     },
     isValue: function(value) {
       return value.type === "value";
+    },
+    isConst: function(value) {
+      return value.type === "const";
+    },
+    getConst: function(value) {
+      return this.formatLiqEntry(value.const);
     },
     getKey: function(value) {
       return this.formatLiqEntry(value.key + ": ");
@@ -262,5 +275,10 @@ export default {
 
 .tree-view-item-root > .tree-view-item-leaf > .array-node {
   margin-left: 18px;
+}
+
+.tree-view-item-const {
+  margin-left: 18px;
+  color: rgb(107, 161, 59);
 }
 </style>

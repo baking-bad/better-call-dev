@@ -91,28 +91,42 @@ export function decodeData(data, schema, annotations = true, literals = true, ro
       } else {
         const args = [];
 
-        node.forEach(item => {
-          args.push(decode_node(item, `${path}0`));
-        });
-
-        if (type_info.prim === "set") {
-          res = args.filter(onlyUnique);
-        } else if (type_info.prim === "list") {
-          res = args;
+        if (type_info.prim === "lambda") {
+          // Todo: convert to Michelson
+          res = node;
         } else {
-          // eslint-disable-next-line
-          // console.log("Houston we have a problem: ", node, type_info);
+          node.forEach(item => {
+            args.push(decode_node(item, `${path}0`));
+          });
+
+          if (type_info.prim === "set") {
+            res = args.filter(onlyUnique);
+          } else if (type_info.prim === "list") {
+            res = args;
+          }
         }
       }
     } else {
-      // eslint-disable-next-line
-      // console.log("Houston we have a problem: ", node, type_info);
+      throw new Error("Decoding Error", res)
     }
 
     return res;
   }
 
-  return decode_node(data, rootNode);
+  try {
+    if (data) {
+      let res = decode_node(data, rootNode);
+      if (res instanceof Nested) {
+        return JSON.parse(JSON.stringify(res))
+      }
+      return res
+    }
+    return ""
+  } catch(e) {
+    // eslint-disable-next-line
+    console.log("Houston we have a problem 2: ", e);
+    return JSON.parse(JSON.stringify(data))
+  }
 }
 
 export function buildSchema(code) {

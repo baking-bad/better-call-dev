@@ -189,8 +189,6 @@ function randomInteger(min, max) {
 </script>
 
 <style scoped>
-@import url("https://fonts.googleapis.com/css?family=Roboto:300,400");
-
 .logo {
   font-family: "Roboto", sans-serif;
   font-weight: 300;
