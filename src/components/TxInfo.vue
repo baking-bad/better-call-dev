@@ -176,13 +176,14 @@ export default {
   padding: 0.1rem 0.5rem;
   font-size: 0.7rem;
   line-height: 1.5;
-  border-radius: 0.2rem;
+  border-radius: 0;
   color: #fff;
   background-color: #6c757d;
   border-color: #6c757d;
   display: inline-block;
   font-weight: 400;
   line-height: normal;
+  min-width: 50px;
 }
 
 .my-button:hover {

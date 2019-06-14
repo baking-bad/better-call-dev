@@ -205,4 +205,13 @@ function randomInteger(min, max) {
 .input-address {
   min-width: 350px;
 }
+
+.btn {
+  border-radius: 0;
+}
+
+.form-control {
+  border: none;
+  border-radius: 0;
+}
 </style>
