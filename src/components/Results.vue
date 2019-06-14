@@ -49,19 +49,19 @@
           <b-container class="tab-wrapper">
             <b-row class="schemas">
               <b-col lg="6" class="styled-row mr-3 pl-0 pr-0">
-                <div class="schema-title p-3">storage</div>
+                <div class="schema-title p-3 info-wrapper">storage</div>
                 <div class="p-3">
                   <JsonView :data="decodedData"/>
                 </div>
               </b-col>
               <b-col lg="5" class="styled-row mr-1 pl-0 pr-0">
-                <div class="schema-title p-3">schema</div>
+                <div class="schema-title p-3 info-wrapper">schema</div>
                 <div class="p-3">
                   <JsonView :data="decodedSchema"/>
                 </div>
               </b-col>
               <b-col lg="6" class="styled-row pl-0 pr-0">
-                <div class="schema-title p-3">parameter schema</div>
+                <div class="schema-title p-3 info-wrapper">parameter schema</div>
                 <div class="p-3">
                   <JsonView :data="parameterSchema"/>
                 </div>
