@@ -29,6 +29,12 @@ export default {
         value: valueToTransform
       };
     },
+    transformConstant: function(constToTransform) {
+      return {
+        type: "const",
+        const: constToTransform
+      };
+    },
 
     // Since we use lodash, the _.map method will work on
     // both Objects and Arrays, returning either the Key as
@@ -82,7 +88,7 @@ export default {
   computed: {
     parsedData: function() {
       if (this.isValue(this.data)) {
-        return this.transformArray([this.data], "parameter");
+        return this.transformConstant(this.data);
       }
       if (this.isArray(this.data)) {
         return this.transformArray(this.data, "parameter");
@@ -93,13 +99,11 @@ export default {
       if (keys.length === 1) {
         let value = this.data[keys[0]];
         if (value === "Unit" || value === null) {
-          return this.transformArray([], keys[0]);
-        } else if (this.isValue(value)) {
-          return this.transformArray([value], keys[0]);
+          return this.transformConstant(keys[0]);
         }
       }
 
-      return this.transformObject(this.data, "parameters", true);
+      return this.transformObject(this.data, "parameter", true);
     }
   }
 };
@@ -108,14 +112,5 @@ export default {
 <style scoped>
 .tree-view-item-root {
   margin-left: 0;
-}
-
-.tree-view-item-root > .tree-view-item-leaf > .tree-view-item {
-  margin-left: 0;
-}
-
-.tree-view-wrapper {
-  margin-left: -15px;
-  overflow: auto;
 }
 </style>

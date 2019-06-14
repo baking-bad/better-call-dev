@@ -551,6 +551,14 @@ export default {
 </script>
 
 <style>
+@import url("https://fonts.googleapis.com/css?family=Roboto:300,400");
+@import url("https://fonts.googleapis.com/css?family=Roboto+Mono:300,400");
+
+body {
+  font-family: "Roboto", sans-serif;
+  font-weight: 300;
+}
+
 .container {
   max-width: 1600px;
   min-width: 420px;

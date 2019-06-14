@@ -2,46 +2,47 @@
   <b-col lg="12">
     <div class="my-title">
       <span v-if="tx.internal">internal&nbsp;</span>transaction
+      <span :class="'ml-1 badge badge-outline ' + badgeClass(tx.status)">{{ tx.status }}</span>
     </div>
-    <span class="tx-hash">
-      <mark v-if="address == tx.source">{{ tx.source }}</mark>
-      <a
-        v-else-if="tx.source[0] == 'K'"
-        target="_blank"
-        :href="baseAppURL + tezosNet + ':' + tx.source"
-      >{{ tx.source }}</a>
-      <span v-else>{{ tx.source }}</span>
-    </span>
 
-    <span style="font-family: Arial">&nbsp;&nbsp;⟶&nbsp;&nbsp;</span>
-
-    <span class="tx-hash">
-      <mark v-if="address == tx.destination">{{ tx.destination }}</mark>
-      <a
-        v-else-if="tx.destination[0] == 'K'"
-        target="_blank"
-        :href="baseAppURL + tezosNet + ':' + tx.destination"
-      >{{ tx.destination }}</a>
-      <span v-else>{{ tx.destination }}</span>
-    </span>
     <b-row class="mt-2">
       <b-col lg="12">
         <div class="mb-2" style="display: flex;">
-          <div class="mr-4" v-if="tx.status">
-            <div class="my-subtitle">Status</div>
-            <span :class="'badge badge-outline ' + badgeClass(tx.status)">{{ tx.status }}</span>
+          <div class="mr-4">
+            <div class="my-subtitle">Source</div>
+            <span class="tx-hash">
+              <mark v-if="address == tx.source">{{ tx.source }}</mark>
+              <a
+                v-else-if="tx.source[0] == 'K'"
+                target="_blank"
+                :href="baseAppURL + tezosNet + ':' + tx.source"
+              >{{ tx.source }}</a>
+              <span v-else>{{ tx.source }}</span>
+            </span>
           </div>
           <div class="mr-4">
+            <div class="my-subtitle">Destination</div>
+            <span class="tx-hash">
+              <mark v-if="address == tx.destination">{{ tx.destination }}</mark>
+              <a
+                v-else-if="tx.destination[0] == 'K'"
+                target="_blank"
+                :href="baseAppURL + tezosNet + ':' + tx.destination"
+              >{{ tx.destination }}</a>
+              <span v-else>{{ tx.destination }}</span>
+            </span>
+          </div>
+          <div class="mr-4" style="min-width: 90px;">
             <div class="my-subtitle">Amount</div>
             <span style="font-size: 75%;">
-              <font-awesome-icon icon="receipt"/>
+              <font-awesome-icon icon="receipt" :style="{ color: '#c0b294' }"/>
               {{ formatXTZ(tx.amount) }}
             </span>
           </div>
-          <div class="mr-4" v-if="tx.consumedGas">
+          <div class="mr-4" style="min-width: 90px;" v-if="tx.consumedGas">
             <div class="my-subtitle">Consumed Gas</div>
             <span style="font-size: 75%;">
-              <font-awesome-icon icon="burn"/>
+              <font-awesome-icon icon="burn" :style="{ color: '#007ac2' }"/>
               {{ tx.consumedGas }} ({{spentPercent(tx.consumedGas)}})
             </span>
           </div>
@@ -55,24 +56,26 @@
           <div v-if="tx.decodedParameters">
             <div class="my-subtitle">Parameter / Storage</div>
             <span>
-              <button class="my-button" @click="expand(tx)" v-if="tx.expand">hide</button>
-              <button class="my-button" @click="expand(tx)" v-else>show</button>
+              <button class="my-button" @click="expand(tx)">
+                <span v-if="tx.expand">hide</span>
+                <span v-else>show</span>
+              </button>
             </span>
           </div>
         </div>
       </b-col>
-      <b-col lg="12" v-if="tx.expand">
+      <b-col lg="12" class="mb-2" v-if="tx.expand">
         <b-card>
           <b-row>
             <b-col lg="5">
               <div v-if="tx.decodedParameters != null">
-                <div class="my-subtitle">Parameters</div>
+                <div class="my-subtitle">Parameter</div>
                 <JsonView :data="tx.decodedParameters"/>
               </div>
             </b-col>
             <b-col lg="7">
-              <div v-if="tx.status === 'applied'">
-                <div class="my-subtitle" v-if="tx.storage != null">Storage</div>
+              <div v-if="tx.status === 'applied' && tx.storage != null">
+                <div class="my-subtitle">Storage</div>
                 <PatchView :prev-data="tx.prevStorage" :data="tx.storage" :max-depth="7"/>
               </div>
             </b-col>
@@ -101,18 +104,12 @@
 import utils from "@/app/utils";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import Errors from "@/app/tezosErrors";
-import {
-  faReceipt,
-  faBurn,
-  faDatabase,
-  faCoins,
-  faMoneyBillAlt
-} from "@fortawesome/free-solid-svg-icons";
+import { faReceipt, faBurn, faCoins } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import JsonView from "./JsonView.vue";
 import PatchView from "./PatchView.vue";
 
-library.add(faReceipt, faBurn, faDatabase, faCoins, faMoneyBillAlt);
+library.add(faReceipt, faBurn, faCoins);
 
 export default {
   name: "GroupInfo",
@@ -185,6 +182,7 @@ export default {
   border-color: #6c757d;
   display: inline-block;
   font-weight: 400;
+  line-height: normal;
 }
 
 .my-button:hover {
@@ -198,6 +196,14 @@ export default {
 
 .tx-hash {
   font-size: 12px;
+  font-family: "Roboto Mono", monospace;
+  font-weight: 300;
+}
+
+.card,
+.alert,
+.badge {
+  border-radius: 0;
 }
 
 .my-title {
@@ -232,6 +238,7 @@ code {
 }
 
 .badge-outline {
+  line-height: normal;
   font-weight: 400;
   border: 1px solid #999;
   background-color: transparent;

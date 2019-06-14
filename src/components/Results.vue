@@ -149,7 +149,8 @@ export default {
 }
 
 .info-wrapper {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  background-color: rgba(220, 237, 200, 0.6);
 }
 
 .schema-title {
@@ -173,5 +174,9 @@ export default {
 
 .nav-pills a {
   color: rgba(0, 0, 0, 0.54);
+}
+
+.nav-pills .nav-link {
+  border-radius: 0;
 }
 </style>

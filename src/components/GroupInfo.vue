@@ -1,7 +1,7 @@
 <template>
   <div class="info-block">
     <span class="mr-4">{{ group.date }}, {{ group.time }}</span>
-    <code class="hash-address mr-5" v-b-tooltip.hover title="Block Hash">{{ hash }}</code>
+    <code class="hash-address mr-5" v-b-tooltip.hover title="Operation Hash">{{ hash }}</code>
 
     <span v-b-tooltip.hover title="Block" class="mr-2">
       <font-awesome-icon icon="cube"/>
@@ -80,6 +80,8 @@ export default {
 <style scoped>
 .hash-address {
   font-size: 12px;
+  font-family: "Roboto Mono", monospace;
+  font-weight: 400;
 }
 .info-block {
   font-size: 75%;

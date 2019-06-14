@@ -10,8 +10,6 @@ export default {
   components: {
     TreeView
   },
-  props: {
-    data: Object
-  }
+  props: ["data"]
 };
 </script>
