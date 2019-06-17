@@ -30,6 +30,9 @@
             placeholder="Enter KT-address"
             v-model="localAddress"
             @input="$emit('update:address', localAddress)"
+            @click="isActive = true"
+            @blur="isActive = false"
+            v-bind:class="{ active: isActive }"
           ></b-form-input>
           <b-button size="sm" class="my-2 mr-5 my-sm-0" @click="explore">Go</b-button>
         </b-nav-form>
@@ -83,6 +86,7 @@
 export default {
   name: "NavBar",
   data: () => ({
+    isActive: false,
     localAddress: "",
     localNet: "",
     tezosNets: [{ text: "MainNet", value: "main" }, { text: "AlphaNet", value: "alpha" }],
@@ -169,6 +173,7 @@ export default {
 
       this.localAddress = item["address"];
       this.localNet = item["net"];
+      this.isActive = true;
       this.$emit("demo", item);
     },
     explore() {
@@ -204,6 +209,23 @@ function randomInteger(min, max) {
 
 .input-address {
   min-width: 350px;
+  background: hsla(0, 0%, 100%, 0.16);
+}
+
+.input-address::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.form-control:focus {
+  box-shadow: none;
+}
+
+.form-inline .active {
+  background-color: #fff;
+}
+
+.active::placeholder {
+  color: #525f5a;
 }
 
 .btn {
