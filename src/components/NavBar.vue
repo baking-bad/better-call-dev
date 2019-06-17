@@ -31,7 +31,7 @@
             v-model="localAddress"
             @input="$emit('update:address', localAddress)"
             @click="isActive = true"
-            @blur="isActive = false"
+            @blur="isActive = (localAddress !== '')"
             v-bind:class="{ active: isActive }"
           ></b-form-input>
           <b-button size="sm" class="my-2 mr-5 my-sm-0" @click="explore">Go</b-button>
