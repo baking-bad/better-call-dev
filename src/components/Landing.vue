@@ -1,5 +1,5 @@
 <template>
-  <b-col lg="12" class="mt-2">
+  <b-col lg="12" class="mt-1">
     <b-row>
       <b-col lg="12">
         <b-navbar toggleable="lg" type="light" class="w-100">
