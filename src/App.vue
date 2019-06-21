@@ -476,6 +476,7 @@ export default {
           let id = err.id;
           let msg = "";
           if (err.with !== undefined) {
+            // To-Do: decoded with
             msg = err.with.string;
           }
           ret.push({ id: id, msg: msg });
