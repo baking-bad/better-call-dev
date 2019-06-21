@@ -1,19 +1,17 @@
 <template>
   <div class="info-block">
-    <span class="mr-4">{{ group.date }}, {{ group.time }}</span>
-    <code class="hash-address mr-5" v-b-tooltip.hover title="Operation Hash">{{ hash }}</code>
+    <span class="mr-1">{{ group.date }}, {{ group.time }}</span>
+    <span class="mr-5">at level {{ group.level }}</span>
 
-    <span v-b-tooltip.hover title="Block" class="mr-2">
-      <font-awesome-icon icon="cube"/>
-      {{ group.level }}
-    </span>
 
-    <span v-b-tooltip.hover title="Fee" class="mr-2">
+    <span class="hash-address mr-5" v-b-tooltip.hover title="Operation Hash">{{ hash }}</span>
+
+    <span v-b-tooltip.hover title="Fee" class="mr-3">
       <font-awesome-icon icon="receipt"/>
       {{ formatXTZ(group.fee) }}
     </span>
 
-    <span v-b-tooltip.hover title="Gas Limit" class="mr-2">
+    <span v-b-tooltip.hover title="Gas Limit" class="mr-3">
       <font-awesome-icon icon="burn"/>
       {{ group.gasLimit }}
     </span>
@@ -23,15 +21,16 @@
       {{ group.storageLimit }}
     </span>
 
-    <span v-b-tooltip.hover title="Resulting Balance" class="mr-2">
+    <span class="add-info float-right" v-if="storageSize" v-b-tooltip.hover title="Resulting Storage Size">
+      <font-awesome-icon icon="database"/>
+      {{ storageSize }} ({{storagePercent(storageSize)}})
+    </span>
+
+    <span v-b-tooltip.hover title="Resulting Balance" class="float-right mr-3">
       <font-awesome-icon icon="cash-register"/>
       {{ formatXTZ(balance, 0) }}
     </span>
 
-    <span class="add-info mr-2" v-if="storageSize" v-b-tooltip.hover title="Storage Size">
-      <font-awesome-icon icon="database"/>
-      {{ storageSize }} ({{storagePercent(storageSize)}})
-    </span>
   </div>
 </template>
 
@@ -79,18 +78,18 @@ export default {
 
 <style scoped>
 .hash-address {
-  font-size: 12px;
-  font-family: "Roboto Mono", monospace;
-  font-weight: 400;
+  font-family: "Roboto Mono";
 }
 .info-block {
-  font-size: 75%;
-  margin-top: 5px;
-  margin-bottom: 20px;
+  font-size: 80%;
+  margin-bottom: 15px;
   margin-left: 10px;
+  font-family: "Roboto";
 }
 
-code {
-  color: rgb(42, 42, 42);
+.info-block .svg-inline--fa {
+  font-size: 80%;
+  color: #777;
 }
+
 </style>

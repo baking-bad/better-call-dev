@@ -215,7 +215,7 @@ export default {
 
 .my-subtitle {
   font-size: 10px;
-  color: rgba(155, 155, 155, 0.8);
+  color: rgba(100, 100, 100, 0.8);
   text-transform: uppercase;
 }
 
