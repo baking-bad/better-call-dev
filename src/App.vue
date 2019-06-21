@@ -2,10 +2,20 @@
   <div id="app">
     <b-container>
       <Loader :status="isLoading"/>
-      <b-row>
+      <b-row v-if="isLanding">
+        <Landing
+          :demoAddresses="demoAddresses"
+          @updateNet="updateNet"
+          @update="updateAddress"
+          @explore="explore"
+          @demo="demo"
+        />
+      </b-row>
+      <b-row v-if="!isLanding">
         <NavBar
           :address="address"
           :tezosNet="tezosNet"
+          :demoAddresses="demoAddresses"
           @update="updateAddress"
           @updateNet="updateNet"
           @explore="explore"
@@ -15,6 +25,7 @@
       <b-row>
         <NotFound :status="notFound"/>
         <Results
+          v-if="!notFound"
           :address="address"
           :tezosNet="tezosNet"
           :status="isReady"
@@ -38,6 +49,7 @@ import Loader from "./components/Loader.vue";
 import NotFound from "./components/NotFound.vue";
 import Results from "./components/Results.vue";
 import NavBar from "./components/NavBar.vue";
+import Landing from "./components/Landing.vue";
 
 export default {
   name: "app",
@@ -45,7 +57,8 @@ export default {
     Loader,
     NotFound,
     Results,
-    NavBar
+    NavBar,
+    Landing
   },
   data: () => ({
     isLoading: false,
@@ -66,7 +79,66 @@ export default {
     },
     groups: {},
     tezaurus: {},
-    contractBalance: 0
+    contractBalance: 0,
+    isLanding: true,
+    demoAddresses: [
+      {
+        net: "alpha",
+        address: "KT1SufMDx6d2tuVe3n6tSYUBNjtV9GgaLgtV"
+      },
+      {
+        net: "alpha",
+        address: "KT1FU74GimCeEVRAEZGURb6TWU8jK1N6zFJy"
+      },
+      {
+        net: "alpha",
+        address: "KT19iGCL4YrVpT6ezEzbDH37Yxbas8jWQz4s"
+      },
+      {
+        net: "alpha",
+        address: "KT1QiAJocHUKYN29BegaCnCaSQ9FT2ZXGfuJ"
+      },
+      {
+        net: "alpha",
+        address: "KT1HnvV5Z53naoh51jYvPF7w168nW8nfyx5v"
+      },
+      {
+        net: "alpha",
+        address: "KT19yAMFum5MmD99kusQiCBGpTEVC1B52f9Q"
+      },
+      {
+        net: "alpha",
+        address: "KT1Sefu81jFomBUTiJgK6VvCyY5rGrkhPszt"
+      },
+      {
+        net: "alpha",
+        address: "KT1TpKkwKzGwMrWrGnPp9KixhraD2dtE5wE5"
+      },
+      {
+        net: "alpha",
+        address: "KT1P3j1VonQytW3b2SzCnGVpjdf3oWajM79E"
+      },
+      {
+        net: "alpha",
+        address: "KT1XtauF2tnmAKBzbLA2gNoMji9zSzSyYq9w"
+      },
+      {
+        net: "alpha",
+        address: "KT1Qx7PRNAVHgam1qb2MuJohggnSdHTeBWyc"
+      },
+      {
+        net: "main",
+        address: "KT1Q1kfbvzteafLvnGz92DGvkdypXfTGfEA3"
+      },
+      {
+        net: "main",
+        address: "KT1BvVxWM6cjFuJNet4R9m64VDCN2iMvjuGE"
+      },
+      {
+        net: "main",
+        address: "KT1GgUJwMQoFayRYNwamRAYCvHBLzgorLoGo"
+      }
+    ]
   }),
   computed: {
     baseApiURL() {
@@ -98,11 +170,13 @@ export default {
       window.location.hash = `#${this.tezosNet}:${this.address}`;
 
       this.isLoading = true;
+      this.isLanding = false;
 
       const contractsData = await this.getContractsData();
       if (contractsData === undefined || contractsData.script === undefined) {
         this.notFound = true;
         this.isLoading = false;
+        this.isReady = true;
         return;
       }
 
@@ -116,6 +190,7 @@ export default {
       this.decoded_schema = decodeSchema(this.resultForStorage.collapsed_tree);
       this.parameterSchema = decodeSchema(this.resultForParameter.collapsed_tree);
       this.groups = await this.buildGroups();
+      this.expandFirstTx();
 
       this.isReady = true;
       this.isLoading = false;
@@ -261,6 +336,10 @@ export default {
       }, this);
 
       return groups;
+    },
+    expandFirstTx() {
+      let firstHash = Object.keys(this.groups)[0];
+      this.groups[firstHash].operations[0].expand = true;
     },
     async buildGroups() {
       const data = await this.getTransactionData();
@@ -561,6 +640,6 @@ body {
 
 .container {
   max-width: 1600px;
-  min-width: 420px;
+  min-width: 1024px;
 }
 </style>
