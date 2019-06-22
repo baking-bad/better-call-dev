@@ -125,7 +125,7 @@ export function decodeData(data, schema, annotations = true, literals = true, ro
     if (data) {
       let res = decode_node(data, rootNode);
       if (res instanceof Nested) {
-        return JSON.parse(JSON.stringify(res))
+        return {'__unknown_entry__': get_flat_nested(res)}
       }
       return res
     }

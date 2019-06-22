@@ -419,8 +419,8 @@ export default {
       for (let i = 0; i < hashes.length; i++) {
         let group = groups[hashes[i]];
         group["operations"].forEach(function(tx) {
+          tx.prevStorage = JSON.parse(JSON.stringify(currentStorage));
           if (tx.status === "applied" && tx.destination === this.address) {
-            tx.prevStorage = JSON.parse(JSON.stringify(currentStorage));
             currentStorage = JSON.parse(JSON.stringify(tx.storage));
 
             if (tx.decodedBigMapDiff) {
