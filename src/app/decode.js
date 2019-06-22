@@ -21,8 +21,16 @@ export function decodeData(data, schema, annotations = true, literals = true, ro
     let res = {};
     let type_info = {};
 
-    if (schema.type_map[path] != undefined) {
+    if (schema != null && schema.type_map[path] != undefined) {
       type_info = schema.type_map[path];
+    } else {
+      type_info = {}
+      if (path === "0") {
+        type_info.children = [];
+      }
+      if (node.prim === "Pair") {
+        type_info.prim = "pair";
+      }
     }
 
     if (isObject(node) && !Array.isArray(node)) {

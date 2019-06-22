@@ -146,6 +146,9 @@ export default {
       return this.formatLiqEntry(value.const);
     },
     getKey: function(value) {
+      if (value.key === "") {
+        value.key = "_ ";
+      }
       return this.formatLiqEntry(value.key + ": ");
     },
     getValue: function(value) {
@@ -184,6 +187,7 @@ export default {
 </script>
 
 <style scoped>
+
 .make-big-data {
   cursor: pointer;
 }
@@ -271,10 +275,6 @@ export default {
 
 .tree-view-item-hint {
   color: #ccc;
-}
-
-.tree-view-item-root > .tree-view-item-leaf > .array-node {
-  margin-left: 18px;
 }
 
 .tree-view-item-const {

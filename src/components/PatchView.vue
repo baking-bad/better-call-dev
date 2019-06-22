@@ -1,5 +1,5 @@
 <template>
-  <div class="tree-view-wrapper">
+  <div :class="wrapperClass">
     <TreeViewItem class="tree-view-item-root" :data="diffData" :max-depth="7" :currentDepth="0"/>
   </div>
 </template>
@@ -313,6 +313,13 @@ export default {
     }
   },
   computed: {
+    wrapperClass: function() {
+      if (this.data["type"] === "array") {
+        return "tree-view-wrapper tree-view-wrapper-array";
+      } else {
+        return "tree-view-wrapper tree-view-wrapper-object";
+      }
+    },
     diffData: function() {
       return this.makeDiff(this.prevData, this.data, "storage", "deeper");
     }
@@ -320,9 +327,16 @@ export default {
 };
 </script>
 
-<style>
-.tree-view-wrapper {
-  margin-left: -15px;
+<style scoped>
+/* DIRTY HACK BEGIN */
+
+.tree-view-wrapper-array {
   overflow: auto;
 }
+
+.tree-view-wrapper-object {
+  overflow: auto;
+}
+
+/* DIRTY HACK END */
 </style>

@@ -477,12 +477,12 @@ export default {
           let msg = "";
           if (err.with !== undefined) {
             // To-Do: decoded with
-            msg = err.with.string;
+            msg = decodeData(err.with, null);
           }
           ret.push({ id: id, msg: msg });
           seenErr.push(id);
         }
-      });
+      }, this);
 
       return ret;
     },
@@ -539,7 +539,11 @@ export default {
               op.storage = decodeData(op.metadata.operation_result.storage, this.resultForStorage);
             }
             if (op.parameters != undefined) {
-              op.decodedParameters = decodeData(op.parameters, this.resultForParameter);
+              if (op.errors.length > 0 && op.errors[0].id.endsWith("badContractParameter")) {
+                op.decodedParameters = decodeData(op.parameters, null);
+              } else {
+                op.decodedParameters = decodeData(op.parameters, this.resultForParameter);
+              }
             }
           }
         }, this);
