@@ -53,7 +53,7 @@
               {{ tx.paidStorageDiff }} ({{paidStoragePercent(tx.paidStorageDiff)}})
             </span>
           </div>
-          <div v-if="tx.decodedParameters != null || (tx.storage != null && tx.status === 'applied')">
+          <div>
             <div class="my-subtitle">Parameter / Storage</div>
             <span>
               <button class="my-button" @click="expand(tx)">
@@ -64,7 +64,7 @@
           </div>
         </div>
       </b-col>
-      <b-col lg="12" class="mb-2" v-if="tx.expand && (tx.decodedParameters != null || (tx.storage != null && tx.status === 'applied'))">
+      <b-col lg="12" class="mb-2" v-if="tx.expand">
         <b-card>
           <b-row>
             <b-col lg="5">
@@ -76,10 +76,15 @@
               </div>
             </b-col>
             <b-col lg="7">
-              <div v-if="tx.status === 'applied' && tx.storage != null">
+              <div>
                 <div class="my-subtitle">Storage</div>
                 <div class="tx-info-tree-view">
-                  <PatchView :prev-data="tx.prevStorage" :data="tx.storage" :max-depth="7"/>
+                  <div v-if="tx.status === 'applied' && tx.storage">
+                    <PatchView :prev-data="tx.prevStorage" :data="tx.storage" :max-depth="7"/>
+                  </div>
+                  <div v-if="tx.status !== 'applied' && tx.prevStorage">
+                    <PatchView :prev-data="tx.prevStorage" :data="tx.prevStorage" :max-depth="7"/>
+                  </div>
                 </div>
               </div>
             </b-col>
