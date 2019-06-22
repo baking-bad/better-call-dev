@@ -1,5 +1,5 @@
 <template>
-  <div class="tree-view-wrapper">
+  <div :class="wrapperClass">
     <TreeViewItem
       class="tree-view-item-root"
       :data="parsedData"
@@ -86,6 +86,13 @@ export default {
     }
   },
   computed: {
+    wrapperClass: function() {
+      if (this.data["type"] === "array") {
+        return "tree-view-wrapper tree-view-wrapper-array";
+      } else {
+        return "tree-view-wrapper tree-view-wrapper-object";
+      }
+    },
     parsedData: function() {
       if (this.isValue(this.data)) {
         return this.transformConstant(this.data);
@@ -110,7 +117,16 @@ export default {
 </script>
 
 <style scoped>
-.tree-view-item-root {
-  margin-left: 0;
+/* DIRTY HACK BEGIN */
+
+.tree-view-wrapper-array {
+  overflow: auto;
 }
+
+.tree-view-wrapper-object {
+  margin-left: -18px;
+  overflow: auto;
+}
+
+/* DIRTY HACK END */
 </style>

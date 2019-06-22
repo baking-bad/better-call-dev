@@ -53,7 +53,7 @@
               {{ tx.paidStorageDiff }} ({{paidStoragePercent(tx.paidStorageDiff)}})
             </span>
           </div>
-          <div v-if="tx.decodedParameters">
+          <div v-if="tx.decodedParameters != null || (tx.storage != null && tx.status === 'applied')">
             <div class="my-subtitle">Parameter / Storage</div>
             <span>
               <button class="my-button" @click="expand(tx)">
@@ -64,19 +64,23 @@
           </div>
         </div>
       </b-col>
-      <b-col lg="12" class="mb-2" v-if="tx.expand">
+      <b-col lg="12" class="mb-2" v-if="tx.expand && (tx.decodedParameters != null || (tx.storage != null && tx.status === 'applied'))">
         <b-card>
           <b-row>
             <b-col lg="5">
               <div v-if="tx.decodedParameters != null">
                 <div class="my-subtitle">Parameter</div>
-                <JsonView :data="tx.decodedParameters"/>
+                <div class="tx-info-tree-view">
+                  <JsonView :data="tx.decodedParameters"/>
+                </div>
               </div>
             </b-col>
             <b-col lg="7">
               <div v-if="tx.status === 'applied' && tx.storage != null">
                 <div class="my-subtitle">Storage</div>
-                <PatchView :prev-data="tx.prevStorage" :data="tx.storage" :max-depth="7"/>
+                <div class="tx-info-tree-view">
+                  <PatchView :prev-data="tx.prevStorage" :data="tx.storage" :max-depth="7"/>
+                </div>
               </div>
             </b-col>
           </b-row>
@@ -268,5 +272,9 @@ code {
 .badge-outline.badge-secondary {
   color: #6c757d;
   border-color: #6c757d;
+}
+
+.tx-info-tree-view {
+  margin-left: -18px;
 }
 </style>
