@@ -3,7 +3,7 @@
     <div v-if="isObject(data)" :class="'tree-view-item-leaf ' + getColor(data.op)">
       <div class="tree-view-item-node" @click.stop="toggleOpen()">
         <span
-          :class="{opened: isOpen()}"
+          :class="{opened: isOpen(), prim: isPrim(data.key)}"
           v-if="!isRootObject(data)"
           class="tree-view-item-key tree-view-item-key-with-chevron"
         >{{getKey(data)}}</span>
@@ -28,7 +28,7 @@
     <div v-if="isArray(data)" :class="'tree-view-item-leaf ' + getColor(data.op)">
       <div class="tree-view-item-node array-node" @click.stop="toggleOpen()">
         <span
-          :class="{opened: isOpen()}"
+          :class="{opened: isOpen(), prim: isPrim(data.key)}"
           v-if="!isRootObject(data)"
           class="tree-view-item-key tree-view-item-key-with-chevron"
         >{{getKey(data)}}</span>
@@ -55,10 +55,15 @@
       :class="'tree-view-item-leaf ' + getColor(data.op)"
       v-if="isValue(data)"
     >
-      <span class="tree-view-item-key">{{getKey(data)}}</span>
+      <span 
+        class="tree-view-item-key" 
+        :class="{prim: isPrim(data.key)}">
+        {{getKey(data)}}
+      </span>
       <span
         style="word-break: break-all;"
         class="tree-view-item-value make-big-data"
+        :class="{prim: isPrim(data.value)}"
         @click="changeLen($event, data)"
       >{{getValue(data)}}</span>
     </div>
@@ -67,7 +72,11 @@
       :class="'tree-view-item-leaf ' + getColor(data.op)"
       v-if="isConst(data)"
     >
-      <span class="tree-view-item-key tree-view-item-const">{{getConst(data)}}</span>
+      <span 
+        class="tree-view-item-key tree-view-item-const" 
+        :class="{prim: isPrim(data.value)}">
+        {{getConst(data)}}
+      </span>
     </div>
   </div>
 </template>
@@ -126,6 +135,11 @@ export default {
         }
       }
       return (this.isRootObject(this.data) || this.open) && flag;
+    },
+    isPrim: function(value) {
+      return [
+        'map', 'big_map', 'list', 'set', 'option', 'lambda', 'contract'
+      ].includes(value)
     },
     toggleOpen: function() {
       this.open = !this.open;
@@ -280,5 +294,9 @@ export default {
 .tree-view-item-const {
   margin-left: 18px;
   color: rgb(107, 161, 59);
+}
+
+.prim {
+  color: #6610f2;
 }
 </style>

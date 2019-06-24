@@ -234,24 +234,33 @@ export function decodeSchema(collapsed_tree) {
     }
 
     if (node.prim === "set") {
-      return [decode_node(node.args[0])];
+      return {
+        'set': decode_node(node.args[0])
+      }
     }
 
     if (node.prim === "list") {
-      return [decode_node(node.args[0])];
+      return {
+        'list': decode_node(node.args[0])
+      }
     }
 
     if (["map", "big_map"].indexOf(node.prim) != -1) {
-      let res = {};
-      res[decode_node(node.args[0])] = decode_node(node.args[1]);
-      return res;
+      return {
+        [node.prim]: [
+          decode_node(node.args[0]),
+          decode_node(node.args[1])
+        ]
+      }
     }
 
     if (node.prim === "option") {
-      return decode_node(node.args[0]);
+      return {
+        'option': decode_node(node.args[0])
+      }
     }
 
-    return `#${node.prim}`;
+    return node.prim;
   }
 
   return decode_node(collapsed_tree);
