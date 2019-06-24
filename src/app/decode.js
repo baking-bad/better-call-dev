@@ -225,9 +225,9 @@ export function decodeSchema(collapsed_tree) {
               'or': Object.keys(resObj)
             }
         }
-        return resObj;
+        return {'or': resObj}
       }
-      return resArr;
+      return {'or': resArr}
     }
 
     if (node.prim === "pair") {
