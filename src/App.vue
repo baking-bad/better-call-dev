@@ -213,6 +213,7 @@ export default {
       this.tezaurus = {};
       this.contractBalance = 0;
       this.contractManager = "";
+      this.storageInfo = {};
     },
     updateNet(value) {
       this.tezosNet = value;

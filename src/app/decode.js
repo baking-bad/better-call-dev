@@ -73,7 +73,11 @@ export function decodeData(data, schema, annotations = true, literals = true, ro
           if (type_info.props != undefined && annotations === true) {
             const index = type_info.children.indexOf(terminal.path);
             res = {};
-            res[type_info.props[index]] = terminal.value;
+            if (terminal.value === 'Unit') {
+              res = type_info.props[index];
+            } else {
+              res[type_info.props[index]] = terminal.value;
+            }
           } else {
             res = terminal.value;
           }
@@ -201,17 +205,29 @@ export function buildSchema(code) {
 export function decodeSchema(collapsed_tree) {
   function decode_node(node) {
     if (node.prim === "or") {
-      var res = {};
+      var resObj = {};
+      var resArr = [];
+      var isObject = true;
 
       node.args.forEach((arg, i) => {
-        if (arg.name != undefined) {
-          res[arg.name] = decode_node(arg);
-        } else {
-          res[i] = decode_node(arg);
+        resArr[i] = decode_node(arg);
+        if (arg.name === undefined) {
+          isObject = false;
+        }
+        if (isObject) {
+          resObj[arg.name] = resArr[i];
         }
       });
 
-      return res;
+      if (isObject) {
+        if (resArr.every(function(item) {return item === 'unit';})) {
+            return {
+              'or': Object.keys(resObj)
+            }
+        }
+        return resObj;
+      }
+      return resArr;
     }
 
     if (node.prim === "pair") {
