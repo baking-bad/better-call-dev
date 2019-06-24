@@ -249,7 +249,7 @@ export default {
 
 .nav-pills {
   padding: 20px 10px 10px 10px;
-  height: calc(100vh - (56px)) !important;
+  min-height: calc(100vh - (56px)) !important;
 }
 
 .nav-pills a {
