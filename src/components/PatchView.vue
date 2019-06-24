@@ -314,7 +314,7 @@ export default {
   },
   computed: {
     wrapperClass: function() {
-      if (this.data["type"] === "array") {
+      if (this.isArray(this.data)) {
         return "tree-view-wrapper tree-view-wrapper-array";
       } else {
         return "tree-view-wrapper tree-view-wrapper-object";

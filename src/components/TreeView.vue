@@ -87,7 +87,7 @@ export default {
   },
   computed: {
     wrapperClass: function() {
-      if (this.data["type"] === "array") {
+      if (this.isArray(this.data)) {
         return "tree-view-wrapper tree-view-wrapper-array";
       } else {
         return "tree-view-wrapper tree-view-wrapper-object";
@@ -98,7 +98,7 @@ export default {
         return this.transformConstant(this.data);
       }
       if (this.isArray(this.data)) {
-        return this.transformArray(this.data, "parameter");
+        return this.transformArray(this.data, this.root);
       }
 
       let keys = Object.keys(this.data);
@@ -110,7 +110,7 @@ export default {
         }
       }
 
-      return this.transformObject(this.data, "parameter", true);
+      return this.transformObject(this.data, this.root, true);
     }
   }
 };
