@@ -40,10 +40,67 @@
           </b-container>
         </b-tab>
 
+        <b-tab title="Code" class="pl-0 pr-0 pt-0 pb-0">
+          <template slot="title">
+            <span v-b-tooltip.hover title="Code">
+              <font-awesome-icon icon="code"/>
+            </span>
+          </template>
+          <b-container class="tab-wrapper">
+            <b-row class="styled-row">
+              <b-col lg="12">
+                <div class="my-title">
+                  <span>Contract code</span>
+                </div>
+
+                <b-row class="mt-2">
+                  <b-col lg="12">
+                    <div class="mb-2" style="display: flex;">
+                      <!-- <div class="mr-4">
+                        <div class="my-subtitle">Source</div>
+                        <span class="tx-hash">
+                          <mark v-if="address == tx.source">{{ tx.source }}</mark>
+                          <a
+                            v-else-if="tx.source[0] == 'K'"
+                            target="_blank"
+                            :href="baseAppURL + tezosNet + ':' + tx.source"
+                          >{{ tx.source }}</a>
+                          <span v-else>{{ tx.source }}</span>
+                        </span>
+                      </div> -->
+                    </div>
+                  </b-col>
+                  <b-col lg="12" class="mb-2">
+                    <b-card>
+                      <b-row>
+                        <b-col lg="5">
+                            <div class="my-subtitle">Parameter</div>
+                            <div class="tx-info-tree-view">
+                              <JsonView :data="parameterSchema"/>
+                            </div>
+                        </b-col>
+                        <b-col lg="7">
+                          <div>
+                            <div class="my-subtitle">Storage</div>
+                            <div class="tx-info-tree-view">
+                              <JsonView :data="decodedSchema"/>
+                            </div>
+                          </div>
+                        </b-col>
+                      </b-row>
+                    </b-card>
+                  </b-col>
+                </b-row>
+              
+              </b-col>
+            </b-row>
+          </b-container>
+        </b-tab>
+
         <b-tab title="Storage" class="pl-0 pr-0 pt-0 pb-0">
           <template slot="title">
-            <span v-b-tooltip.hover title="Schemas">
-              <font-awesome-icon icon="code"/>
+            <span v-b-tooltip.hover title="Storage">
+              <font-awesome-icon icon="database"/>
             </span>
           </template>
           <b-container class="tab-wrapper">
@@ -54,24 +111,13 @@
                   <JsonView :data="decodedData"/>
                 </div>
               </b-col>
-              <b-col lg="5" class="styled-row mr-1 pl-0 pr-0">
-                <div class="schema-title p-3 info-wrapper">schema</div>
-                <div class="p-3">
-                  <JsonView :data="decodedSchema"/>
-                </div>
-              </b-col>
-              <b-col lg="6" class="styled-row pl-0 pr-0">
-                <div class="schema-title p-3 info-wrapper">parameter schema</div>
-                <div class="p-3">
-                  <JsonView :data="parameterSchema"/>
-                </div>
-              </b-col>
             </b-row>
           </b-container>
         </b-tab>
       </b-tabs>
     </div>
   </b-col>
+  </b-row>
 </template>
 
 <script>
@@ -172,11 +218,31 @@ export default {
   background-color: rgba(0, 0, 0, 0.54);
 }
 
+.nav-pills {
+  padding: 20px 10px 10px 10px;
+  height: calc(100vh - (56px)) !important;
+}
+
 .nav-pills a {
   color: rgba(0, 0, 0, 0.54);
+  text-align: center;
+  padding: 7px 10px 7px 10px;
 }
 
 .nav-pills .nav-link {
-  border-radius: 0;
+  border-radius: 50%;
+  margin-bottom: 20px;
+}
+
+.my-title {
+  font-size: 12px;
+  color: #76a34e;
+  text-transform: uppercase;
+}
+
+.my-subtitle {
+  font-size: 10px;
+  color: rgba(100, 100, 100, 0.8);
+  text-transform: uppercase;
 }
 </style>

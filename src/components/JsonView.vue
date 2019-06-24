@@ -1,5 +1,5 @@
 <template>
-  <TreeView :data="data" max-depth="7"/>
+  <TreeView :data="data" :root="root" max-depth="7"/>
 </template>
 
 <script>
@@ -10,6 +10,6 @@ export default {
   components: {
     TreeView
   },
-  props: ["data"]
+  props: ["data", "root"]
 };
 </script>
