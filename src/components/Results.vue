@@ -286,4 +286,8 @@ mark {
   background-color: transparent;
   color: #e83e8c;
 }
+
+.tx-info-tree-view {
+  margin-left: -18px;
+}
 </style>

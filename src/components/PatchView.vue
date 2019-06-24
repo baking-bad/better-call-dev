@@ -321,7 +321,7 @@ export default {
       }
     },
     diffData: function() {
-      return this.makeDiff(this.prevData, this.data, "storage", "deeper");
+      return this.makeDiff(this.prevData, this.data, "storage", "deeper", true);
     }
   }
 };
@@ -332,10 +332,12 @@ export default {
 
 .tree-view-wrapper-array {
   overflow: auto;
+  margin-left: -18px;
 }
 
 .tree-view-wrapper-object {
   overflow: auto;
+  margin-left: -18px;
 }
 
 /* DIRTY HACK END */

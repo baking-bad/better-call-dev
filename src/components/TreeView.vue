@@ -54,10 +54,11 @@ export default {
     },
 
     // Transformer for the Array type
-    transformArray: function(arrayToTransform, keyForArray) {
+    transformArray: function(arrayToTransform, keyForArray, isRootObject = false) {
       return {
         key: keyForArray,
         type: "array",
+        isRoot: isRootObject,
         children: this.generateChildrenFromCollection(arrayToTransform)
       };
     },
@@ -98,7 +99,7 @@ export default {
         return this.transformConstant(this.data);
       }
       if (this.isArray(this.data)) {
-        return this.transformArray(this.data, this.root);
+        return this.transformArray(this.data, this.root, true);
       }
 
       let keys = Object.keys(this.data);
@@ -120,6 +121,7 @@ export default {
 /* DIRTY HACK BEGIN */
 
 .tree-view-wrapper-array {
+  margin-left: -18px;
   overflow: auto;
 }
 
