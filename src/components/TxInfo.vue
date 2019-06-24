@@ -53,7 +53,7 @@
               {{ tx.paidStorageDiff }} ({{paidStoragePercent(tx.paidStorageDiff)}})
             </span>
           </div>
-          <div>
+          <div v-if="address == tx.destination">
             <div class="my-subtitle">Parameter / Storage</div>
             <span>
               <button class="my-button" @click="expand(tx)">
@@ -64,14 +64,14 @@
           </div>
         </div>
       </b-col>
-      <b-col lg="12" class="mb-2" v-if="tx.expand">
+      <b-col lg="12" class="mb-2" v-if="tx.expand && address == tx.destination">
         <b-card>
           <b-row>
             <b-col lg="5">
               <div v-if="tx.decodedParameters != null">
                 <div class="my-subtitle">Parameter</div>
                 <div class="tx-info-tree-view">
-                  <JsonView :data="tx.decodedParameters" :root="'parameter'"/>
+                  <JsonView :data="tx.decodedParameters"/>
                 </div>
               </div>
             </b-col>

@@ -342,7 +342,12 @@ export default {
     },
     expandFirstTx() {
       let firstHash = Object.keys(this.groups)[0];
-      this.groups[firstHash].operations[0].expand = true;
+      this.groups[firstHash].operations.forEach(function(tx) {
+        if (tx.destination == this.address) {
+          tx.expand = true;
+          return;
+        }
+      }, this);
     },
     async buildGroups() {
       const data = await this.getTransactionData();
