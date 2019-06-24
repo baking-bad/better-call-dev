@@ -61,25 +61,19 @@
         <img
           width="200"
           src="https://mir-s3-cdn-cf.behance.net/project_modules/disp/9bacdc23957341.5632ba9070591.jpg"
-          v-if="soul"
-        >
-        <img
-          width="200"
-          src="https://mir-s3-cdn-cf.behance.net/project_modules/disp/bff6e823957341.5632ba903c8fd.jpg"
-          v-else
         >
       </b-col>
     </b-row>
     <b-row>
       <b-col lg="6" offset-lg="3" class="text-center">
-        <b-input-group class="mt-3" :class="soul ? '' : 'has-error'">
+        <b-input-group class="mt-3" :class="{ 'has-error': hasError }">
           <b-form-input
             placeholder="Enter KT-address"
             v-model="localAddress"
             @input="$emit('update:address', localAddress)"
             @keyup.enter="explore"
-            @click="soul = true"
-            @blur="soul = true"
+            @click="hasError = false"
+            @blur="hasError = false"
           ></b-form-input>
           <b-input-group-append>
             <b-dropdown slot="prepend" :text="currentNet" variant="outline-success">
@@ -119,7 +113,7 @@ export default {
     localAddress: "",
     localNet: "alpha",
     tezosNets: [{ text: "MainNet", value: "main" }, { text: "AlphaNet", value: "alpha" }],
-    soul: true
+    hasError: false
   }),
   props: {
     demoAddresses: Array
@@ -139,7 +133,7 @@ export default {
         this.localAddress[0] !== "K" ||
         this.localAddress[1] !== "T"
       ) {
-        this.soul = false;
+        this.hasError = true;
         return;
       }
       this.$emit("explore");
@@ -204,16 +198,16 @@ function randomInteger(min, max) {
   border-radius: 0;
 }
 
-.btn-outline-success:hover, .btn-outline-success:active {
+.btn-outline-success:hover,
+.btn-outline-success:active {
   background-color: #76a34e;
   border-color: #649b34;
 }
 
-.btn-outline-success:not(:disabled):not(.disabled).active:focus, 
-.btn-outline-success:not(:disabled):not(.disabled):active:focus, 
-.show>.btn-outline-success.dropdown-toggle:focus, 
-.btn-outline-success:focus
-{
+.btn-outline-success:not(:disabled):not(.disabled).active:focus,
+.btn-outline-success:not(:disabled):not(.disabled):active:focus,
+.show > .btn-outline-success.dropdown-toggle:focus,
+.btn-outline-success:focus {
   box-shadow: none;
 }
 
@@ -222,13 +216,12 @@ function randomInteger(min, max) {
 }
 
 .form-control:focus,
-.form-control:focus+.input-group-append .btn {
+.form-control:focus + .input-group-append .btn {
   border-color: #76a34e;
-  box-shadow: inset 0 1px 1px rgba(255, 191, 25, .25), 0 0 0.2rem #76a34e;
+  box-shadow: inset 0 1px 1px rgba(255, 191, 25, 0.25), 0 0 0.2rem #76a34e;
 }
 
 .has-error > .form-control {
   border-color: #a94442;
 }
-
 </style>
