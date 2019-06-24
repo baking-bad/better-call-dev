@@ -161,7 +161,7 @@ export default {
     },
     getKey: function(value) {
       if (value.key === "") {
-        value.key = "_ ";
+        value.key = "<empty>";
       }
       return this.formatLiqEntry(value.key + ": ");
     },
