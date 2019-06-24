@@ -35,6 +35,7 @@
           :decodedData="decoded_data"
           :decodedSchema="decoded_schema"
           :parameterSchema="parameterSchema"
+          :latestGroup="latestGroup"
           @loadmore="loadMore"
         />
       </b-row>
@@ -192,7 +193,7 @@ export default {
       this.decoded_schema = decodeSchema(this.resultForStorage.collapsed_tree);
       this.parameterSchema = decodeSchema(this.resultForParameter.collapsed_tree);
       this.groups = await this.buildGroups();
-      this.expandFirstTx();
+      this.handleFirstTx();
 
       this.isReady = true;
       this.isLoading = false;
@@ -213,7 +214,7 @@ export default {
       this.tezaurus = {};
       this.contractBalance = 0;
       this.contractManager = "";
-      this.storageInfo = {};
+      this.latestGroup = {};
     },
     updateNet(value) {
       this.tezosNet = value;
@@ -341,9 +342,12 @@ export default {
 
       return groups;
     },
-    expandFirstTx() {
+    handleFirstTx() {
       let firstHash = Object.keys(this.groups)[0];
-      this.groups[firstHash].operations.forEach(function(tx) {
+      let firstGroup = this.groups[firstHash];
+      this.latestGroup = firstGroup;
+
+      firstGroup.operations.forEach(function(tx) {
         if (tx.destination == this.address) {
           tx.expand = true;
           return;
