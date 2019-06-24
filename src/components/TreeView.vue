@@ -18,7 +18,7 @@ export default {
   components: {
     TreeViewItem
   },
-  props: ["data", "max-depth"],
+  props: ["data", "max-depth", "root"],
   methods: {
     // Transformer for the non-Collection types,
     // like String, Integer of Float

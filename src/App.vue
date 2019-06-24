@@ -440,6 +440,7 @@ export default {
         }, this);
       }
 
+      this.mergeBigMapToStorage(this.decoded_data, miniTezaurus);
       return groups;
     },
     buildBigMapTezaurus(groups, hashes) {
