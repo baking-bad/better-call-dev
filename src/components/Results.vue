@@ -48,49 +48,12 @@
           </template>
           <b-container class="tab-wrapper">
             <b-row class="styled-row">
-              <b-col lg="12">
-                <div class="my-title mt-3">
-                  <span>Contract script</span>
-                </div>
-                <b-row class="mt-2">
-                  <b-col lg="12">
-                    <div class="mb-2" style="display: flex;">
-                      <div class="mr-4">
-                        <div class="my-subtitle">Address</div>
-                        <span class="tx-hash">
-                          <mark>{{ address }}</mark>
-                        </span>
-                      </div>
-                      <div class="mr-4">
-                        <div class="my-subtitle">Manager</div>
-                        <span class="tx-hash">
-                          <span>{{ manager }}</span>
-                        </span>
-                      </div>
-                    </div>
-                  </b-col>
-                  <b-col lg="12" class="mb-3">
-                    <b-card>
-                      <b-row>
-                        <b-col lg="5">
-                          <div class="my-subtitle">Parameter</div>
-                          <div class="tx-info-tree-view">
-                            <JsonView :data="parameterSchema"/>
-                          </div>
-                        </b-col>
-                        <b-col lg="7">
-                          <div>
-                            <div class="my-subtitle">Storage</div>
-                            <div class="tx-info-tree-view">
-                              <JsonView :data="decodedSchema"/>
-                            </div>
-                          </div>
-                        </b-col>
-                      </b-row>
-                    </b-card>
-                  </b-col>
-                </b-row>
-              </b-col>
+              <ContractCode
+                :address="address"
+                :manager="manager"
+                :parameterSchema="parameterSchema"
+                :decodedSchema="decodedSchema"
+              />
             </b-row>
           </b-container>
         </b-tab>
@@ -112,21 +75,17 @@
                     <div class="mb-2" style="display: flex;">
                       <div class="mr-4">
                         <div class="my-subtitle">Last modified</div>
-                        <span style="font-size: 75%;">
-                          {{ latestGroup.date }}, {{ latestGroup.time }} at level {{ latestGroup.level }}
-                        </span>
+                        <span
+                          style="font-size: 75%;"
+                        >{{ latestGroup.date }}, {{ latestGroup.time }} at level {{ latestGroup.level }}</span>
                       </div>
                       <div class="mr-4">
                         <div class="my-subtitle">Balance</div>
-                          <span style="font-size: 75%;">
-                            {{ formatXTZ(latestGroup.balance) }}
-                          </span>
+                        <span style="font-size: 75%;">{{ formatXTZ(latestGroup.balance) }}</span>
                       </div>
                       <div class="mr-4">
                         <div class="my-subtitle">Storage size</div>
-                          <span style="font-size: 75%;">
-                            {{ latestGroup.storageSize }}
-                          </span>
+                        <span style="font-size: 75%;">{{ latestGroup.storageSize }}</span>
                       </div>
                     </div>
                   </b-col>
@@ -144,7 +103,11 @@
                         <b-col lg="6">
                           <b-alert class="mt-3" variant="info" show style="font-size: 75%;">
                             BigMap records loaded on the operation tab are displayed.
-                            <a v-if="morePages" href="#" @click="loadMore">Load More</a>
+                            <a
+                              v-if="morePages"
+                              href="#"
+                              @click="loadMore"
+                            >Load More</a>
                           </b-alert>
                         </b-col>
                       </b-row>
@@ -165,6 +128,7 @@ import utils from "@/app/utils";
 import JsonView from "./JsonView.vue";
 import GroupInfo from "./GroupInfo.vue";
 import TxInfo from "./TxInfo.vue";
+import ContractCode from "./ContractCode.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faExchangeAlt, faCode } from "@fortawesome/free-solid-svg-icons";
@@ -178,6 +142,7 @@ export default {
     JsonView,
     GroupInfo,
     TxInfo,
+    ContractCode,
     FontAwesomeIcon
   },
   props: [
@@ -212,7 +177,7 @@ export default {
     },
     formatXTZ(amount) {
       return utils.formatXTZ(amount);
-    },
+    }
   }
 };
 </script>
