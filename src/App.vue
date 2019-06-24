@@ -416,6 +416,7 @@ export default {
       let miniTezaurus = bigMapDiffDecode(result, this.resultForStorage);
 
       let currentStorage = {};
+      let currentStorageSize = "0";
       await axios
         .get(`${this.baseNodeApiURL}/${prevBlock}/context/contracts/${this.address}`)
         .then(response => {
@@ -435,6 +436,7 @@ export default {
           tx.prevStorage = JSON.parse(JSON.stringify(currentStorage));
           if (tx.status === "applied" && tx.destination === this.address) {
             currentStorage = JSON.parse(JSON.stringify(tx.storage));
+            currentStorageSize = tx.storageSize;
 
             if (tx.decodedBigMapDiff) {
               tx.storage = this.mergeBigMapToStorage(tx.storage, tx.decodedBigMapDiff);
@@ -451,6 +453,10 @@ export default {
             }
           }
         }, this);
+        
+        if (group.storageSize === undefined) {
+          group.storageSize = currentStorageSize;
+        }
       }
 
       let validTezaurus = this.buildValidTezaurus(this.decoded_data, miniTezaurus);

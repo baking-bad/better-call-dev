@@ -144,7 +144,7 @@
                         <b-col lg="6">
                           <b-alert class="mt-3" variant="info" show style="font-size: 75%;">
                             BigMap records loaded on the operation tab are displayed.
-                            <a href="#" @click="loadMore">Load More</a>
+                            <a v-if="morePages" href="#" @click="loadMore">Load More</a>
                           </b-alert>
                         </b-col>
                       </b-row>
