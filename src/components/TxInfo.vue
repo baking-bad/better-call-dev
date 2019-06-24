@@ -71,7 +71,7 @@
               <div v-if="tx.decodedParameters != null">
                 <div class="my-subtitle">Parameter</div>
                 <div class="tx-info-tree-view">
-                  <JsonView :data="tx.decodedParameters"/>
+                  <JsonView :data="tx.decodedParameters" :root="'parameter'"/>
                 </div>
               </div>
             </b-col>

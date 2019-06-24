@@ -49,28 +49,27 @@
           <b-container class="tab-wrapper">
             <b-row class="styled-row">
               <b-col lg="12">
-                <div class="my-title">
-                  <span>Contract code</span>
+                <div class="my-title mt-3">
+                  <span>Contract</span>
                 </div>
-
                 <b-row class="mt-2">
                   <b-col lg="12">
                     <div class="mb-2" style="display: flex;">
-                      <!-- <div class="mr-4">
-                        <div class="my-subtitle">Source</div>
+                      <div class="mr-4">
+                        <div class="my-subtitle">Address</div>
                         <span class="tx-hash">
-                          <mark v-if="address == tx.source">{{ tx.source }}</mark>
-                          <a
-                            v-else-if="tx.source[0] == 'K'"
-                            target="_blank"
-                            :href="baseAppURL + tezosNet + ':' + tx.source"
-                          >{{ tx.source }}</a>
-                          <span v-else>{{ tx.source }}</span>
+                          <mark>{{ address }}</mark>
                         </span>
-                      </div>-->
+                      </div>
+                      <div class="mr-4">
+                        <div class="my-subtitle">Manager</div>
+                        <span class="tx-hash">
+                          <span>{{ manager }}</span>
+                        </span>
+                      </div>
                     </div>
                   </b-col>
-                  <b-col lg="12" class="mb-2">
+                  <b-col lg="12" class="mb-3">
                     <b-card>
                       <b-row>
                         <b-col lg="5">
@@ -103,12 +102,43 @@
             </span>
           </template>
           <b-container class="tab-wrapper">
-            <b-row class="schemas">
-              <b-col lg="6" class="styled-row mr-3 pl-0 pr-0">
-                <div class="schema-title p-3 info-wrapper">storage</div>
-                <div class="p-3">
-                  <JsonView :data="decodedData"/>
+            <b-row class="styled-row">
+              <b-col lg="12">
+                <div class="my-title mt-3">
+                  <span>Storage</span>
                 </div>
+                <b-row class="mt-2">
+                  <b-col lg="12">
+                    <div class="mb-2" style="display: flex;">
+                      <div class="mr-4">
+                        <div class="my-subtitle">Last modified</div>
+                        <span class="tx-hash">
+                          <span>0</span>
+                        </span>
+                      </div>
+                      <div class="mr-4">
+                        <div class="my-subtitle">Current size</div>
+                        <span class="tx-hash">
+                          <span>0</span>
+                        </span>
+                      </div>
+                    </div>
+                  </b-col>
+                  <b-col lg="12" class="mb-3">
+                    <b-card>
+                      <b-row>
+                        <b-col lg="12">
+                          <div>
+                            <div class="my-subtitle">Storage</div>
+                            <div class="tx-info-tree-view">
+                              <JsonView :data="decodedData"/>
+                            </div>
+                          </div>
+                        </b-col>
+                      </b-row>
+                    </b-card>
+                  </b-col>
+                </b-row>
               </b-col>
             </b-row>
           </b-container>
@@ -138,6 +168,7 @@ export default {
     FontAwesomeIcon
   },
   props: [
+    "manager",
     "address",
     "tezosNet",
     "status",
@@ -242,5 +273,17 @@ export default {
   font-size: 10px;
   color: rgba(100, 100, 100, 0.8);
   text-transform: uppercase;
+}
+
+.tx-hash {
+  font-size: 12px;
+  font-family: "Roboto Mono", monospace;
+  font-weight: 300;
+}
+
+mark {
+  padding: 0;
+  background-color: transparent;
+  color: #e83e8c;
 }
 </style>
