@@ -449,8 +449,27 @@ export default {
         }, this);
       }
 
-      this.mergeBigMapToStorage(this.decoded_data, miniTezaurus);
+      let validTezaurus = this.buildValidTezaurus(this.decoded_data, miniTezaurus);
+      this.decoded_data = this.mergeTezaurusToStorage(this.decoded_data, validTezaurus);
       return groups;
+    },
+    buildValidTezaurus(decodedData, miniTezaurus) {
+      let current = {};
+      for (let i = 0; i < this.bigMapJsonPath.length; i++) {
+        let key = this.bigMapJsonPath[i];
+        current = decodedData[key];
+      }
+
+      let whiteListKeys = Object.keys(current);
+      let validTezaurus = {};
+
+      Object.keys(miniTezaurus).forEach(function(key) {
+        if (!whiteListKeys.includes(key)) {
+          validTezaurus = { ...validTezaurus, [key]: miniTezaurus[key] };
+        }
+      });
+
+      return validTezaurus;
     },
     buildBigMapTezaurus(groups, hashes) {
       let tezaurus = {};
@@ -569,6 +588,22 @@ export default {
 
         if (i + 1 === this.bigMapJsonPath.length) {
           current[key] = Object.assign(current[key], decodedBigMapDiff);
+          break;
+        }
+
+        current = current[key];
+      }
+
+      return current;
+    },
+    mergeTezaurusToStorage(storage, tezaurus) {
+      let current = Object.assign({}, storage);
+
+      for (let i = 0; i < this.bigMapJsonPath.length; i++) {
+        let key = this.bigMapJsonPath[i];
+
+        if (i + 1 === this.bigMapJsonPath.length) {
+          current[key] = Object.assign(current[key], tezaurus);
           break;
         }
 
