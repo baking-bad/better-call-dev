@@ -83,6 +83,8 @@ export default {
     tezaurus: {},
     contractBalance: 0,
     isLanding: true,
+    contractManager: "",
+    latestGroup: {},
     demoAddresses: [
       {
         net: "alpha",
@@ -453,7 +455,7 @@ export default {
             }
           }
         }, this);
-        
+
         if (group.storageSize === undefined) {
           group.storageSize = currentStorageSize;
         }
