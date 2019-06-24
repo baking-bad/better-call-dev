@@ -40,9 +40,9 @@
           </b-container>
         </b-tab>
 
-        <b-tab title="Code" class="pl-0 pr-0 pt-0 pb-0">
+        <b-tab title="Script" class="pl-0 pr-0 pt-0 pb-0">
           <template slot="title">
-            <span v-b-tooltip.hover title="Code">
+            <span v-b-tooltip.hover title="Script">
               <font-awesome-icon icon="code"/>
             </span>
           </template>
@@ -50,7 +50,7 @@
             <b-row class="styled-row">
               <b-col lg="12">
                 <div class="my-title mt-3">
-                  <span>Contract</span>
+                  <span>Contract script</span>
                 </div>
                 <b-row class="mt-2">
                   <b-col lg="12">
@@ -95,9 +95,9 @@
           </b-container>
         </b-tab>
 
-        <b-tab title="Storage" class="pl-0 pr-0 pt-0 pb-0">
+        <b-tab title="State" class="pl-0 pr-0 pt-0 pb-0">
           <template slot="title">
-            <span v-b-tooltip.hover title="Storage">
+            <span v-b-tooltip.hover title="State">
               <font-awesome-icon icon="database"/>
             </span>
           </template>
@@ -105,22 +105,28 @@
             <b-row class="styled-row">
               <b-col lg="12">
                 <div class="my-title mt-3">
-                  <span>Storage</span>
+                  <span>Contract state</span>
                 </div>
                 <b-row class="mt-2">
                   <b-col lg="12">
                     <div class="mb-2" style="display: flex;">
                       <div class="mr-4">
                         <div class="my-subtitle">Last modified</div>
-                        <span class="tx-hash">
-                          <span>0</span>
+                        <span style="font-size: 75%;">
+                          {{ latestGroup.date }}, {{ latestGroup.time }} at level {{ latestGroup.level }}
                         </span>
                       </div>
                       <div class="mr-4">
-                        <div class="my-subtitle">Current size</div>
-                        <span class="tx-hash">
-                          <span>0</span>
-                        </span>
+                        <div class="my-subtitle">Balance</div>
+                          <span style="font-size: 75%;">
+                            {{ formatXTZ(latestGroup.balance) }}
+                          </span>
+                      </div>
+                      <div class="mr-4">
+                        <div class="my-subtitle">Storage size</div>
+                          <span style="font-size: 75%;">
+                            {{ latestGroup.storageSize }}
+                          </span>
                       </div>
                     </div>
                   </b-col>
@@ -134,6 +140,12 @@
                               <JsonView :data="decodedData"/>
                             </div>
                           </div>
+                        </b-col>
+                        <b-col lg="6">
+                          <b-alert class="mt-3" variant="info" show style="font-size: 75%;">
+                            BigMap records loaded on the operation tab are displayed.
+                            <a href="#" @click="loadMore">Load More</a>
+                          </b-alert>
                         </b-col>
                       </b-row>
                     </b-card>
@@ -149,6 +161,7 @@
 </template>
 
 <script>
+import utils from "@/app/utils";
 import JsonView from "./JsonView.vue";
 import GroupInfo from "./GroupInfo.vue";
 import TxInfo from "./TxInfo.vue";
@@ -176,7 +189,8 @@ export default {
     "morePages",
     "decodedData",
     "decodedSchema",
-    "parameterSchema"
+    "parameterSchema",
+    "latestGroup"
   ],
   // props: {
   //   address: String,
@@ -195,7 +209,10 @@ export default {
     },
     expand(tx) {
       tx.expand = !tx.expand;
-    }
+    },
+    formatXTZ(amount) {
+      return utils.formatXTZ(amount);
+    },
   }
 };
 </script>
