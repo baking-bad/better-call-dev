@@ -138,7 +138,7 @@ export default {
     },
     isPrim: function(value) {
       return [
-        'map', 'big_map', 'list', 'set', 'option', 'lambda', 'contract'
+        'map', 'big_map', 'list', 'set', 'option', 'lambda', 'contract', 'or'
       ].includes(value)
     },
     toggleOpen: function() {
