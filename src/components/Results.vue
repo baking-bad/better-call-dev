@@ -67,17 +67,17 @@
                           >{{ tx.source }}</a>
                           <span v-else>{{ tx.source }}</span>
                         </span>
-                      </div> -->
+                      </div>-->
                     </div>
                   </b-col>
                   <b-col lg="12" class="mb-2">
                     <b-card>
                       <b-row>
                         <b-col lg="5">
-                            <div class="my-subtitle">Parameter</div>
-                            <div class="tx-info-tree-view">
-                              <JsonView :data="parameterSchema"/>
-                            </div>
+                          <div class="my-subtitle">Parameter</div>
+                          <div class="tx-info-tree-view">
+                            <JsonView :data="parameterSchema"/>
+                          </div>
                         </b-col>
                         <b-col lg="7">
                           <div>
@@ -91,7 +91,6 @@
                     </b-card>
                   </b-col>
                 </b-row>
-              
               </b-col>
             </b-row>
           </b-container>
@@ -117,7 +116,6 @@
       </b-tabs>
     </div>
   </b-col>
-  </b-row>
 </template>
 
 <script>
