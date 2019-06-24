@@ -217,6 +217,12 @@ export default {
 </style>
 
 <style>
+.card,
+.alert,
+.badge {
+  border-radius: 0;
+}
+
 .card-header {
   background-color: transparent;
   padding-top: 20px;
