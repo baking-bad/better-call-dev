@@ -190,6 +190,7 @@ function randomInteger(min, max) {
 .btn-success {
   background-color: #76a34e;
   border-color: #76a34e;
+  border-radius: 0;
 }
 
 .btn-success:hover {
@@ -200,15 +201,34 @@ function randomInteger(min, max) {
 .btn-outline-success {
   color: #76a34e;
   border-color: #76a34e;
+  border-radius: 0;
 }
 
-.btn-outline-success:hover {
+.btn-outline-success:hover, .btn-outline-success:active {
   background-color: #76a34e;
   border-color: #649b34;
 }
 
-.has-error .form-control {
-  border-color: #a94442;
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 6px #ce8483;
+.btn-outline-success:not(:disabled):not(.disabled).active:focus, 
+.btn-outline-success:not(:disabled):not(.disabled):active:focus, 
+.show>.btn-outline-success.dropdown-toggle:focus, 
+.btn-outline-success:focus
+{
+  box-shadow: none;
 }
+
+.form-control {
+  border-radius: 0;
+}
+
+.form-control:focus,
+.form-control:focus+.input-group-append .btn {
+  border-color: #76a34e;
+  box-shadow: inset 0 1px 1px rgba(255, 191, 25, .25), 0 0 0.2rem #76a34e;
+}
+
+.has-error > .form-control {
+  border-color: #a94442;
+}
+
 </style>
