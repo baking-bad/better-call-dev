@@ -1,17 +1,13 @@
 <template>
-  <b-col lg="12" class="mt-5 mb-3 text-center" v-if="status">
-    <img
-      width="300"
-      src="https://i.pinimg.com/originals/ed/a4/d6/eda4d64864873b5ee6ef4abe1700cf50.jpg"
-    >
-    <br>
-    <span>
-      Picture by
-      <a href="https://www.behance.net/gallery/23957341/href" target="_blank">
-        Guillermo
-        Prestegui
-      </a>.
-    </span>
+  <b-col lg="6" offset-lg="3" class="mt-5 mb-3 text-center" v-if="status">
+    <b-alert show variant="danger">
+      Oops. No info for smart-contract
+      <br>
+      <b>{{ address }}</b> in
+      <b>{{ currentNet }}</b>.
+      <br>
+      <br>Try to switch the net.
+    </b-alert>
   </b-col>
 </template>
 
@@ -19,10 +15,23 @@
 export default {
   name: "NotFound",
   props: {
-    status: Boolean
+    status: Boolean,
+    address: String,
+    tezosNet: String
+  },
+  computed: {
+    currentNet() {
+      if (this.localNet === "main") {
+        return "MainNet";
+      }
+      return "AlphaNet";
+    }
   }
 };
 </script>
 
 <style scoped>
+.alert {
+  border-radius: 0;
+}
 </style>
