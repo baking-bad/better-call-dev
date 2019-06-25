@@ -51,6 +51,7 @@
               <ContractCode
                 :address="address"
                 :manager="manager"
+                :script="script"
                 :parameterSchema="parameterSchema"
                 :decodedSchema="decodedSchema"
               />
@@ -147,6 +148,7 @@ export default {
   },
   props: [
     "manager",
+    "script",
     "address",
     "tezosNet",
     "status",
@@ -238,6 +240,7 @@ export default {
 .nav-pills {
   padding: 20px 10px 10px 10px;
   min-height: calc(100vh - (56px)) !important;
+  width: 61px;
 }
 
 .nav-pills a {

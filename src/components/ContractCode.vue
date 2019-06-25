@@ -40,21 +40,25 @@
           </b-row>
         </b-card>
       </b-col>
-      <b-col class="mb-2">
-                    <div class="my-subtitle">Code</div>
-                    <vue-code-highlight>
-code { DUP ;
-       DIP { CDR } ;
-       CAR ;
-       DUP @parameter ; }
-                    </vue-code-highlight>
-                  </b-col>
+    </b-row>
+    <b-row>
+      <b-col lg="12" class="mb-2">
+        <b-card>
+          <b-row>
+            <b-col lg=12>
+              <div class="my-subtitle">Code</div>
+              <MichelineViewItem :data="getCode()" :depth="1"/>
+            </b-col>
+          </b-row>
+        </b-card>
+      </b-col>
     </b-row>
   </b-col>
 </template>
 
 <script>
 import JsonView from "./JsonView.vue";
+import MichelineViewItem from "./MichelineView.vue"
 import { component as VueCodeHighlight } from 'vue-code-highlight';
 
 import 'vue-code-highlight/themes/prism.css'
@@ -63,9 +67,15 @@ export default {
   name: "ContractCode",
   components: {
     JsonView,
+    MichelineViewItem,
     VueCodeHighlight
   },
-  props: ["address", "manager", "parameterSchema", "decodedSchema"]
+  props: ["address", "manager", "script", "parameterSchema", "decodedSchema"],
+  methods: {
+    getCode: function() {
+      return this.script.code[2].args[0];
+    }
+  }
 };
 </script>
 

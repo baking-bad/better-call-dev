@@ -28,6 +28,7 @@
           v-if="!notFound"
           :address="address"
           :manager="contractManager"
+          :script="contractScript"
           :tezosNet="tezosNet"
           :status="isReady"
           :groups="groups"
@@ -84,6 +85,7 @@ export default {
     contractBalance: 0,
     isLanding: true,
     contractManager: "",
+    contractScript: "",
     latestGroup: {},
     demoAddresses: [
       {
@@ -188,6 +190,7 @@ export default {
       const data = contractsData.script.storage;
       this.contractBalance = parseInt(contractsData.balance);
       this.contractManager = contractsData.manager;
+      this.contractScript = contractsData.script;
 
       await this.buildSchemas(code);
 
@@ -216,6 +219,7 @@ export default {
       this.tezaurus = {};
       this.contractBalance = 0;
       this.contractManager = "";
+      this.contractScript = {};
       this.latestGroup = {};
     },
     updateNet(value) {
