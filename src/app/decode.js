@@ -276,6 +276,12 @@ export function decodeSchema(collapsed_tree) {
       }
     }
 
+    if (node.prim === "lambda") {
+      return {
+        'lambda': decode_node(node.args[0])
+      }
+    }
+
     return node.prim;
   }
 

@@ -41,6 +41,9 @@ export default {
     // a string or the Index as an integer
     generateChildrenFromCollection: function(collection) {
       return _.map(collection, (value, keyOrIndex) => {
+        if (this.isTypedObject(value)) {
+          return this.transformTypedObject(value, keyOrIndex);
+        }
         if (this.isObject(value)) {
           return this.transformObject(value, keyOrIndex);
         }
@@ -61,6 +64,30 @@ export default {
         isRoot: isRootObject,
         children: this.generateChildrenFromCollection(arrayToTransform)
       };
+    },
+
+    transformTypedObject: function(objectToTransform, keyForObject) {
+      let keys = Object.keys(objectToTransform);
+      let comment = keys[0];
+      let child = objectToTransform[keys[0]];
+
+      if (keys[0] === "option" && this.isTypedObject(child)) {
+        let child_keys = Object.keys(child);
+        comment += " " + child_keys[0];
+        child = child[child_keys[0]];
+      }
+
+      if (this.isValue(child)) {
+        child = [child];
+      } 
+
+      return {
+        key: keyForObject,
+        type: "object",
+        isRoot: false,
+        comment: comment,
+        children: this.generateChildrenFromCollection(child)
+      }
     },
 
     // Transformer for the Object type
@@ -84,6 +111,17 @@ export default {
 
     isValue: function(value) {
       return !this.isObject(value) && !this.isArray(value);
+    },
+
+    isTypedObject: function(value) {
+      if (this.isObject(value)) {
+        let keys = Object.keys(value);
+        if (keys.length === 1) {
+          return ['map', 'big_map', 'list', 'set', 'option', 'lambda', 'contract', 'or']
+            .includes(keys[0]);
+        }
+      }
+      return false;
     }
   },
   computed: {
