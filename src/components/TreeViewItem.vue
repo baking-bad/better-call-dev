@@ -75,8 +75,7 @@
       <span class="tree-view-item-key">
         {{getKey(data)}}
       </span>
-      <a>code</a>
-      <div v-show="false">
+      <div>
         <MichelineViewItem :data="data.lambda" :depth="1" />
       </div>
     </div>
@@ -270,7 +269,7 @@ export default {
 
 .tree-view-item {
   font-size: 14px;
-  margin-left: 12px;
+  margin-left: 18px;
 }
 
 .tree-view-item-node {
