@@ -22,7 +22,7 @@
     </span>
     <span v-else>
       <span v-if="data.prim">
-        <span v-if="isUpper(data.prim)">
+        <span v-if="!isType(data.prim)">
           <span class="micheline-view-instr">{{ data.prim }}&nbsp;</span>
           <span v-if="data.annots">
             <span v-for="annot in data.annots" :key="annot.id">
@@ -38,7 +38,8 @@
         </span>
         <span v-else>
           <span v-if="data.args">
-            <a href="#" class="micheline-view-type">{{ data.prim }}</a>
+            <a href="#" class="micheline-view-type">{{ getType(data) }}</a>
+            <!-- {{ decodeType(data) }} -->
           </span>
           <span v-else>
             <span class="micheline-view-core-type">{{ data.prim }}</span>
@@ -49,6 +50,24 @@
             </span>
           </span>
         </span>
+
+        <!-- 
+          -- need to decode value using the scheme
+          PUSH 'a x
+
+          -- handled
+          CREATE_CONTRACT { storage 'g ; parameter 'p ; code ... }
+          LAMBDA 'a 'b code
+          EMPTY_MAP 'key 'val
+          EMPTY_SET 'elt
+          NONE 'a
+          LEFT 'b
+          RIGHT 'a
+          NIL 'a
+          CONTRACT 'p
+          UNPACK 'a
+         -->
+        
         <!-- <span v-else>
           <span v-if="data.args">
             <span>(</span>
@@ -83,6 +102,7 @@
 
 <script>
 import _ from "lodash";
+import { decodeSchema, buildSchema } from "@/app/decode";
 
 export default {
   name: "MichelineViewItem",
@@ -98,11 +118,22 @@ export default {
       }
       return value[type];
     },
-    isUpper: function(value) {
-      return value === value.toUpperCase();
+    isType: function(value) {
+      return value === value.toLowerCase() && value !== "code";
+    },
+    getType: function(value) {
+      if (value.annots) {
+        return value.annots[0];
+      } else {
+        return value.prim;
+      }
     },
     isSimple: function(value) {
       return value.every(function(x) { return _.isObject(x) && x.args === undefined });
+    },
+    decodeType(data) {
+      let schema = buildSchema(data);
+      return decodeSchema(schema.collapsed_tree);
     }
   }
 };
