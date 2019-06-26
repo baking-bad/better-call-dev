@@ -104,7 +104,7 @@ export function decodeData(data, schema, annotations = true, literals = true, ro
         const args = [];
 
         if (type_info.prim === "lambda") {
-          res = node;
+          res = {prim: "Lambda", args: node};
         } else {
           node.forEach(item => {
             args.push(decode_node(item, `${path}0`));

@@ -39,7 +39,7 @@ export default {
       return {
         key: keyForLambda,
         type: "lambda",
-        lambda: lambdaToTransform
+        lambda: lambdaToTransform.args
       };
     },
 
@@ -48,14 +48,14 @@ export default {
     // a string or the Index as an integer
     generateChildrenFromCollection: function(collection) {
       return _.map(collection, (value, keyOrIndex) => {
+        if (this.isLambda(value)) {
+          return this.transformLambda(value, keyOrIndex);
+        }
         if (this.isTypedObject(value)) {
           return this.transformTypedObject(value, keyOrIndex);
         }
         if (this.isObject(value)) {
           return this.transformObject(value, keyOrIndex);
-        }
-        if (this.isLambda(value)) {
-          return this.transformLambda(value, keyOrIndex);
         }
         if (this.isArray(value)) {
           return this.transformArray(value, keyOrIndex);
@@ -135,21 +135,27 @@ export default {
     },
 
     isLambda: function(value) {
-      if (this.isArray(value)) {
-        return value.every(function(x) { 
-          return x.prim != undefined || this.isArray(x) 
-        }, this);
-      } 
-      return false;
+      return value.prim === "Lambda";
     }
   },
   computed: {
     wrapperClass: function() {
+      let klass = "tree-view-wrapper";
+      let children = [];
+
       if (this.isArray(this.data)) {
-        return "tree-view-wrapper tree-view-wrapper-array";
-      } else {
-        return "tree-view-wrapper tree-view-wrapper-object";
+        klass += " tree-view-wrapper-array";
+        children = this.data;
+      } else if (this.isObject(this.data)) {
+        klass += " tree-view-wrapper-object";
+        children = Object.values(this.data);
       }
+
+      if (children.some(function(x) { return this.isArray(x) || this.isObject(x) }, this)) {
+        klass += " tree-view-wrapper-chevron";
+      }
+
+      return klass;
     },
     parsedData: function() {
       if (this.isValue(this.data)) {
