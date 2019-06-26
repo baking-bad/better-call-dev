@@ -35,6 +35,13 @@ export default {
         const: constToTransform
       };
     },
+    transformLambda: function(lambdaToTransform, keyForLambda) {
+      return {
+        key: keyForLambda,
+        type: "lambda",
+        lambda: lambdaToTransform
+      };
+    },
 
     // Since we use lodash, the _.map method will work on
     // both Objects and Arrays, returning either the Key as
@@ -46,6 +53,9 @@ export default {
         }
         if (this.isObject(value)) {
           return this.transformObject(value, keyOrIndex);
+        }
+        if (this.isLambda(value)) {
+          return this.transformLambda(value, keyOrIndex);
         }
         if (this.isArray(value)) {
           return this.transformArray(value, keyOrIndex);
@@ -121,6 +131,15 @@ export default {
             .includes(keys[0]);
         }
       }
+      return false;
+    },
+
+    isLambda: function(value) {
+      if (this.isArray(value)) {
+        return value.every(function(x) { 
+          return x.prim != undefined || this.isArray(x) 
+        }, this);
+      } 
       return false;
     }
   },

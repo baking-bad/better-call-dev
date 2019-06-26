@@ -71,6 +71,20 @@
     <div
       style="word-wrap: break-word"
       :class="'tree-view-item-leaf ' + getColor(data.op)"
+      v-if="isLambda(data)"
+    >
+      <span 
+        class="tree-view-item-key" 
+        :class="{prim: isPrim(data.key)}">
+        {{getKey(data)}}
+      </span>
+      <span>
+        <MichelineViewItem :data="data.lambda" :depth="1" />
+      </span>
+    </div>
+    <div
+      style="word-wrap: break-word"
+      :class="'tree-view-item-leaf ' + getColor(data.op)"
       v-if="isConst(data)"
     >
       <span 
@@ -84,9 +98,13 @@
 
 <script>
 import _ from "lodash";
+import MichelineViewItem from "./MichelineView.vue"
 
 export default {
   name: "TreeViewItem",
+  components: {
+    MichelineViewItem
+  },
   props: ["data", "max-depth", "current-depth"],
   data: function() {
     return {
@@ -156,6 +174,9 @@ export default {
     },
     isConst: function(value) {
       return value.type === "const";
+    },
+    isLambda: function(value) {
+      return value.type === "lambda";
     },
     getConst: function(value) {
       return this.formatLiqEntry(value.const);
@@ -265,9 +286,9 @@ export default {
   white-space: nowrap;
 }
 
-.tree-view-item-key-with-chevron {
+/* .tree-view-item-key-with-chevron {
   padding-left: 14px;
-}
+} */
 
 .tree-view-item-key-with-chevron.opened::before {
   top: 4px;
@@ -276,12 +297,12 @@ export default {
 }
 
 .tree-view-item-key-with-chevron::before {
-  color: #444;
+  color: rgba(100, 100, 100, 0.8);
   content: "\25b6";
-  font-size: 10px;
-  left: 1px;
+  font-size: 9px;
+  left: -11px;
   position: absolute;
-  top: 3px;
+  top: 4px;
   transition: -webkit-transform 0.1s ease;
   transition: transform 0.1s ease;
   transition: transform 0.1s ease, -webkit-transform 0.1s ease;
@@ -298,6 +319,6 @@ export default {
 }
 
 .prim {
-  color: #6610f2;
+  color: blueviolet;
 }
 </style>

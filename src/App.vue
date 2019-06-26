@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <b-container>
+    <b-container fluid>
       <Loader :status="isLoading"/>
       <b-row v-if="isLanding">
         <Landing
@@ -703,9 +703,9 @@ body {
   font-family: "Roboto", sans-serif;
   font-weight: 300;
 }
-
+/* 
 .container {
   max-width: 1600px;
   min-width: 1024px;
-}
+} */
 </style>

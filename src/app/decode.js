@@ -104,7 +104,6 @@ export function decodeData(data, schema, annotations = true, literals = true, ro
         const args = [];
 
         if (type_info.prim === "lambda") {
-          // Todo: convert to Michelson
           res = node;
         } else {
           node.forEach(item => {
