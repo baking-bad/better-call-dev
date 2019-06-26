@@ -1,5 +1,5 @@
 <template>
-  <b-col lg="12" class="pl-0 pr-0" v-if="status">
+  <b-col class="pl-0 pr-0" v-if="status">
     <div class="magic-top-divider"></div>
     <div id="tabs">
       <b-tabs pills card vertical>
@@ -9,7 +9,7 @@
               <font-awesome-icon icon="exchange-alt"/>
             </span>
           </template>
-          <b-container class="tab-wrapper">
+          <b-container fluid class="tab-wrapper">
             <b-row class="styled-row" v-for="(group, hash) in groups" :key="group.level">
               <b-col lg="12" class="pt-3 info-wrapper">
                 <GroupInfo
@@ -46,7 +46,7 @@
               <font-awesome-icon icon="code"/>
             </span>
           </template>
-          <b-container class="tab-wrapper">
+          <b-container fluid class="tab-wrapper">
             <b-row class="styled-row">
               <ContractCode
                 :address="address"
@@ -65,7 +65,7 @@
               <font-awesome-icon icon="database"/>
             </span>
           </template>
-          <b-container class="tab-wrapper">
+          <b-container fluid class="tab-wrapper">
             <b-row class="styled-row">
               <b-col lg="12">
                 <div class="my-title mt-3">
