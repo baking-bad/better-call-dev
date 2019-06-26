@@ -686,5 +686,6 @@ export default {
 body {
   font-family: "Roboto", sans-serif;
   font-weight: 300;
+  background-color: #fafafa;
 }
 </style>
