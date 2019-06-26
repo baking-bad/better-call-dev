@@ -314,11 +314,22 @@ export default {
   },
   computed: {
     wrapperClass: function() {
+      let klass = "tree-view-wrapper";
+      let children = [];
+
       if (this.isArray(this.data)) {
-        return "tree-view-wrapper tree-view-wrapper-array";
-      } else {
-        return "tree-view-wrapper tree-view-wrapper-object";
+        klass += " tree-view-wrapper-array";
+        children = this.data;
+      } else if (this.isObject(this.data)) {
+        klass += " tree-view-wrapper-object";
+        children = Object.values(this.data);
       }
+
+      if (children.some(function(x) { return this.isArray(x) || this.isObject(x) }, this)) {
+        klass += " tree-view-wrapper-chevron";
+      }
+
+      return klass;
     },
     diffData: function() {
       return this.makeDiff(this.prevData, this.data, "storage", "deeper", true);

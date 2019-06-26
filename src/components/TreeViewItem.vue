@@ -3,7 +3,7 @@
     <div v-if="isObject(data)" :class="'tree-view-item-leaf ' + getColor(data.op)">
       <div class="tree-view-item-node" @click.stop="toggleOpen()">
         <span
-          :class="{opened: isOpen(), prim: isPrim(data.key)}"
+          :class="{opened: isOpen(), prim: isPrim(data.key), index: isIndex(data.key)}"
           v-if="!isRootObject(data)"
           class="tree-view-item-key tree-view-item-key-with-chevron"
         >{{getKey(data)}}</span>
@@ -29,7 +29,7 @@
     <div v-if="isArray(data)" :class="'tree-view-item-leaf ' + getColor(data.op)">
       <div class="tree-view-item-node array-node" @click.stop="toggleOpen()">
         <span
-          :class="{opened: isOpen(), prim: isPrim(data.key)}"
+          :class="{opened: isOpen(), prim: isPrim(data.key), index: isIndex(data.key)}"
           v-if="!isRootObject(data)"
           class="tree-view-item-key tree-view-item-key-with-chevron"
         >{{getKey(data)}}</span>
@@ -58,13 +58,12 @@
     >
       <span 
         class="tree-view-item-key" 
-        :class="{prim: isPrim(data.key)}">
+        :class="{prim: isPrim(data.key), index: isIndex(data.key)}">
         {{getKey(data)}}
       </span>
       <span
         style="word-break: break-all;"
         class="tree-view-item-value make-big-data"
-        :class="{prim: isPrim(data.value)}"
         @click="changeLen($event, data)"
       >{{getValue(data)}}</span>
     </div>
@@ -73,23 +72,20 @@
       :class="'tree-view-item-leaf ' + getColor(data.op)"
       v-if="isLambda(data)"
     >
-      <span 
-        class="tree-view-item-key" 
-        :class="{prim: isPrim(data.key)}">
+      <span class="tree-view-item-key">
         {{getKey(data)}}
       </span>
-      <span>
+      <a>code</a>
+      <div v-show="false">
         <MichelineViewItem :data="data.lambda" :depth="1" />
-      </span>
+      </div>
     </div>
     <div
       style="word-wrap: break-word"
       :class="'tree-view-item-leaf ' + getColor(data.op)"
       v-if="isConst(data)"
     >
-      <span 
-        class="tree-view-item-key tree-view-item-const" 
-        :class="{prim: isPrim(data.value)}">
+      <span class="tree-view-item-key tree-view-item-const">
         {{getConst(data)}}
       </span>
     </div>
@@ -208,6 +204,9 @@ export default {
     isRootObject: function(value) {
       return value.isRoot;
     },
+    isIndex: function(value) {
+      return !isNaN(parseInt(value, 10));
+    },
     getColor(op) {
       if (op === "add") {
         return "green-bg";
@@ -231,8 +230,8 @@ export default {
 .green-bg {
   background-color: #d4edda;
   color: #155724;
-  padding-left: 5px;
-  border-radius: 0.25rem;
+  padding-left: 15px;
+  margin-left: -15px;
 }
 
 .green-bg .tree-view-item-key {
@@ -242,8 +241,8 @@ export default {
 .yellow-bg {
   background-color: #fff3cd;
   color: #856404;
-  padding-left: 5px;
-  border-radius: 0.25rem;
+  padding-left: 15px;
+  margin-left: -15px;
 }
 
 .yellow-bg .tree-view-item-key {
@@ -253,8 +252,8 @@ export default {
 .red-bg {
   background-color: #f8d7da;
   color: #721c24;
-  padding-left: 5px;
-  border-radius: 0.25rem;
+  padding-left: 15px;
+  margin-left: -15px;
 }
 
 .red-bg .tree-view-item-key {
@@ -297,7 +296,7 @@ export default {
 }
 
 .tree-view-item-key-with-chevron::before {
-  color: rgba(100, 100, 100, 0.8);
+  color: #ccc;
   content: "\25b6";
   font-size: 9px;
   left: -11px;
@@ -320,5 +319,13 @@ export default {
 
 .prim {
   color: blueviolet;
+}
+
+.index {
+  color: #888;
+}
+
+.tree-view-wrapper-chevron > .tree-view-item-root > .tree-view-item-leaf > .tree-view-item > .tree-view-item-leaf {
+  margin-left: 12px;
 }
 </style>

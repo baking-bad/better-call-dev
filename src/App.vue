@@ -687,9 +687,4 @@ body {
   font-family: "Roboto", sans-serif;
   font-weight: 300;
 }
-/* 
-.container {
-  max-width: 1600px;
-  min-width: 1024px;
-} */
 </style>
