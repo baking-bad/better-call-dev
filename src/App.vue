@@ -23,7 +23,7 @@
         />
       </b-row>
       <b-row>
-        <NotFound :status="notFound"/>
+        <NotFound :status="notFound" :address="address" :tezosNet="tezosNet"/>
         <Results
           v-if="!notFound"
           :address="address"

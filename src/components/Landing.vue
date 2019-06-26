@@ -66,6 +66,7 @@
     </b-row>
     <b-row>
       <b-col lg="6" offset-lg="3" class="text-center">
+        <b-alert show variant="danger" v-if="hasError">Looks like contract address is wrong</b-alert>
         <b-input-group class="mt-3" :class="{ 'has-error': hasError }">
           <b-form-input
             placeholder="Enter KT-address"
@@ -211,6 +212,7 @@ function randomInteger(min, max) {
   box-shadow: none;
 }
 
+.alert,
 .form-control {
   border-radius: 0;
 }
