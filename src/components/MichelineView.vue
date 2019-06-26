@@ -2,7 +2,7 @@
   <span class="micheline-view-item">
     <span v-if="isArray(data)">
       <span>{&nbsp;</span> 
-        <span v-if="isSimple(data) && data.length < 6">
+        <span v-if="isSimple(data) || data.length < 5">
           <span v-for="(arg, i) in data" :key="arg.id">
             <MichelineViewItem :data="arg" :depth="depth + 1"/>
             <span v-if="i < data.length - 1">;&nbsp;</span> 
@@ -102,11 +102,7 @@ export default {
       return value === value.toUpperCase();
     },
     isSimple: function(value) {
-      return value.every(function(x) {
-        return _.isObject(x) && (x.args === undefined || x.args.every(function(y) {
-          return y.args === undefined;
-        }));
-      });
+      return value.every(function(x) { return _.isObject(x) && x.args === undefined });
     }
   }
 };

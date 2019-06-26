@@ -230,8 +230,6 @@ export default {
 .green-bg {
   background-color: #d4edda;
   color: #155724;
-  padding-left: 15px;
-  margin-left: -15px;
 }
 
 .green-bg .tree-view-item-key {
@@ -241,8 +239,6 @@ export default {
 .yellow-bg {
   background-color: #fff3cd;
   color: #856404;
-  padding-left: 15px;
-  margin-left: -15px;
 }
 
 .yellow-bg .tree-view-item-key {
@@ -252,8 +248,6 @@ export default {
 .red-bg {
   background-color: #f8d7da;
   color: #721c24;
-  padding-left: 15px;
-  margin-left: -15px;
 }
 
 .red-bg .tree-view-item-key {
@@ -276,7 +270,7 @@ export default {
 
 .tree-view-item {
   font-size: 14px;
-  margin-left: 18px;
+  margin-left: 12px;
 }
 
 .tree-view-item-node {
@@ -313,7 +307,6 @@ export default {
 }
 
 .tree-view-item-const {
-  margin-left: 18px;
   color: rgb(107, 161, 59);
 }
 

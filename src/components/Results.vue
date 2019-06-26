@@ -46,7 +46,7 @@
               <font-awesome-icon icon="code"/>
             </span>
           </template>
-          <b-container fluid class="tab-wrapper">
+          <b-container class="tab-wrapper">
             <b-row class="styled-row">
               <ContractCode
                 :address="address"
@@ -65,7 +65,7 @@
               <font-awesome-icon icon="database"/>
             </span>
           </template>
-          <b-container fluid class="tab-wrapper">
+          <b-container class="tab-wrapper">
             <b-row class="styled-row">
               <b-col lg="12">
                 <div class="my-title mt-3">
