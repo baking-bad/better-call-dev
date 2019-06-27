@@ -692,7 +692,6 @@ export default {
 body {
   font-family: "Roboto", sans-serif;
   font-weight: 300;
-  background-color: #fafafa;
 }
 
 @media (min-width: 1400px) {
