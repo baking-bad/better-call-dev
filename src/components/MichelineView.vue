@@ -41,12 +41,8 @@
             <MichelineViewItem :data="data.args[1]" :depth="depth" :path="path+'-1'"/>
           </span>
           <span v-else-if="isPush(data.prim)">
-            <span>
-              <MichelineViewItem :data="data.args[0]" :depth="depth" :path="path+'-0'"/>
-            </span>
-            <span
-              class="micheline-view-value"
-            >&nbsp;{{ decodeTypedData(data.args[0], data.args[1]) }}</span>
+            <span><MichelineViewItem :data="data.args[0]" :depth="depth" :path="path+'-0'"/></span>
+            <span class="micheline-view-value">&nbsp;{{ decodeTypedData(data.args[0], data.args[1]) }}&nbsp;</span>
           </span>
           <span v-else>
             <span v-if="data.args">
@@ -156,7 +152,11 @@ export default {
     },
     decodeTypedData(schema, data) {
       let typeSchema = buildSchema(schema);
-      return decodeData(data, typeSchema);
+      let res = decodeData(data, typeSchema);
+      if (_.isString(res)) {
+        res = '"' + res + '"';
+      }
+      return res;
     }
   }
 };
