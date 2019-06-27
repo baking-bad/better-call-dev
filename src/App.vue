@@ -688,4 +688,10 @@ body {
   font-weight: 300;
   background-color: #fafafa;
 }
+
+@media (min-width: 1400px) {
+  .container {
+      max-width: 1360px;
+  }
+}
 </style>
