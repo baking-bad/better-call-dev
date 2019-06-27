@@ -446,8 +446,11 @@ export default {
         }
       }
 
-      let validTezaurus = this.buildValidTezaurus(this.decoded_data, miniTezaurus);
-      this.decoded_data = this.mergeTezaurusToStorage(this.decoded_data, validTezaurus);
+      if (miniTezaurus) {
+        let validTezaurus = this.buildValidTezaurus(this.decoded_data, miniTezaurus);
+        this.decoded_data = this.mergeTezaurusToStorage(this.decoded_data, validTezaurus);
+      }
+      
       return groups;
     },
     buildValidTezaurus(decodedData, miniTezaurus) {

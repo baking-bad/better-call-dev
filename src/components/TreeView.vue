@@ -1,5 +1,5 @@
 <template>
-  <div :class="wrapperClass">
+  <div :class="parsedData.klass">
     <TreeViewItem
       class="tree-view-item-root"
       :data="parsedData"
@@ -67,11 +67,12 @@ export default {
     },
 
     // Transformer for the Array type
-    transformArray: function(arrayToTransform, keyForArray, isRootObject = false) {
+    transformArray: function(arrayToTransform, keyForArray, isRootObject = false, klass = "") {
       return {
         key: keyForArray,
         type: "array",
         isRoot: isRootObject,
+        klass: klass,
         children: this.generateChildrenFromCollection(arrayToTransform)
       };
     },
@@ -101,11 +102,12 @@ export default {
     },
 
     // Transformer for the Object type
-    transformObject: function(objectToTransform, keyForObject, isRootObject = false) {
+    transformObject: function(objectToTransform, keyForObject, isRootObject = false, klass = "") {
       return {
         key: keyForObject,
         type: "object",
         isRoot: isRootObject,
+        klass: klass,
         children: this.generateChildrenFromCollection(objectToTransform)
       };
     },
@@ -140,34 +142,16 @@ export default {
     }
   },
   computed: {
-    wrapperClass: function() {
-      let klass = "tree-view-wrapper";
-      let children = [];
-
-      if (this.isArray(this.data)) {
-        klass += " tree-view-wrapper-array";
-        children = this.data;
-      } else if (this.isObject(this.data)) {
-        klass += " tree-view-wrapper-object";
-        children = Object.values(this.data);
-      }
-
-      if (
-        children.some(function(x) {
-          return this.isArray(x) || this.isObject(x);
-        }, this)
-      ) {
-        klass += " tree-view-wrapper-chevron";
-      }
-
-      return klass;
-    },
     parsedData: function() {
       if (this.isValue(this.data)) {
         return this.transformConstant(this.data);
       }
       if (this.isArray(this.data)) {
-        return this.transformArray(this.data, this.root, true);
+        let klass = "tree-view-wrapper-array";
+        if (this.data.some(function(x) { return this.isArray(x) || this.isObject(x) }, this)) {
+          klass += " tree-view-wrapper-chevron";
+        }
+        return this.transformArray(this.data, this.root, true, klass);
       }
 
       let keys = Object.keys(this.data);
@@ -179,7 +163,11 @@ export default {
         }
       }
 
-      return this.transformObject(this.data, this.root, true);
+      let klass = "tree-view-wrapper-object";
+      if (Object.values(this.data).some(function(x) { return this.isArray(x) || this.isObject(x) }, this)) {
+        klass += " tree-view-wrapper-chevron";
+      }
+      return this.transformObject(this.data, this.root, true, klass);
     }
   }
 };
