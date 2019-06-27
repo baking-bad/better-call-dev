@@ -1,7 +1,7 @@
 <template>
   <b-col lg="12">
     <div class="my-title mt-3">
-      <span>Contract</span>
+      <span>Contract script</span>
     </div>
     <b-row class="mt-2">
       <b-col lg="12">

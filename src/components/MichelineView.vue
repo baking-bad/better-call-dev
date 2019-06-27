@@ -26,6 +26,7 @@
     <span v-else>
       <span v-if="data.prim">
         <span v-if="!isType(data.prim)">
+
           <span class="micheline-view-instr">{{ data.prim }}&nbsp;</span>
           <span v-if="data.annots">
             <span v-for="annot in data.annots" :key="annot.id">
@@ -40,6 +41,10 @@
             <span>$ELSE&nbsp;</span>
             <MichelineViewItem :data="data.args[1]" :depth="depth" :path="path+'-1'"/>
           </span>
+          <span v-else-if="isPush(data.prim)">
+            <span><MichelineViewItem :data="data.args[0]" :depth="depth" :path="path+'-0'"/></span>
+            <span class="micheline-view-value">&nbsp;{{ decodeTypedData(data.args[0], data.args[1]) }}</span>
+          </span>
           <span v-else>
             <span v-if="data.args">
               <span v-for="(arg, i) in data.args" :key="arg.id">
@@ -51,11 +56,10 @@
         </span>
         <span v-else>
           <span v-if="data.args" class="micheline-popover">
-            <button :id="path" triggers="click" class="micheline-view-type">{{ getType(data) }}</button>
-            <b-popover :target="path" triggers="focus">
+            <button :id="path" class="micheline-view-type">{{ getType(data) }}</button>
+            <b-popover :target="path" triggers="focus" placement="bottomright">
               <JsonView :data="decodeType(data)"/>
             </b-popover>
-            <!-- {{ decodeType(data) }} -->
           </span>
           <span v-else>
             <span class="micheline-view-core-type">{{ data.prim }}</span>
@@ -93,8 +97,7 @@
 
 <script>
 import _ from "lodash";
-import { decodeSchema, buildSchema } from "@/app/decode";
-// import JsonView from "./JsonView.vue";
+import { decodeSchema, buildSchema, decodeData } from "@/app/decode";
 
 export default {
   name: "MichelineViewItem",
@@ -126,10 +129,13 @@ export default {
     isIf: function(value) {
       return ["IF", "IF_NONE", "IF_LEFT", "IF_RIGHT", "IF_CONS"].includes(value);
     },
+    isPush: function(value) {
+      return value === "PUSH";
+    },
     isSimple: function(value) {
       if (value.length < 6) {
         return value.every(function(x) {
-          return !["IF", "IF_NONE", "IF_LEFT", "IF_RIGHT", "IF_CONS"].includes(x.prim);
+          return !["IF", "IF_NONE", "IF_LEFT", "IF_RIGHT", "IF_CONS", "ITER"].includes(x.prim);
         });
       } else if (value.length < 10) {
         return value.every(function(x) {
@@ -144,6 +150,10 @@ export default {
     decodeType(data) {
       let schema = buildSchema(data);
       return decodeSchema(schema.collapsed_tree);
+    },
+    decodeTypedData(schema, data) {
+      let typeSchema = buildSchema(schema);
+      return decodeData(data, typeSchema);
     }
   }
 };
@@ -166,6 +176,7 @@ export default {
   margin: 0;
   color: blueviolet;
   cursor: pointer;
+  background-color: transparent;
 }
 
 .micheline-view-type:hover {
