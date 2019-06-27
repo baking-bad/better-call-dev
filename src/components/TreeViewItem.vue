@@ -73,6 +73,7 @@
     >
       <span class="tree-view-item-key">{{getKey(data)}}</span>
       <div>
+        <span>123</span>
         <MichelineViewItem :data="data.lambda" :depth="1" :path="0"/>
       </div>
     </div>

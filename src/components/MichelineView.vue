@@ -1,70 +1,96 @@
-<template>
+<template functional>
   <span class="micheline-view-item">
-    <span v-if="isArray(data)">
+    <span v-if="$options.methods.isArray(props.data)">
       <span>{&nbsp;</span>
-      <span v-if="isSimple(data)">
-        <span v-for="(arg, i) in data" :key="arg.id">
-          <MichelineViewItem :data="arg" :depth="depth + 1" :path="path+'-'+i"/>
-          <span v-if="i < data.length - 1">;&nbsp;</span>
+      <span v-if="$options.methods.isSimple(props.data)">
+        <span v-for="(arg, i) in props.data" :key="arg.id">
+          <MichelineViewItem :data="arg" :depth="props.depth + 1" :path="props.path+'-'+i"/>
+          <span v-if="i < props.data.length - 1">;&nbsp;</span>
         </span>
       </span>
       <span v-else>
         <br>
-        <span v-for="(arg, i) in data" :key="arg.id">
-          <span v-for="j in Array(depth)" :key="j">&nbsp;&nbsp;</span>
-          <MichelineViewItem :data="arg" :depth="depth + 1" :path="path+'-'+i"/>
-          <span v-if="i < data.length - 1">
+        <span v-for="(arg, i) in props.data" :key="arg.id">
+          <span v-for="j in Array(props.depth)" :key="j">&nbsp;&nbsp;</span>
+          <MichelineViewItem :data="arg" :depth="props.depth + 1" :path="props.path+'-'+i"/>
+          <span v-if="i < props.data.length - 1">
             ;
             <br>
           </span>
         </span>
         <br>
-        <span v-for="j in Array(depth - 1)" :key="j">&nbsp;&nbsp;</span>
+        <span v-for="j in Array(props.depth - 1)" :key="j">&nbsp;&nbsp;</span>
       </span>
       <span>}&nbsp;</span>
     </span>
     <span v-else>
+<<<<<<< Updated upstream
       <span v-if="data.prim">
         <span v-if="!isType(data.prim)">
 
           <span class="micheline-view-instr">{{ data.prim }}&nbsp;</span>
           <span v-if="data.annots">
             <span v-for="annot in data.annots" :key="annot.id">
+=======
+      <span v-if="props.data.prim">
+        <span v-if="!$options.methods.isType(props.data.prim)">
+          <span class="micheline-view-instr">{{ props.data.prim }}&nbsp;</span>
+          <span v-if="props.data.annots">
+            <span v-for="annot in props.data.annots" :key="annot.id">
+>>>>>>> Stashed changes
               <span>{{ annot }}&nbsp;</span>
             </span>
           </span>
 
-          <span v-if="isIf(data.prim)">
-            <MichelineViewItem :data="data.args[0]" :depth="depth" :path="path+'-0'"/>
+          <span v-if="$options.methods.isIf(props.data.prim)">
+            <MichelineViewItem
+              :data="props.data.args[0]"
+              :depth="props.depth"
+              :path="props.path+'-0'"
+            />
             <br>
-            <span v-for="j in Array(depth - 1)" :key="j">&nbsp;&nbsp;</span>
+            <span v-for="j in Array(props.depth - 1)" :key="j">&nbsp;&nbsp;</span>
             <span>$ELSE&nbsp;</span>
-            <MichelineViewItem :data="data.args[1]" :depth="depth" :path="path+'-1'"/>
+            <MichelineViewItem
+              :data="props.data.args[1]"
+              :depth="props.depth"
+              :path="props.path+'-1'"
+            />
           </span>
           <span v-else-if="isPush(data.prim)">
             <span><MichelineViewItem :data="data.args[0]" :depth="depth" :path="path+'-0'"/></span>
             <span class="micheline-view-value">&nbsp;{{ decodeTypedData(data.args[0], data.args[1]) }}</span>
           </span>
           <span v-else>
-            <span v-if="data.args">
-              <span v-for="(arg, i) in data.args" :key="arg.id">
-                <MichelineViewItem :data="arg" :depth="depth" :path="path+'-'+i"/>
-                <span v-if="i < data.args.length - 1">&nbsp;</span>
+            <span v-if="props.data.args">
+              <span v-for="(arg, i) in props.data.args" :key="arg.id">
+                <MichelineViewItem :data="arg" :depth="props.depth" :path="props.path+'-'+i"/>
+                <span v-if="i < props.data.args.length - 1">&nbsp;</span>
               </span>
             </span>
           </span>
         </span>
         <span v-else>
+<<<<<<< Updated upstream
           <span v-if="data.args" class="micheline-popover">
             <button :id="path" class="micheline-view-type">{{ getType(data) }}</button>
             <b-popover :target="path" triggers="focus" placement="bottomright">
               <JsonView :data="decodeType(data)"/>
+=======
+          <span v-if="props.data.args" class="micheline-popover">
+            <button
+              :id="props.path"
+              class="micheline-view-type"
+            >{{ $options.methods.getType(props.data) }}</button>
+            <b-popover :target="props.path" triggers="focus" placement="bottomright">
+              <JsonView :data="$options.methods.decodeType(props.data)"/>
+>>>>>>> Stashed changes
             </b-popover>
           </span>
           <span v-else>
-            <span class="micheline-view-core-type">{{ data.prim }}</span>
-            <span v-if="data.annots">
-              <span v-for="annot in data.annots" :key="annot.id">
+            <span class="micheline-view-core-type">{{ props.data.prim }}</span>
+            <span v-if="props.data.annots">
+              <span v-for="annot in props.data.annots" :key="annot.id">
                 <span>&nbsp;{{ annot }}</span>
               </span>
             </span>
@@ -89,7 +115,7 @@
         -->
       </span>
       <span v-else>
-        <span class="micheline-view-value">{{ getValue(data) }}</span>
+        <span class="micheline-view-value">{{ $options.methods.getValue(props.data) }}</span>
       </span>
     </span>
   </span>
@@ -100,6 +126,7 @@ import _ from "lodash";
 import { decodeSchema, buildSchema, decodeData } from "@/app/decode";
 
 export default {
+  functional: true,
   name: "MichelineViewItem",
   props: ["data", "depth", "path"],
   components: {
