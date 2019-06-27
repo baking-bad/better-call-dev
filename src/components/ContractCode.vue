@@ -23,13 +23,13 @@
       <b-col lg="12" class="mb-3">
         <b-card>
           <b-row>
-            <b-col lg="5">
+            <b-col lg="6">
               <div class="my-subtitle">Parameter</div>
               <div class="tx-info-tree-view">
                 <JsonView :data="parameterSchema"/>
               </div>
             </b-col>
-            <b-col lg="7">
+            <b-col lg="6">
               <div>
                 <div class="my-subtitle">Storage</div>
                 <div class="tx-info-tree-view">
@@ -46,6 +46,9 @@
         <b-card>
           <div class="my-subtitle">Code</div>
           <MichelineViewItem :data="getCode()" :depth="1"/>
+          <b-alert class="mt-4" variant="warning" show style="font-size: 75%;">
+            <b>NOTE:</b> This is not a valid Michelson code, but an extended version, adapted for reading.
+          </b-alert>
         </b-card>
       </b-col>
     </b-row>

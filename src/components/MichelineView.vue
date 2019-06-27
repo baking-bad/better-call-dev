@@ -2,7 +2,7 @@
   <span class="micheline-view-item">
     <span v-if="isArray(data)">
       <span>{&nbsp;</span> 
-        <span v-if="isSimple(data) || data.length < 5">
+        <span v-if="isSimple(data)">
           <span v-for="(arg, i) in data" :key="arg.id">
             <MichelineViewItem :data="arg" :depth="depth + 1"/>
             <span v-if="i < data.length - 1">;&nbsp;</span> 
@@ -29,12 +29,23 @@
               <span>{{ annot }}&nbsp;</span>
             </span>
           </span>
-          <span v-if="data.args">
-            <span v-for="(arg, i) in data.args" :key="arg.id">
-              <MichelineViewItem :data="arg" :depth="depth" />
-              <span v-if="i < data.args.length - 1">&nbsp;</span> 
+
+          <span v-if="isIf(data.prim)">
+            <MichelineViewItem :data="data.args[0]" :depth="depth" />
+            <br/>
+            <span v-for="j in Array(depth - 1)" :key="j">&nbsp;&nbsp;</span>
+            <span>$ELSE&nbsp;</span>
+            <MichelineViewItem :data="data.args[1]" :depth="depth" />
+          </span>
+          <span v-else>
+            <span v-if="data.args">
+              <span v-for="(arg, i) in data.args" :key="arg.id">
+                <MichelineViewItem :data="arg" :depth="depth" />
+                <span v-if="i < data.args.length - 1">&nbsp;</span> 
+              </span>
             </span>
           </span>
+
         </span>
         <span v-else>
           <span v-if="data.args">
@@ -67,31 +78,6 @@
           CONTRACT 'p
           UNPACK 'a
          -->
-        
-        <!-- <span v-else>
-          <span v-if="data.args">
-            <span>(</span>
-            <span class="micheline-view-type">{{ data.prim }}&nbsp;</span>
-            <span v-if="data.annots">
-              <span v-for="annot in data.annots" :key="annot.id">
-                <span>{{ annot }}&nbsp;</span>
-              </span>
-            </span>
-            <span v-for="(arg, i) in data.args" :key="arg.id">
-              <MichelineViewItem :data="arg" :depth="depth"/>
-              <span v-if="i < data.args.length - 1">&nbsp;</span> 
-            </span>
-            <span>)</span>
-          </span>
-          <span v-else>
-            <span class="micheline-view-core-type">{{ data.prim }}</span>
-            <span v-if="data.annots">
-              <span v-for="annot in data.annots" :key="annot.id">
-                <span>&nbsp;{{ annot }}</span>
-              </span>
-            </span>
-          </span>
-        </span> -->
       </span>
       <span v-else>
         <span class="micheline-view-value">{{ getValue(data) }}</span>
@@ -128,8 +114,23 @@ export default {
         return value.prim;
       }
     },
+    isIf: function(value) {
+      return ["IF", "IF_NONE", "IF_LEFT", "IF_RIGHT", "IF_CONS"].includes(value);
+    },
     isSimple: function(value) {
-      return value.every(function(x) { return _.isObject(x) && x.args === undefined });
+      if (value.length < 6) {
+        return value.every(function(x) {
+          return !["IF", "IF_NONE", "IF_LEFT", "IF_RIGHT", "IF_CONS"].includes(x.prim);
+        });
+      } else if (value.length < 10) {
+        return value.every(function(x) {
+          return !_.isArray(x) && x.args === undefined;
+        });
+      } else {
+        return value.every(function(x) {
+          return !_.isArray(x) && x.args === undefined && x.annots === undefined;
+        });
+      }
     },
     decodeType(data) {
       let schema = buildSchema(data);
