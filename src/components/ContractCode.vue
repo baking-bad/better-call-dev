@@ -23,13 +23,13 @@
       <b-col lg="12" class="mb-3">
         <b-card>
           <b-row>
-            <b-col lg="6">
+            <b-col lg="5">
               <div class="my-subtitle">Parameter</div>
               <div class="tx-info-tree-view">
                 <JsonView :data="parameterSchema"/>
               </div>
             </b-col>
-            <b-col lg="6">
+            <b-col lg="7">
               <div>
                 <div class="my-subtitle">Storage</div>
                 <div class="tx-info-tree-view">
