@@ -1,23 +1,26 @@
 <template>
   <span class="micheline-view-item">
     <span v-if="isArray(data)">
-      <span>{&nbsp;</span> 
-        <span v-if="isSimple(data)">
-          <span v-for="(arg, i) in data" :key="arg.id">
-            <MichelineViewItem :data="arg" :depth="depth + 1"/>
-            <span v-if="i < data.length - 1">;&nbsp;</span> 
+      <span>{&nbsp;</span>
+      <span v-if="isSimple(data)">
+        <span v-for="(arg, i) in data" :key="arg.id">
+          <MichelineViewItem :data="arg" :depth="depth + 1" :path="path+'-'+i"/>
+          <span v-if="i < data.length - 1">;&nbsp;</span>
+        </span>
+      </span>
+      <span v-else>
+        <br>
+        <span v-for="(arg, i) in data" :key="arg.id">
+          <span v-for="j in Array(depth)" :key="j">&nbsp;&nbsp;</span>
+          <MichelineViewItem :data="arg" :depth="depth + 1" :path="path+'-'+i"/>
+          <span v-if="i < data.length - 1">
+            ;
+            <br>
           </span>
         </span>
-        <span v-else>
-          <br/>
-          <span v-for="(arg, i) in data" :key="arg.id">
-            <span v-for="j in Array(depth)" :key="j">&nbsp;&nbsp;</span>
-            <MichelineViewItem :data="arg" :depth="depth + 1"/>
-            <span v-if="i < data.length - 1">;<br/></span> 
-          </span>
-          <br/>
-          <span v-for="j in Array(depth - 1)" :key="j">&nbsp;&nbsp;</span>
-        </span>
+        <br>
+        <span v-for="j in Array(depth - 1)" :key="j">&nbsp;&nbsp;</span>
+      </span>
       <span>}&nbsp;</span>
     </span>
     <span v-else>
@@ -31,25 +34,27 @@
           </span>
 
           <span v-if="isIf(data.prim)">
-            <MichelineViewItem :data="data.args[0]" :depth="depth" />
-            <br/>
+            <MichelineViewItem :data="data.args[0]" :depth="depth" :path="path+'-0'"/>
+            <br>
             <span v-for="j in Array(depth - 1)" :key="j">&nbsp;&nbsp;</span>
             <span>$ELSE&nbsp;</span>
-            <MichelineViewItem :data="data.args[1]" :depth="depth" />
+            <MichelineViewItem :data="data.args[1]" :depth="depth" :path="path+'-1'"/>
           </span>
           <span v-else>
             <span v-if="data.args">
               <span v-for="(arg, i) in data.args" :key="arg.id">
-                <MichelineViewItem :data="arg" :depth="depth" />
-                <span v-if="i < data.args.length - 1">&nbsp;</span> 
+                <MichelineViewItem :data="arg" :depth="depth" :path="path+'-'+i"/>
+                <span v-if="i < data.args.length - 1">&nbsp;</span>
               </span>
             </span>
           </span>
-
         </span>
         <span v-else>
-          <span v-if="data.args">
-            <a href="#" class="micheline-view-type">{{ getType(data) }}</a>
+          <span v-if="data.args" class="micheline-popover">
+            <button :id="path" triggers="click" class="micheline-view-type">{{ getType(data) }}</button>
+            <b-popover :target="path" triggers="focus">
+              <JsonView :data="decodeType(data)"/>
+            </b-popover>
             <!-- {{ decodeType(data) }} -->
           </span>
           <span v-else>
@@ -77,7 +82,7 @@
           NIL 'a
           CONTRACT 'p
           UNPACK 'a
-         -->
+        -->
       </span>
       <span v-else>
         <span class="micheline-view-value">{{ getValue(data) }}</span>
@@ -89,16 +94,20 @@
 <script>
 import _ from "lodash";
 import { decodeSchema, buildSchema } from "@/app/decode";
+// import JsonView from "./JsonView.vue";
 
 export default {
   name: "MichelineViewItem",
-  props: ["data", "depth"],
+  props: ["data", "depth", "path"],
+  components: {
+    JsonView: () => import("./JsonView.vue")
+  },
   methods: {
     isArray: function(value) {
       return _.isArray(value);
     },
     getValue: function(value) {
-      let type = Object.keys(value)[0]
+      let type = Object.keys(value)[0];
       if (type === "string") {
         return '"' + value[type] + '"';
       }
@@ -141,31 +150,44 @@ export default {
 </script>
 
 <style scoped>
-
 .micheline-view-item {
   font-size: 12px;
   font-family: "Roboto Mono", monospace;
 }
 
 .micheline-view-instr {
-  color:navy;
+  color: navy;
 }
 
 .micheline-view-type {
-  color:blueviolet;
-  border-bottom: 1px solid blueviolet;
+  border: none;
+  text-decoration: underline;
+  padding: 0;
+  margin: 0;
+  color: blueviolet;
+  cursor: pointer;
 }
 
 .micheline-view-type:hover {
   text-decoration: none;
-  border-bottom: none;
+}
+
+.micheline-view-type:focus {
+  box-shadow: none;
+  outline: none;
 }
 
 .micheline-view-core-type {
-  color:rgb(107, 161, 59);
+  color: rgb(107, 161, 59);
 }
 
 .micheline-view-value {
-  color:sienna;
+  color: sienna;
+}
+</style>
+
+<style>
+.popover-body > div > div > div {
+  margin-left: 0px !important;
 }
 </style>

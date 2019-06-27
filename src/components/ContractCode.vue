@@ -45,7 +45,7 @@
       <b-col lg="12" class="mb-2 pb-2">
         <b-card>
           <div class="my-subtitle">Code</div>
-          <MichelineViewItem :data="getCode()" :depth="1"/>
+          <MichelineViewItem :data="getCode()" :depth="1" :path="0"/>
           <b-alert class="mt-4" variant="warning" show style="font-size: 75%;">
             <b>NOTE:</b> This is not a valid Michelson code, but an extended version, adapted for reading.
           </b-alert>
@@ -57,7 +57,7 @@
 
 <script>
 import JsonView from "./JsonView.vue";
-import MichelineViewItem from "./MichelineView.vue"
+import MichelineViewItem from "./MichelineView.vue";
 
 export default {
   name: "ContractCode",

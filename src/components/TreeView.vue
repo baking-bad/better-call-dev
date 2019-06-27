@@ -89,7 +89,7 @@ export default {
 
       if (this.isValue(child)) {
         child = [child];
-      } 
+      }
 
       return {
         key: keyForObject,
@@ -97,7 +97,7 @@ export default {
         isRoot: false,
         comment: comment,
         children: this.generateChildrenFromCollection(child)
-      }
+      };
     },
 
     // Transformer for the Object type
@@ -127,8 +127,9 @@ export default {
       if (this.isObject(value)) {
         let keys = Object.keys(value);
         if (keys.length === 1) {
-          return ['map', 'big_map', 'list', 'set', 'option', 'lambda', 'contract', 'or']
-            .includes(keys[0]);
+          return ["map", "big_map", "list", "set", "option", "lambda", "contract", "or"].includes(
+            keys[0]
+          );
         }
       }
       return false;
@@ -151,7 +152,11 @@ export default {
         children = Object.values(this.data);
       }
 
-      if (children.some(function(x) { return this.isArray(x) || this.isObject(x) }, this)) {
+      if (
+        children.some(function(x) {
+          return this.isArray(x) || this.isObject(x);
+        }, this)
+      ) {
         klass += " tree-view-wrapper-chevron";
       }
 
