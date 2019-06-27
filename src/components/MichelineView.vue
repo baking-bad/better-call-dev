@@ -24,20 +24,11 @@
       <span>}&nbsp;</span>
     </span>
     <span v-else>
-<<<<<<< Updated upstream
-      <span v-if="data.prim">
-        <span v-if="!isType(data.prim)">
-
-          <span class="micheline-view-instr">{{ data.prim }}&nbsp;</span>
-          <span v-if="data.annots">
-            <span v-for="annot in data.annots" :key="annot.id">
-=======
       <span v-if="props.data.prim">
         <span v-if="!$options.methods.isType(props.data.prim)">
           <span class="micheline-view-instr">{{ props.data.prim }}&nbsp;</span>
           <span v-if="props.data.annots">
             <span v-for="annot in props.data.annots" :key="annot.id">
->>>>>>> Stashed changes
               <span>{{ annot }}&nbsp;</span>
             </span>
           </span>
@@ -58,8 +49,12 @@
             />
           </span>
           <span v-else-if="isPush(data.prim)">
-            <span><MichelineViewItem :data="data.args[0]" :depth="depth" :path="path+'-0'"/></span>
-            <span class="micheline-view-value">&nbsp;{{ decodeTypedData(data.args[0], data.args[1]) }}</span>
+            <span>
+              <MichelineViewItem :data="data.args[0]" :depth="depth" :path="path+'-0'"/>
+            </span>
+            <span
+              class="micheline-view-value"
+            >&nbsp;{{ decodeTypedData(data.args[0], data.args[1]) }}</span>
           </span>
           <span v-else>
             <span v-if="props.data.args">
@@ -71,12 +66,6 @@
           </span>
         </span>
         <span v-else>
-<<<<<<< Updated upstream
-          <span v-if="data.args" class="micheline-popover">
-            <button :id="path" class="micheline-view-type">{{ getType(data) }}</button>
-            <b-popover :target="path" triggers="focus" placement="bottomright">
-              <JsonView :data="decodeType(data)"/>
-=======
           <span v-if="props.data.args" class="micheline-popover">
             <button
               :id="props.path"
@@ -84,7 +73,6 @@
             >{{ $options.methods.getType(props.data) }}</button>
             <b-popover :target="props.path" triggers="focus" placement="bottomright">
               <JsonView :data="$options.methods.decodeType(props.data)"/>
->>>>>>> Stashed changes
             </b-popover>
           </span>
           <span v-else>
