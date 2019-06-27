@@ -447,23 +447,26 @@ export default {
       }
 
       if (miniTezaurus) {
-        let validTezaurus = this.buildValidTezaurus(this.decoded_data, miniTezaurus);
+        let validTezaurus = this.buildValidTezaurus(this.decoded_data, miniTezaurus, [
+          ...this.bigMapJsonPath
+        ]);
         this.decoded_data = this.mergeTezaurusToStorage(this.decoded_data, validTezaurus);
       }
-      
+
       return groups;
     },
-    buildValidTezaurus(decodedData, miniTezaurus) {
+    buildValidTezaurus(decodedData, miniTezaurus, jsonPath) {
       let current = {};
-      for (let i = 0; i < this.bigMapJsonPath.length; i++) {
-        let key = this.bigMapJsonPath[i];
+      for (let i = 0; i < jsonPath.length; i++) {
+        let key = jsonPath[i];
         current = decodedData[key];
       }
 
-      let whiteListKeys = [];
-      if (current !== null || current !== undefined) {
-        whiteListKeys = Object.keys(current);
+      if (current === undefined) {
+        current = {};
       }
+
+      let whiteListKeys = Object.keys(current);
       let validTezaurus = {};
 
       Object.keys(miniTezaurus).forEach(function(key) {
@@ -606,7 +609,7 @@ export default {
         let key = this.bigMapJsonPath[i];
 
         if (i + 1 === this.bigMapJsonPath.length) {
-          current[key] = Object.assign(current[key], tezaurus);
+          current[key] = Object.assign({}, current[key], tezaurus);
           break;
         }
 
@@ -694,7 +697,7 @@ body {
 
 @media (min-width: 1400px) {
   .container {
-      max-width: 1360px;
+    max-width: 1360px;
   }
 }
 </style>
