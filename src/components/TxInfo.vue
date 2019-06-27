@@ -43,14 +43,14 @@
             <div class="my-subtitle">Consumed Gas</div>
             <span style="font-size: 75%;">
               <font-awesome-icon icon="burn" :style="{ color: '#007ac2' }"/>
-              {{ tx.consumedGas }} ({{spentPercent(tx.consumedGas)}})
+              &nbsp;{{ tx.consumedGas }}&nbsp;<span v-if="tx.consumedGas">({{spentPercent(tx.consumedGas)}})</span>
             </span>
           </div>
-          <div class="mr-4" v-if="tx.paidStorageDiff">
+          <div class="mr-4">
             <div class="my-subtitle">Paid Storage Diff</div>
             <span style="font-size: 75%;">
               <font-awesome-icon icon="coins"/>
-              {{ tx.paidStorageDiff }} ({{paidStoragePercent(tx.paidStorageDiff)}})
+              &nbsp;{{ tx.paidStorageDiff }}&nbsp;<span v-if="tx.paidStorageDiff">({{paidStoragePercent(tx.paidStorageDiff)}})</span>
             </span>
           </div>
           <div v-if="address == tx.destination">
@@ -142,14 +142,22 @@ export default {
     spentPercent(gas) {
       let gasLimit = parseInt(this.gasLimit);
       let currentGas = parseInt(gas);
-
-      return Math.round((currentGas / gasLimit) * 100) + "%";
+      let percent = Math.round((currentGas / gasLimit) * 100);
+      if (percent === 0) {
+        return "<1 %"
+      } else {
+        return percent + " %"
+      }
     },
     paidStoragePercent(diff) {
       let storageLimit = parseInt(this.storageLimit);
       let paidStorageDiff = parseInt(diff);
-
-      return Math.round((paidStorageDiff / storageLimit) * 100) + "%";
+      let percent = Math.round((paidStorageDiff / storageLimit) * 100)
+      if (percent === 0) {
+        return "<1 %"
+      } else {
+        return percent + " %"
+      }
     },
     formatAddress(address) {
       return utils.formatAddress(address);
