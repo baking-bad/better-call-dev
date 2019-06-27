@@ -1,5 +1,5 @@
 <template>
-  <b-col class="pl-0 pr-0" v-if="status">
+  <b-col class="pl-0 pr-0 gray-bg" v-if="status">
     <div class="magic-top-divider"></div>
     <div id="tabs">
       <b-tabs pills card vertical>
@@ -280,5 +280,9 @@ mark {
 
 .tx-info-tree-view {
   margin-left: -18px;
+}
+
+.gray-bg {
+  background-color: #fafafa;
 }
 </style>
