@@ -17,6 +17,11 @@ export default {
   methods: {
     makeDiff: function(a, b, key, op, isRoot = false) {
       if (this.isObject(a) && this.isObject(b)) {
+        if (this.isLambda(a) && this.isLambda(b)) {
+          // TODO: line by line diff
+          return this.transformLambda(b, key, op);
+        }
+
         let unionKeys = [...new Set(Object.keys(a).concat(Object.keys(b)))];
         let children = [];
 
@@ -215,6 +220,15 @@ export default {
       };
     },
 
+    transformLambda: function(lambdaToTransform, keyForLambda, operation) {
+      return {
+        key: keyForLambda,
+        type: "lambda",
+        lambda: lambdaToTransform.args,
+        op: operation
+      };
+    },
+
     generateChildrenFromCollection: function(collection, operation) {
       return _.map(collection, (value, keyOrIndex) => {
         if (this.isObject(value)) {
@@ -240,6 +254,9 @@ export default {
     },
 
     transformObject: function(objectToTransform, keyForObject, op, isRootObject = false) {
+      if (this.isLambda(objectToTransform)) {
+        return this.transformLambda(objectToTransform, keyForObject, op);
+      }
       return {
         key: keyForObject,
         type: "object",
@@ -271,6 +288,10 @@ export default {
 
     isValue: function(value) {
       return !this.isObject(value) && !this.isArray(value);
+    },
+
+    isLambda: function(value) {
+      return value.prim === "Lambda";
     },
 
     insertPatch: function(data, path, operation, value) {

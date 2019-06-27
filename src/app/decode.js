@@ -369,7 +369,7 @@ function decode_literal(node, prim) {
     return (parseInt(value) / Math.pow(10, 6)).toFixed(6) + ' ꜩ';
   }
   if (prim === "bool") {
-    return value === true;
+    return value === "True";
   }
   if (["address", "contract"].includes(prim) && core_type === "bytes") {
     if (value.substring(0, 2) === "00") {
