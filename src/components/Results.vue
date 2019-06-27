@@ -1,5 +1,5 @@
 <template>
-  <b-col class="pl-0 pr-0 gray-bg" v-if="status">
+  <b-col class="pl-0 pr-0" v-if="status">
     <div class="magic-top-divider"></div>
     <div id="tabs">
       <b-tabs pills card vertical>
@@ -9,7 +9,7 @@
               <font-awesome-icon icon="exchange-alt"/>
             </span>
           </template>
-          <b-container fluid class="tab-wrapper">
+          <b-container class="tab-wrapper">
             <b-row class="styled-row" v-for="(group, hash) in groups" :key="group.level">
               <b-col lg="12" class="pt-3 info-wrapper">
                 <GroupInfo
@@ -280,9 +280,5 @@ mark {
 
 .tx-info-tree-view {
   margin-left: -18px;
-}
-
-.gray-bg {
-  background-color: #fafafa;
 }
 </style>
