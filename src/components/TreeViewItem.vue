@@ -72,10 +72,13 @@
       v-if="isLambda(data)"
     >
       <span class="tree-view-item-key">{{getKey(data)}}</span>
-      <div>
-        <span>123</span>
+      <button class="micheline-view-type" v-b-toggle.collapse-1>
+        <span class="when-opened">hide</span>
+        <span class="when-closed">show</span>
+      </button>
+      <b-collapse id="collapse-1">
         <MichelineViewItem :data="data.lambda" :depth="1" :path="0"/>
-      </div>
+      </b-collapse>
     </div>
     <div
       style="word-wrap: break-word"
@@ -318,5 +321,30 @@ export default {
   > .tree-view-item
   > .tree-view-item-leaf {
   margin-left: 12px;
+}
+
+.micheline-view-type {
+  border: none;
+  text-decoration: underline;
+  padding: 0;
+  margin: 0;
+  color: blueviolet;
+  cursor: pointer;
+  font-weight: 300;
+  background-color: transparent;
+}
+
+.micheline-view-type:hover {
+  text-decoration: none;
+}
+
+.micheline-view-type:focus {
+  box-shadow: none;
+  outline: none;
+}
+
+.collapsed > .when-opened,
+:not(.collapsed) > .when-closed {
+  display: none;
 }
 </style>
