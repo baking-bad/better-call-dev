@@ -56,11 +56,10 @@
       :class="'tree-view-item-leaf ' + getColor(data.op)"
       v-if="isValue(data)"
     >
-      <span 
-        class="tree-view-item-key" 
-        :class="{prim: isPrim(data.key), index: isIndex(data.key)}">
-        {{getKey(data)}}
-      </span>
+      <span
+        class="tree-view-item-key"
+        :class="{prim: isPrim(data.key), index: isIndex(data.key)}"
+      >{{getKey(data)}}</span>
       <span
         style="word-break: break-all;"
         class="tree-view-item-value make-big-data"
@@ -72,11 +71,9 @@
       :class="'tree-view-item-leaf ' + getColor(data.op)"
       v-if="isLambda(data)"
     >
-      <span class="tree-view-item-key">
-        {{getKey(data)}}
-      </span>
+      <span class="tree-view-item-key">{{getKey(data)}}</span>
       <div>
-        <MichelineViewItem :data="data.lambda" :depth="1" />
+        <MichelineViewItem :data="data.lambda" :depth="1" :path="0"/>
       </div>
     </div>
     <div
@@ -84,16 +81,14 @@
       :class="'tree-view-item-leaf ' + getColor(data.op)"
       v-if="isConst(data)"
     >
-      <span class="tree-view-item-key tree-view-item-const">
-        {{getConst(data)}}
-      </span>
+      <span class="tree-view-item-key tree-view-item-const">{{getConst(data)}}</span>
     </div>
   </div>
 </template>
 
 <script>
 import _ from "lodash";
-import MichelineViewItem from "./MichelineView.vue"
+import MichelineViewItem from "./MichelineView.vue";
 
 export default {
   name: "TreeViewItem",
@@ -151,9 +146,9 @@ export default {
       return (this.isRootObject(this.data) || this.open) && flag;
     },
     isPrim: function(value) {
-      return [
-        'map', 'big_map', 'list', 'set', 'option', 'lambda', 'contract', 'or'
-      ].includes(value)
+      return ["map", "big_map", "list", "set", "option", "lambda", "contract", "or"].includes(
+        value
+      );
     },
     toggleOpen: function() {
       this.open = !this.open;
@@ -221,7 +216,6 @@ export default {
 </script>
 
 <style scoped>
-
 .make-big-data {
   cursor: pointer;
 }
@@ -317,7 +311,11 @@ export default {
   color: #888;
 }
 
-.tree-view-wrapper-chevron > .tree-view-item-root > .tree-view-item-leaf > .tree-view-item > .tree-view-item-leaf {
+.tree-view-wrapper-chevron
+  > .tree-view-item-root
+  > .tree-view-item-leaf
+  > .tree-view-item
+  > .tree-view-item-leaf {
   margin-left: 12px;
 }
 </style>
