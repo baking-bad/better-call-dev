@@ -9,7 +9,7 @@
               <font-awesome-icon icon="exchange-alt"/>
             </span>
           </template>
-          <b-container class="tab-wrapper">
+          <div class="tab-wrapper">
             <b-row class="styled-row" v-for="(group, hash) in groups" :key="group.level">
               <b-col lg="12" class="pt-3 info-wrapper">
                 <GroupInfo
@@ -37,10 +37,10 @@
                 <button type="button" class="btn btn-link" @click="loadMore">Load More</button>
               </b-col>
             </b-row>
-          </b-container>
+          </div>
         </b-tab>
 
-        <b-tab title="Script" class="pl-0 pr-0 pt-0 pb-0">
+        <b-tab title="Script" class="script pl-0 pr-0 pt-0 pb-0">
           <template slot="title">
             <span v-b-tooltip.hover title="Script">
               <font-awesome-icon icon="code"/>
@@ -59,7 +59,7 @@
           </b-container>
         </b-tab>
 
-        <b-tab title="State" class="pl-0 pr-0 pt-0 pb-0">
+        <b-tab title="State" class="state pl-0 pr-0 pt-0 pb-0">
           <template slot="title">
             <span v-b-tooltip.hover title="State">
               <font-awesome-icon icon="database"/>
@@ -194,10 +194,12 @@ export default {
 }
 
 .tab-wrapper {
-  /* background-color: #fafafa; */
+  background-color: #fafafa;
   padding-top: 20px;
   padding-left: 40px;
   padding-right: 40px;
+  width: 100%;
+  margin: 0;
 }
 
 .styled-row {
@@ -280,5 +282,12 @@ mark {
 
 .tx-info-tree-view {
   margin-left: -18px;
+}
+
+@media (min-width: 1200px) {
+  .state .container,
+  .script .container {
+    max-width: 1210px;
+  }
 }
 </style>
