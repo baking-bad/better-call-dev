@@ -46,7 +46,7 @@
               <font-awesome-icon icon="code"/>
             </span>
           </template>
-          <b-container class="tab-wrapper">
+          <div class="tab-wrapper">
             <b-row class="styled-row">
               <ContractCode
                 :address="address"
@@ -56,7 +56,7 @@
                 :decodedSchema="decodedSchema"
               />
             </b-row>
-          </b-container>
+          </div>
         </b-tab>
 
         <b-tab title="State" class="state pl-0 pr-0 pt-0 pb-0">
@@ -65,7 +65,7 @@
               <font-awesome-icon icon="database"/>
             </span>
           </template>
-          <b-container class="tab-wrapper">
+          <div class="tab-wrapper">
             <b-row class="styled-row">
               <b-col lg="12">
                 <div class="my-title mt-3">
@@ -117,7 +117,7 @@
                 </b-row>
               </b-col>
             </b-row>
-          </b-container>
+          </div>
         </b-tab>
       </b-tabs>
     </div>
@@ -198,7 +198,6 @@ export default {
   padding-top: 20px;
   padding-left: 40px;
   padding-right: 40px;
-  width: 100%;
   margin: 0;
 }
 
@@ -282,12 +281,5 @@ mark {
 
 .tx-info-tree-view {
   margin-left: -18px;
-}
-
-@media (min-width: 1200px) {
-  .state .container,
-  .script .container {
-    max-width: 1210px;
-  }
 }
 </style>

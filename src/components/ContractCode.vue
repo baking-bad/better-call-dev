@@ -45,7 +45,9 @@
       <b-col lg="12" class="mb-2 pb-2">
         <b-card>
           <div class="my-subtitle">Code</div>
-          <MichelineViewItem :data="getCode()" :depth="1" :path="0"/>
+          <div class="micheline-wrapper">
+            <MichelineViewItem :data="getCode()" :depth="1" :path="0"/>
+          </div>
           <b-alert class="mt-4" variant="warning" show style="font-size: 75%;">
             <b>NOTE:</b> This is not a valid Michelson code, but an extended version, adapted for reading.
           </b-alert>
@@ -75,4 +77,10 @@ export default {
 </script>
 
 <style>
+.micheline-wrapper {
+  max-width: 1024px;
+  white-space: normal;
+  overflow-wrap: normal;
+  overflow: hidden;
+}
 </style>
