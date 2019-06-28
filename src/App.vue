@@ -689,6 +689,10 @@ export default {
 @import url("https://fonts.googleapis.com/css?family=Roboto:300,400");
 @import url("https://fonts.googleapis.com/css?family=Roboto+Mono:300,400");
 
+html {
+  min-width: 1280px;
+}
+
 body {
   font-family: "Roboto", sans-serif;
   font-weight: 300;
