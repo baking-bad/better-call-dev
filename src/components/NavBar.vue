@@ -1,6 +1,6 @@
 <template>
   <b-navbar toggleable="lg" type="dark" class="w-100 green-navbar">
-    <b-navbar-brand class="logo" href="/">
+    <b-navbar-brand class="logo" href="https://baking-bad.github.io/better-call-dev/">
       BETTER CALL
       <span class="dev">DEV</span>
     </b-navbar-brand>

@@ -3,7 +3,7 @@
     <b-row>
       <b-col lg="12">
         <b-navbar toggleable="lg" type="light" class="w-100">
-          <b-navbar-brand class="hello-page" href="/">
+          <b-navbar-brand class="hello-page" href="https://baking-bad.github.io/better-call-dev/">
             BETTER CALL
             <span class="dev">DEV</span>
           </b-navbar-brand>
