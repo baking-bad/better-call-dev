@@ -26,7 +26,8 @@
     <span v-else>
       <span v-if="data.prim">
         <span v-if="!isType(data.prim)">
-          <span class="micheline-view-instr">{{ data.prim }}&nbsp;</span>
+          <span class="micheline-view-instr" 
+                :class="{dangerous: isDangerous(data.prim)}">{{ data.prim }}&nbsp;</span>
           <span v-if="data.annots">
             <span v-for="annot in data.annots" :key="annot.id">
               <span>{{ annot }}&nbsp;</span>
@@ -131,6 +132,10 @@ export default {
     isPush: function(value) {
       return value === "PUSH";
     },
+    isDangerous: function(value) {
+      return ["CREATE_CONTRACT", "CREATE_ACCOUNT", "TRANSFER_TOKENS", "SET_DELEGATE", 
+              "IMPLICIT_ACCOUNT", "EXEC"].includes(value);
+    },
     isSimple: function(value) {
       if (value.length < 6) {
         return value.every(function(x) {
@@ -170,6 +175,10 @@ export default {
 
 .micheline-view-instr {
   color: navy;
+}
+
+.micheline-view-instr.dangerous {
+  font-weight: 600;
 }
 
 .micheline-view-type {

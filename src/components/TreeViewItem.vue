@@ -203,7 +203,7 @@ export default {
       return value.isRoot;
     },
     isIndex: function(value) {
-      return _.isString(value) && value.length < 3 && !isNaN(parseInt(value, 10));
+      return _.isInteger(value);
     },
     getColor(op) {
       if (op === "add") {

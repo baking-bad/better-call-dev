@@ -1,37 +1,44 @@
 <template>
-  <div class="info-block">
-    <span class="mr-1">{{ group.date }}, {{ group.time }}</span>
-    <span class="mr-5">at level {{ group.level }}</span>
+  <b-container class="pl-0">
+  <b-row class="info-block">
+    <b-col class="pl-0 pr-0">
+      <span class="mr-3">{{ group.date }}, {{ group.time }}</span>
+      <span v-b-tooltip.hover title="Block height">
+        <font-awesome-icon icon="cube"/>&nbsp;{{ group.level }}
+      </span>
+    </b-col>
 
+    <b-col class="pl-0">
+      <span class="hash-address" v-b-tooltip.hover title="Operation Hash">{{ hash }}</span>
+    </b-col>
 
-    <span class="hash-address mr-5" v-b-tooltip.hover title="Operation Hash">{{ hash }}</span>
+    <b-col class="pl-0 text-right">
+      <span v-b-tooltip.hover title="Fee" class="mr-3">
+        <font-awesome-icon icon="receipt"/>&nbsp;{{ formatXTZ(group.fee) }}
+      </span>
 
-    <span v-b-tooltip.hover title="Fee" class="mr-3">
-      <font-awesome-icon icon="receipt"/>
-      {{ formatXTZ(group.fee) }}
-    </span>
+      <span v-b-tooltip.hover title="Gas Limit" class="mr-3">
+        <font-awesome-icon icon="burn"/>&nbsp;{{ group.gasLimit }}
+      </span>
 
-    <span v-b-tooltip.hover title="Gas Limit" class="mr-3">
-      <font-awesome-icon icon="burn"/>
-      {{ group.gasLimit }}
-    </span>
+      <span v-b-tooltip.hover title="Storage Limit">
+        <font-awesome-icon icon="coins"/>&nbsp;{{ group.storageLimit }}
+      </span>
+    </b-col>
 
-    <span v-b-tooltip.hover title="Storage Limit" class="mr-5">
-      <font-awesome-icon icon="coins"/>
-      {{ group.storageLimit }}
-    </span>
+    <b-col class="pl-0 pr-0 text-right">
+      <span class="mr-3" v-if="storageSize" v-b-tooltip.hover title="Resulting Storage Size">
+        <font-awesome-icon icon="database"/>
+        {{ storageSize }} ({{storagePercent(storageSize)}})
+      </span>
 
-    <span class="add-info float-right" v-if="storageSize" v-b-tooltip.hover title="Resulting Storage Size">
-      <font-awesome-icon icon="database"/>
-      {{ storageSize }} ({{storagePercent(storageSize)}})
-    </span>
-
-    <span v-b-tooltip.hover title="Resulting Balance" class="float-right mr-3">
-      <font-awesome-icon icon="cash-register"/>
-      {{ formatXTZ(balance, 0) }}
-    </span>
-
-  </div>
+      <span v-b-tooltip.hover title="Resulting Balance">
+        <font-awesome-icon icon="cash-register"/>
+        {{ formatXTZ(balance, 0) }}
+      </span>
+    </b-col>
+  </b-row>
+  </b-container>
 </template>
 
 <script>
