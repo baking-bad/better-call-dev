@@ -44,13 +44,13 @@
     <b-row>
       <b-col lg="12" class="mb-2 pb-2">
         <b-card>
+          <b-alert variant="warning" show style="font-size: 75%;">
+            <b>NOTE:</b> This is not a valid Michelson code, but an extended version, adapted for reading.
+          </b-alert>
           <div class="my-subtitle">Code</div>
           <div class="micheline-wrapper">
             <MichelineViewItem :data="getCode()" :depth="1" :path="0"/>
           </div>
-          <b-alert class="mt-4" variant="warning" show style="font-size: 75%;">
-            <b>NOTE:</b> This is not a valid Michelson code, but an extended version, adapted for reading.
-          </b-alert>
         </b-card>
       </b-col>
     </b-row>
