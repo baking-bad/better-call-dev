@@ -194,7 +194,7 @@ export default {
 }
 
 .tab-wrapper {
-  background-color: #fafafa;
+  /* background-color: #fafafa; */
   padding-top: 20px;
   padding-left: 40px;
   padding-right: 40px;

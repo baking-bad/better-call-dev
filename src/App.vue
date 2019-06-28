@@ -546,7 +546,7 @@ export default {
           if (op.result != undefined) {
             op.status = op.result.status;
             op.errors = this.getUniqueErrors(op.result.errors, op.status);
-            op.consumedGas = op.result.consumed_gas;
+            op.consumedGas = op.result.consumed_gas || 0;
             op.paidStorageDiff = op.result.paid_storage_size_diff || 0;
             op.storageSize = op.result.storage_size;
             op.expand = false;
@@ -554,7 +554,7 @@ export default {
           } else if (op.metadata.operation_result != undefined) {
             op.status = op.metadata.operation_result.status;
             op.errors = this.getUniqueErrors(op.metadata.operation_result.errors, op.status);
-            op.consumedGas = op.metadata.operation_result.consumed_gas;
+            op.consumedGas = op.metadata.operation_result.consumed_gas || 0;
             op.paidStorageDiff = op.metadata.operation_result.paid_storage_size_diff || 0;
             op.storageSize = op.metadata.operation_result.storage_size;
             op.expand = false;

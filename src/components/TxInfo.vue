@@ -39,7 +39,7 @@
               {{ formatXTZ(tx.amount) }}
             </span>
           </div>
-          <div class="mr-4" style="min-width: 90px;" v-if="tx.consumedGas">
+          <div class="mr-4" style="min-width: 90px;">
             <div class="my-subtitle">Consumed Gas</div>
             <span style="font-size: 75%;">
               <font-awesome-icon icon="burn" :style="{ color: '#007ac2' }"/>
