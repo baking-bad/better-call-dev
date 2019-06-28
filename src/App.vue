@@ -693,10 +693,4 @@ body {
   font-family: "Roboto", sans-serif;
   font-weight: 300;
 }
-
-@media (min-width: 1400px) {
-  .container {
-    max-width: 1360px;
-  }
-}
 </style>
