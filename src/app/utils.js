@@ -5,7 +5,7 @@ let utils = {
     if (aliases[address] !== undefined) {
       return aliases[address].name
     }
-    return `${address.substr(0, 6)}...${address.substr(address.length - 3, 4)}` 
+    return address; 
   },
   formatXTZ(amount, decimals=6) {
     amount = parseFloat(amount)
