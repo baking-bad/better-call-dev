@@ -138,7 +138,7 @@ export default {
     },
 
     isLambda: function(value) {
-      return value.prim === "Lambda";
+      return this.isObject(value) && value.prim === "Lambda";
     }
   },
   computed: {
