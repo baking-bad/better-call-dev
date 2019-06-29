@@ -17,7 +17,7 @@
                 target="_blank"
                 :href="baseAppURL + tezosNet + ':' + tx.source"
               >{{ tx.source }}</a>
-              <span v-else>{{ tx.source }}</span>
+              <span v-else>{{ formatAddress(tx.source) }}</span>
             </span>
           </div>
           <div class="mr-4">
@@ -29,7 +29,7 @@
                 target="_blank"
                 :href="baseAppURL + tezosNet + ':' + tx.destination"
               >{{ tx.destination }}</a>
-              <span v-else>{{ tx.destination }}</span>
+              <span v-else>{{ formatAddress(tx.destination) }}</span>
             </span>
           </div>
           <div class="mr-4" style="min-width: 90px;">
