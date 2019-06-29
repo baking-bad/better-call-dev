@@ -291,7 +291,7 @@ export default {
     },
 
     isLambda: function(value) {
-      return value.prim === "Lambda";
+      return this.isObject(value) && value.prim === "Lambda";
     },
 
     insertPatch: function(data, path, operation, value) {
