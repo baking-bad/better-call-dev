@@ -9,7 +9,6 @@ export function bigMapDiffDecode(data, schema) {
   data.forEach(item => {
     const key = decodeData(item.key, schema, true, true, paths.key_path);
     const val = decodeData(item.value, schema, true, true, paths.val_path);
-
     res[key] = val;
   });
 
@@ -132,7 +131,7 @@ export function decodeData(data, schema, annotations = true, literals = true, ro
       }
       return res
     }
-    return ""
+    return null;
   } catch(e) {
     // eslint-disable-next-line
     console.log("Houston we have a problem 2: ", e);
