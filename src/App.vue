@@ -401,6 +401,7 @@ export default {
       let links = this.buildPostLinksForNode(keys, prevBlock);
       let result = await this.getAllBigMapFromNode(links);
       let miniTezaurus = bigMapDiffDecode(result, this.resultForStorage);
+      console.log("RESULT", miniTezaurus);
 
       let currentStorage = {};
       let currentStorageSize = "0";
@@ -549,7 +550,8 @@ export default {
             op.consumedGas = op.result.consumed_gas || 0;
             op.paidStorageDiff = op.result.paid_storage_size_diff || 0;
             op.storageSize = op.result.storage_size;
-            op.expand = false;
+            op.expand = true;
+            //op.expand = false;
             currentBalanceChange += this.changeBalance(op.result.balance_updates);
           } else if (op.metadata.operation_result != undefined) {
             op.status = op.metadata.operation_result.status;
@@ -557,7 +559,8 @@ export default {
             op.consumedGas = op.metadata.operation_result.consumed_gas || 0;
             op.paidStorageDiff = op.metadata.operation_result.paid_storage_size_diff || 0;
             op.storageSize = op.metadata.operation_result.storage_size;
-            op.expand = false;
+            op.expand = true;
+            //op.expand = false;
             currentBalanceChange += this.changeBalance(
               op.metadata.operation_result.balance_updates
             );
@@ -588,12 +591,20 @@ export default {
     },
     mergeBigMapToStorage(storage, decodedBigMapDiff) {
       let current = storage;
+      let diff = {};
+
+      Object.keys(decodedBigMapDiff).forEach(function(key) {
+        let value = decodedBigMapDiff[key];
+        if (value !== null) {
+          diff[key] = value; 
+        }
+      })
 
       for (let i = 0; i < this.bigMapJsonPath.length; i++) {
         let key = this.bigMapJsonPath[i];
 
         if (i + 1 === this.bigMapJsonPath.length) {
-          current[key] = Object.assign(current[key], decodedBigMapDiff);
+          current[key] = Object.assign(current[key], diff);
           break;
         }
 
