@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <b-container fluid>
-      <Loader :status="isLoading"/>
+      <Loader :status="isLoading" />
       <b-row v-if="isLanding">
         <Landing
           :demoAddresses="demoAddresses"
@@ -23,7 +23,7 @@
         />
       </b-row>
       <b-row>
-        <NotFound :status="notFound" :address="address" :tezosNet="tezosNet"/>
+        <NotFound :status="notFound" :address="address" :tezosNet="tezosNet" />
         <Results
           v-if="!notFound"
           :address="address"
@@ -400,8 +400,8 @@ export default {
       let keys = this.buildBigMapTezaurus(groups, hashes);
       let links = this.buildPostLinksForNode(keys, prevBlock);
       let result = await this.getAllBigMapFromNode(links);
-      let miniTezaurus = bigMapDiffDecode(result, this.resultForStorage);
-      console.log("RESULT", miniTezaurus);
+      let miniTezaurusRaw = bigMapDiffDecode(result, this.resultForStorage);
+      let miniTezaurus = this.dropNullFromObject(miniTezaurusRaw);
 
       let currentStorage = {};
       let currentStorageSize = "0";
@@ -589,16 +589,21 @@ export default {
         this.contractBalance -= currentBalanceChange;
       }, this);
     },
-    mergeBigMapToStorage(storage, decodedBigMapDiff) {
-      let current = storage;
+    dropNullFromObject(obj) {
       let diff = {};
 
-      Object.keys(decodedBigMapDiff).forEach(function(key) {
-        let value = decodedBigMapDiff[key];
+      Object.keys(obj).forEach(function(key) {
+        let value = obj[key];
         if (value !== null) {
-          diff[key] = value; 
+          diff[key] = value;
         }
-      })
+      });
+
+      return diff;
+    },
+    mergeBigMapToStorage(storage, decodedBigMapDiff) {
+      let current = storage;
+      let diff = this.dropNullFromObject(decodedBigMapDiff);
 
       for (let i = 0; i < this.bigMapJsonPath.length; i++) {
         let key = this.bigMapJsonPath[i];
@@ -669,9 +674,7 @@ export default {
     },
     async getTransactionData() {
       const res = await axios.get(
-        `${this.baseApiURL}/operations/${this.address}?type=Transaction&number=10&p=${
-          this.txInfo.currentPage
-        }`
+        `${this.baseApiURL}/operations/${this.address}?type=Transaction&number=10&p=${this.txInfo.currentPage}`
       );
 
       this.txInfo.morePages = res.data.length === 10;
