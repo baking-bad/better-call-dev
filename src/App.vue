@@ -136,8 +136,8 @@ export default {
     },
     baseNodeApiURL() {
       if (this.tezosNet === "main") {
-         return "https://mainnet-node.tzscan.io/chains/main/blocks";
-      // return "https://rpc.tzbeta.net/chains/main/blocks";
+         //return "https://mainnet-node.tzscan.io/chains/main/blocks";
+         return "https://rpc.tzbeta.net/chains/main/blocks";
       }
       return "https://alphanet-node.tzscan.io/chains/main/blocks";
       // return "https://rpcalpha.tzbeta.net/chains/main/blocks";
