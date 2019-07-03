@@ -136,7 +136,8 @@ export default {
     },
     baseNodeApiURL() {
       if (this.tezosNet === "main") {
-        return "https://rpc.tzbeta.net/chains/main/blocks";
+         return "https://mainnet-node.tzscan.io/chains/main/blocks";
+      // return "https://rpc.tzbeta.net/chains/main/blocks";
       }
       return "https://alphanet-node.tzscan.io/chains/main/blocks";
       // return "https://rpcalpha.tzbeta.net/chains/main/blocks";
@@ -343,6 +344,10 @@ export default {
     },
     async buildGroups() {
       const data = await this.getTransactionData();
+      if (data.length === 0) {
+        return {};
+      }
+
       let tezaurus = this.buildTezaurus(data);
       tezaurus = this.removeDuplicates(tezaurus);
       const levels = Object.keys(tezaurus).sort((a, b) => b - a);
@@ -451,7 +456,10 @@ export default {
         let validTezaurus = this.buildValidTezaurus(this.decoded_data, miniTezaurus, [
           ...this.bigMapJsonPath
         ]);
-        this.decoded_data = this.mergeTezaurusToStorage(this.decoded_data, validTezaurus);
+        this.decoded_data = this.mergeTezaurusToStorage(
+          this.decoded_data, 
+          this.dropNullFromObject(validTezaurus)
+        );
       }
 
       return groups;
