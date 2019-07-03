@@ -151,6 +151,10 @@ export function buildSchema(code) {
     const typename = getAnnotation(node, ":");
     let name = getAnnotation(node, "%", typename);
 
+    if (name === undefined && node.prim == "big_map") {
+      name = "big_map";
+    }
+
     let args = [];
     const nodeArgs = node.args;
 

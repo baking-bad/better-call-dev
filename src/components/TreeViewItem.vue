@@ -60,7 +60,14 @@
         class="tree-view-item-key"
         :class="{prim: isPrim(data.key), index: isIndex(data.key)}"
       >{{getKey(data)}}</span>
+      <span 
+        v-if="isLink(data.value)" 
+        style="word-break: break-all;"
+        class="tree-view-item-value make-big-data">
+        <a :href="getLink(data)" target="_blank">{{data.value}}</a>
+      </span>
       <span
+        v-else
         style="word-break: break-all;"
         class="tree-view-item-value make-big-data"
         @click="changeLen($event, data)"
@@ -93,6 +100,7 @@
 <script>
 import _ from "lodash";
 import MichelineViewItem from "./MichelineView.vue";
+import { sanitizeUrl } from '@braintree/sanitize-url'
 
 export default {
   name: "TreeViewItem",
@@ -181,6 +189,9 @@ export default {
       }
       return this.formatLiqEntry(value.key + ": ");
     },
+    getLink: function(value) {
+      return sanitizeUrl(value.value);
+    },
     getValue: function(value) {
       if (value.op === "remove") {
         return this.makeShort(value.value);
@@ -195,7 +206,7 @@ export default {
         return "null";
       }
       if (_.isString(value.value)) {
-        // i am alive
+        // do nothing
       }
       return this.makeShort(value.value);
     },
@@ -204,6 +215,9 @@ export default {
     },
     isIndex: function(value) {
       return _.isInteger(value);
+    },
+    isLink: function(value) {
+      return _.isString(value) && value.startsWith('http');
     },
     getColor(op) {
       if (op === "add") {
