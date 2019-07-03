@@ -7,7 +7,11 @@
           v-if="!isRootObject(data)"
           class="tree-view-item-key tree-view-item-key-with-chevron"
         >{{getKey(data)}}</span>
-        <span class="prim" v-show="data.comment">{{data.comment}}&nbsp;</span>
+        <span 
+          class="prim" 
+          v-show="data.comment && data.comment !== data.key">
+          {{data.comment}}&nbsp;
+        </span>
         <span
           class="tree-view-item-hint"
           v-show="!isOpen() && data.children.length === 1"
