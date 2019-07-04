@@ -560,6 +560,8 @@ export default {
             op.paidStorageDiff = op.result.paid_storage_size_diff || 0;
             op.storageSize = op.result.storage_size;
             op.expand = false;
+            op.rawStorage = op.result.storage;
+            op.bigMapDiff = op.result.big_map_diff;
             currentBalanceChange += this.changeBalance(op.result.balance_updates);
           } else if (op.metadata.operation_result != undefined) {
             op.status = op.metadata.operation_result.status;
@@ -568,22 +570,20 @@ export default {
             op.paidStorageDiff = op.metadata.operation_result.paid_storage_size_diff || 0;
             op.storageSize = op.metadata.operation_result.storage_size;
             op.expand = false;
-            currentBalanceChange += this.changeBalance(
-              op.metadata.operation_result.balance_updates
-            );
+            op.rawStorage = op.metadata.operation_result.storage;
+            op.bigMapDiff = op.metadata.operation_result.big_map_diff;
+            currentBalanceChange += this.changeBalance(op.metadata.operation_result.balance_updates);
           }
 
           if (op.destination === this.address) {
             groups[hash].storageSize = op.storageSize;
-            if (op.metadata != undefined) {
-              const bigMapDiff = op.metadata.operation_result.big_map_diff;
-              if (bigMapDiff != undefined) {
-                op.bigMapDiff = bigMapDiff;
-                op.decodedBigMapDiff = bigMapDiffDecode(bigMapDiff, this.resultForStorage);
-              }
-              op.storage = decodeData(op.metadata.operation_result.storage, this.resultForStorage);
+            if (op.rawStorage !== undefined) {
+              op.storage = decodeData(op.rawStorage, this.resultForStorage);
             }
-            if (op.parameters != undefined) {
+            if (op.bigMapDiff !== undefined) {
+              op.decodedBigMapDiff = bigMapDiffDecode(op.bigMapDiff, this.resultForStorage);
+            }
+            if (op.parameters !== undefined) {
               if (op.errors.length > 0 && op.errors[0].id.endsWith("badContractParameter")) {
                 op.decodedParameters = decodeData(op.parameters, null);
               } else {
