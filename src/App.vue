@@ -58,6 +58,7 @@ import Landing from "./components/Landing.vue";
 axios.interceptors.request.use(
   request => {
     let url = request.url;
+    console.log(request);
     if (url.includes("chains/main/blocks") && !url.includes("head")) {
       if (localStorage[url] !== undefined) {
         request.data = JSON.parse(localStorage[url]);
@@ -369,8 +370,8 @@ export default {
 
       Object.keys(miniTezaurus).forEach(function(key) {
         links.push({
-          link: `${this.baseNodeApiURL}/${block}/context/contracts/${this.address}/big_map_get`,
-          postParams: miniTezaurus[key],
+          link: `${this.baseNodeApiURL}/${block}/context/contracts/${this.address}/big_map_get?key=${key}`,
+          postParams: JSON.stringify(miniTezaurus[key]),
           headers: {
             headers: { "Content-Type": "application/json" }
           },
@@ -378,6 +379,7 @@ export default {
         });
       }, this);
 
+      console.log(links);
       return links;
     },
     async getAllBigMapFromNode(links) {
