@@ -357,8 +357,10 @@ export default {
       this.tezaurus = Object.assign({}, this.tezaurus, tezaurus);
 
       let groups = this.pushOperationsToGroups(operationGroups);
-      this.buildBigMapAndParams(groups);
-      groups = await this.getOldStorage(groups);
+      if (Object.keys(groups).length > 0) {
+        this.buildBigMapAndParams(groups);
+        groups = await this.getOldStorage(groups);
+      }
 
       return groups;
     },
