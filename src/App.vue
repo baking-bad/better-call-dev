@@ -58,7 +58,6 @@ import Landing from "./components/Landing.vue";
 axios.interceptors.request.use(
   request => {
     let url = request.url;
-    console.log(request);
     if (url.includes("chains/main/blocks") && !url.includes("head")) {
       if (localStorage[url] !== undefined) {
         request.data = JSON.parse(localStorage[url]);
@@ -379,7 +378,6 @@ export default {
         });
       }, this);
 
-      console.log(links);
       return links;
     },
     async getAllBigMapFromNode(links) {
