@@ -181,7 +181,9 @@ export default {
       this.decoded_schema = decodeSchema(this.resultForStorage.collapsed_tree);
       this.parameterSchema = decodeSchema(this.resultForParameter.collapsed_tree);
       this.groups = await this.buildGroups();
-      this.handleFirstTx();
+      if (Object.keys(this.groups).length > 0) {
+        this.handleFirstTx();
+      }
 
       this.isReady = true;
       this.isLoading = false;
@@ -495,7 +497,7 @@ export default {
       for (let i = 0; i < hashes.length; i++) {
         let group = groups[hashes[i]];
         group["operations"].forEach(function(tx) {
-          if (tx.bigMapDiff) {
+          if (tx.decodedBigMapDiff) {
             tx.bigMapDiff.forEach(function(item) {
               let key = item.key[Object.keys(item.key)[0]];
               let type = { prim: this.resultForStorage.type_map["000"]["prim"] };
