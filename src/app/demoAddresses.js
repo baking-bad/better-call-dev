@@ -44,6 +44,30 @@ export const demo = [
     address: "KT1Qx7PRNAVHgam1qb2MuJohggnSdHTeBWyc"
   },
   {
+    net: "alpha",
+    address: "KT1G393LjojNshvMdf68XQD24Hwjn7xarzNe"
+  },
+  {
+    net: "alpha",
+    address: "KT1QtjNcg4XjnTEFktCirpWL8c87p2VGACXf"
+  },
+  {
+    net: "alpha",
+    address: "KT1QdevirZq7PpMgVFWP6QVRSGbSsdHEUjgt"
+  },
+  {
+    net: "alpha",
+    address: "KT1WhouvVKZFH94VXj9pa8v4szvfrBwXoBUj"
+  },
+  {
+    net: "alpha",
+    address: "KT1NpbyubpJauwPuD6AuWRwfWJLvAcWWLeGy"
+  },
+  {
+    net: "alpha",
+    address: "KT1J6w61iaASyoTRqM3LHtAWkn9mYvbvm2BT"
+  },
+  {
     net: "main",
     address: "KT1Q1kfbvzteafLvnGz92DGvkdypXfTGfEA3"
   },
@@ -54,5 +78,13 @@ export const demo = [
   {
     net: "main",
     address: "KT1GgUJwMQoFayRYNwamRAYCvHBLzgorLoGo"
+  },
+  {
+    net: "main",
+    address: "KT1UvfyLytrt71jh63YV4Yex5SmbNXpWHxtg"
+  },
+  {
+    net: "main",
+    address: "KT1RA48D7YPmS1bcpfhZKsN6DpZbC4oAxpVW"
   }
 ]
