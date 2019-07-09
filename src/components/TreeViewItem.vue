@@ -121,7 +121,7 @@ export default {
   },
   methods: {
     formatLiqEntry: function(key) {
-      if (key.includes("_Liq_entry_")) {
+      if (_.isString(key) && key.includes("_Liq_entry_")) {
         return key.substring(11);
       }
       return key;

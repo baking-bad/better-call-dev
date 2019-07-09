@@ -159,17 +159,6 @@ export default {
     "parameterSchema",
     "latestGroup"
   ],
-  // props: {
-  //   address: String,
-  //   tezosNet: String,
-  //   status: Boolean,
-  //   activetab: Number,
-  //   groups: Object,
-  //   morePages: Boolean,
-  //   decodedData: Object,
-  //   decodedSchema: Object,
-  //   parameterSchema: Object
-  // },
   methods: {
     loadMore() {
       this.$emit("loadmore");
@@ -282,7 +271,7 @@ mark {
 .storage-tree-view {
   margin-left: -18px;
   white-space: pre;
-  font-size: 12px;
+  font-size: 14px;
   font-family: "Roboto Mono", monospace;
 }
 
