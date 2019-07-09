@@ -3,7 +3,7 @@ import { aliases } from './bakersAliases.js'
 let utils = {
   formatAddress(address) {
     if (aliases[address] !== undefined) {
-      return aliases[address].name
+      return aliases[address].name.padEnd(36, " ");
     }
     return address; 
   },

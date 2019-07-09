@@ -69,14 +69,19 @@
       <span 
         v-if="isLink(data.value)" 
         style="word-break: break-all;"
-        class="tree-view-item-value make-big-data">
-        <a :href="getLink(data)" target="_blank">{{data.value}}</a>
+        class="tree-view-item-value make-big-data"
+        ><a :href="getLink(data)" target="_blank">{{data.value}}</a>
       </span>
+      <span 
+        v-else-if="isLong(data)" 
+        style="word-break: break-all;"
+        class="tree-view-item-value make-big-data"
+        @click="changeLen($event, data)"
+      >{{getValue(data)}}</span>
       <span
         v-else
         style="word-break: break-all;"
         class="tree-view-item-value make-big-data"
-        @click="changeLen($event, data)"
       >{{getValue(data)}}</span>
     </div>
     <div
@@ -147,6 +152,12 @@ export default {
         // i am alive
       }
       target.innerHTML = res;
+    },
+    isLong: function(value) {
+      if (value.type === "value" && _.isString(value.value)) {
+        return value.value.length > this.maxLength - value.key.length;
+      }
+      return false;
     },
     makeShort: function(str, key) {
       if (str.length > this.maxLength - key.length) {
