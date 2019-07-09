@@ -96,8 +96,8 @@
                         <b-col lg="12">
                           <div>
                             <div class="my-subtitle">Storage</div>
-                            <div class="tx-info-tree-view">
-                              <JsonView :data="decodedData"/>
+                            <div class="storage-tree-view">
+                              <TreeView :data="decodedData" max-length="120" max-depth="7"/>
                             </div>
                           </div>
                         </b-col>
@@ -126,7 +126,7 @@
 
 <script>
 import utils from "@/app/utils";
-import JsonView from "./JsonView.vue";
+import TreeView from "./TreeView.vue";
 import GroupInfo from "./GroupInfo.vue";
 import TxInfo from "./TxInfo.vue";
 import ContractCode from "./ContractCode.vue";
@@ -140,7 +140,7 @@ library.add(faExchangeAlt, faCode);
 export default {
   name: "Results",
   components: {
-    JsonView,
+    TreeView,
     GroupInfo,
     TxInfo,
     ContractCode,
@@ -279,8 +279,11 @@ mark {
   color: #e83e8c;
 }
 
-.tx-info-tree-view {
+.storage-tree-view {
   margin-left: -18px;
+  white-space: pre;
+  font-size: 12px;
+  font-family: "Roboto Mono", monospace;
 }
 
 .loadMore-link {

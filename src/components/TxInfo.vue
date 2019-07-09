@@ -71,7 +71,7 @@
               <div v-if="tx.decodedParameters != null">
                 <div class="my-subtitle">Parameter</div>
                 <div class="tx-info-tree-view">
-                  <JsonView :data="tx.decodedParameters"/>
+                  <TreeView :data="tx.decodedParameters" max-length="64" max-depth="5"/>
                 </div>
               </div>
             </b-col>
@@ -115,7 +115,7 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import Errors from "@/app/tezosErrors";
 import { faReceipt, faBurn, faCoins } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import JsonView from "./JsonView.vue";
+import TreeView from "./TreeView.vue";
 import PatchView from "./PatchView.vue";
 
 library.add(faReceipt, faBurn, faCoins);
@@ -124,7 +124,7 @@ export default {
   name: "GroupInfo",
   components: {
     FontAwesomeIcon,
-    JsonView,
+    TreeView,
     PatchView
   },
   props: {
@@ -289,5 +289,6 @@ code {
 
 .tx-info-tree-view {
   margin-left: -18px;
+  font-size: 14px;
 }
 </style>

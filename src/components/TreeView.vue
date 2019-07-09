@@ -4,6 +4,7 @@
       class="tree-view-item-root"
       :data="parsedData"
       :max-depth="maxDepth"
+      :max-length="maxLength"
       :currentDepth="0"
     />
   </div>
@@ -18,7 +19,7 @@ export default {
   components: {
     TreeViewItem
   },
-  props: ["data", "max-depth", "root"],
+  props: ["data", "max-depth", "max-length", "root"],
   methods: {
     // Transformer for the non-Collection types,
     // like String, Integer of Float
