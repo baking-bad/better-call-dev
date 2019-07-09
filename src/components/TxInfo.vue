@@ -1,7 +1,7 @@
 <template>
   <b-col lg="12">
-    <div class="my-title">
-      <span v-if="tx.internal">internal&nbsp;</span>transaction
+    <div class="my-title" :class="tx.kind">
+      <span v-if="tx.internal">internal&nbsp;</span>{{tx.kind}}
       <span :class="'ml-1 badge badge-outline ' + badgeClass(tx.status)">{{ tx.status }}</span>
     </div>
 
@@ -17,11 +17,15 @@
                 target="_blank"
                 :href="baseAppURL + tezosNet + ':' + tx.source"
               >{{ tx.source }}</a>
-              <span v-else>{{ formatAddress(tx.source) }}</span>
+              <span v-else style="white-space: pre;">{{ formatAddress(tx.source) }}</span>
             </span>
           </div>
           <div class="mr-4">
-            <div class="my-subtitle">Destination</div>
+            <div class="my-subtitle">
+              <span v-if="tx.kind == 'transaction'">Destination</span>
+              <span v-if="tx.kind == 'origination'">New Contract</span>
+              <span v-if="tx.kind == 'delegation'">Delegate</span>
+            </div>
             <span class="tx-hash">
               <mark v-if="address == tx.destination">{{ tx.destination }}</mark>
               <a
@@ -29,12 +33,12 @@
                 target="_blank"
                 :href="baseAppURL + tezosNet + ':' + tx.destination"
               >{{ tx.destination }}</a>
-              <span v-else>{{ formatAddress(tx.destination) }}</span>
+              <span v-else style="white-space: pre;">{{ formatAddress(tx.destination) }}</span>
             </span>
           </div>
           <div class="mr-4" style="min-width: 90px;">
-            <div class="my-subtitle">Amount</div>
-            <span style="font-size: 75%;">
+            <div class="my-subtitle" v-if="tx.amount">Amount</div>
+            <span style="font-size: 75%;" v-if="tx.amount">
               <font-awesome-icon icon="receipt" :style="{ color: '#c0b294' }"/>
               {{ formatXTZ(tx.amount) }}
             </span>
@@ -228,6 +232,10 @@ export default {
   font-size: 12px;
   color: #76a34e;
   text-transform: uppercase;
+}
+
+.my-title.delegation, .my-title.origination {
+  color: navy;
 }
 
 .my-subtitle {
