@@ -58,7 +58,7 @@
           <span v-if="data.args" class="micheline-popover">
             <button :id="path" class="micheline-view-type">{{ getType(data) }}</button>
             <b-popover :target="path" triggers="focus" placement="bottomright">
-              <JsonView :data="decodeType(data)"/>
+              <TreeView :data="decodeType(data)" max-length="120"/>
             </b-popover>
           </span>
           <span v-else>
@@ -103,7 +103,7 @@ export default {
   name: "MichelineViewItem",
   props: ["data", "depth", "path"],
   components: {
-    JsonView: () => import("./JsonView.vue")
+    TreeView: () => import("./TreeView.vue")
   },
   methods: {
     isArray: function(value) {

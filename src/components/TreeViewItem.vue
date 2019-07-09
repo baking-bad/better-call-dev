@@ -23,6 +23,7 @@
       </div>
       <TreeViewItem
         :max-depth="maxDepth"
+        :max-length="maxLength-2"
         :current-depth="currentDepth+1"
         v-show="isOpen()"
         v-for="child in data.children"
@@ -48,6 +49,7 @@
       </div>
       <TreeViewItem
         :max-depth="maxDepth"
+        :max-length="maxLength-2"
         :current-depth="currentDepth+1"
         v-show="isOpen()"
         v-for="child in data.children"
@@ -111,7 +113,7 @@ export default {
   components: {
     MichelineViewItem
   },
-  props: ["data", "max-depth", "current-depth"],
+  props: ["data", "max-depth", "current-depth", "max-length"],
   data: function() {
     return {
       open: this.currentDepth < this.maxDepth && this.data.op !== "none"
@@ -146,8 +148,8 @@ export default {
       }
       target.innerHTML = res;
     },
-    makeShort: function(str) {
-      if (str.length > 30) {
+    makeShort: function(str, key) {
+      if (str.length > this.maxLength - key.length) {
         return str.substr(0, 7) + "..." + str.substr(str.length - 7, 7);
       }
       return str;
@@ -198,21 +200,20 @@ export default {
     },
     getValue: function(value) {
       if (value.op === "remove") {
-        return this.makeShort(value.value);
+        return this.makeShort(value.value, value.key);
       }
       if (value.op === "replace") {
-        return `${this.makeShort(value.prevValue)} => ${this.makeShort(value.value)}`;
+        return `${this.makeShort(value.prevValue, value.key)} => ${this.makeShort(value.value, value.key)}`;
       }
       if (_.isNumber(value.value)) {
-        return this.makeShort(value.value);
+        return this.makeShort(value.value, value.key);
       }
       if (_.isNull(value.value)) {
         return "null";
       }
       if (_.isString(value.value)) {
-        // do nothing
       }
-      return this.makeShort(value.value);
+      return this.makeShort(value.value, value.key);
     },
     isRootObject: function(value) {
       return value.isRoot;
@@ -284,7 +285,6 @@ export default {
 }
 
 .tree-view-item {
-  font-size: 14px;
   margin-left: 18px;
 }
 
@@ -293,10 +293,6 @@ export default {
   position: relative;
   white-space: nowrap;
 }
-
-/* .tree-view-item-key-with-chevron {
-  padding-left: 14px;
-} */
 
 .tree-view-item-key-with-chevron.opened::before {
   top: 4px;

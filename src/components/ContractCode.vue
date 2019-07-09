@@ -25,15 +25,15 @@
           <b-row>
             <b-col lg="5">
               <div class="my-subtitle">Parameter</div>
-              <div class="tx-info-tree-view">
-                <JsonView :data="parameterSchema"/>
+              <div class="scheme-tree-view">
+                <TreeView :data="parameterSchema" max-length="64" max-depth="5"/>
               </div>
             </b-col>
             <b-col lg="7">
               <div>
                 <div class="my-subtitle">Storage</div>
-                <div class="tx-info-tree-view">
-                  <JsonView :data="decodedSchema"/>
+                <div class="scheme-tree-view">
+                  <TreeView :data="decodedSchema" max-length="64" max-depth="5"/>
                 </div>
               </div>
             </b-col>
@@ -58,13 +58,13 @@
 </template>
 
 <script>
-import JsonView from "./JsonView.vue";
+import TreeView from "./TreeView.vue";
 import MichelineViewItem from "./MichelineView.vue";
 
 export default {
   name: "ContractCode",
   components: {
-    JsonView,
+    TreeView,
     MichelineViewItem
   },
   props: ["address", "manager", "script", "parameterSchema", "decodedSchema"],
@@ -81,6 +81,10 @@ export default {
   max-width: 1024px;
   white-space: normal;
   overflow-wrap: normal;
-  overflow: hidden;
+  /* overflow: hidden; */
+}
+.scheme-tree-view {
+  margin-left: -18px;
+  font-size: 14px;
 }
 </style>

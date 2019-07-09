@@ -102,6 +102,7 @@ export default {
     Landing
   },
   data: () => ({
+    status: "",
     isLoading: false,
     address: "",
     tezosNet: "alpha",
