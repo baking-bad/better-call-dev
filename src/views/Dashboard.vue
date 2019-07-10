@@ -102,6 +102,7 @@ export default {
     Landing
   },
   data: () => ({
+    status: "",
     isLoading: false,
     address: "",
     tezosNet: "alpha",
@@ -457,7 +458,7 @@ export default {
         }
       }
 
-      if (miniTezaurus) {
+      if (Object.keys(miniTezaurus).length > 0) {
         let validTezaurus = this.buildValidTezaurus(this.decoded_data, miniTezaurus, [
           ...this.bigMapJsonPath
         ]);
