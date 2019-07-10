@@ -223,6 +223,7 @@ export default {
         return "null";
       }
       if (_.isString(value.value)) {
+        // do nothing
       }
       return this.makeShort(value.value, value.key);
     },

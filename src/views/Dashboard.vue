@@ -2,16 +2,7 @@
   <div id="app">
     <b-container fluid>
       <Loader :status="isLoading" />
-      <b-row v-if="isLanding">
-        <Landing
-          :demoAddresses="demoAddresses"
-          @updateNet="updateNet"
-          @update="updateAddress"
-          @explore="explore"
-          @demo="demo"
-        />
-      </b-row>
-      <b-row v-if="!isLanding">
+      <b-row>
         <NavBar
           :address="address"
           :tezosNet="tezosNet"
@@ -49,11 +40,10 @@ import axios from "axios";
 import { bigMapDiffDecode, decodeData, decodeSchema, buildSchema } from "@/app/decode";
 import { demo } from "@/app/demoAddresses";
 
-import Loader from "./components/Loader.vue";
-import NotFound from "./components/NotFound.vue";
-import Results from "./components/Results.vue";
-import NavBar from "./components/NavBar.vue";
-import Landing from "./components/Landing.vue";
+import Loader from "@/components/Loader.vue";
+import NotFound from "@/components/NotFound.vue";
+import Results from "@/components/Results.vue";
+import NavBar from "@/components/NavBar.vue";
 
 axios.interceptors.request.use(
   request => {
@@ -93,13 +83,12 @@ axios.interceptors.response.use(
 );
 
 export default {
-  name: "app",
+  name: "Dashboard",
   components: {
     Loader,
     NotFound,
     Results,
-    NavBar,
-    Landing
+    NavBar
   },
   data: () => ({
     status: "",
@@ -122,7 +111,6 @@ export default {
     groups: {},
     tezaurus: {},
     contractBalance: 0,
-    isLanding: true,
     contractManager: "",
     contractScript: "",
     latestGroup: {},
@@ -145,22 +133,23 @@ export default {
       // return "https://rpcalpha.tzbeta.net/chains/main/blocks";
     }
   },
-  beforeMount() {
-    if (window.location.hash) {
-      const params = window.location.hash.substring(1).split(":");
-      this.tezosNet = params[0];
-      this.address = params[1];
+  watch: {
+    "$route.params.address": function() {
+      this.tezosNet = this.$router.history.current.params.network;
+      this.address = this.$router.history.current.params.address;
       this.explore();
     }
+  },
+  beforeMount() {
+    this.tezosNet = this.$router.history.current.params.network;
+    this.address = this.$router.history.current.params.address;
+    this.explore();
   },
   methods: {
     async explore() {
       await this.initApp();
 
-      window.location.hash = `#${this.tezosNet}:${this.address}`;
-
       this.isLoading = true;
-      this.isLanding = false;
 
       const contractsData = await this.getContractsData();
       if (contractsData === undefined || contractsData.script === undefined) {
@@ -699,6 +688,7 @@ export default {
     demo(item) {
       this.tezosNet = item.net;
       this.address = item.address;
+      this.$router.push({ path: `/${item.net}/${item.address}` });
       this.explore();
     },
     async loadMore() {
