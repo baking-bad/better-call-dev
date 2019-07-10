@@ -1,10 +1,98 @@
 <template>
-  <router-view />
+  <div id="app">
+    <b-container fluid>
+      <Loader :status="isLoading" />
+      <b-row v-if="isLanding">
+        <Landing
+          :demoAddresses="demoAddresses"
+          @updateNet="updateNet"
+          @update="updateAddress"
+          @explore="explore"
+          @demo="demo"
+        />
+      </b-row>
+      <b-row v-if="!isLanding">
+        <NavBar
+          :address="address"
+          :tezosNet="tezosNet"
+          :demoAddresses="demoAddresses"
+          @update="updateAddress"
+          @updateNet="updateNet"
+          @explore="explore"
+          @demo="demo"
+        />
+      </b-row>
+      <b-row>
+        <NotFound :status="notFound" :address="address" :tezosNet="tezosNet" />
+        <Results
+          v-if="!notFound"
+          :address="address"
+          :manager="contractManager"
+          :script="contractScript"
+          :tezosNet="tezosNet"
+          :status="isReady"
+          :groups="groups"
+          :morePages="txInfo.morePages"
+          :decodedData="decoded_data"
+          :decodedSchema="decoded_schema"
+          :parameterSchema="parameterSchema"
+          :latestGroup="latestGroup"
+          @loadmore="loadMore"
+        />
+      </b-row>
+    </b-container>
+  </div>
 </template>
 
 <script>
+import axios from "axios";
+import { bigMapDiffDecode, decodeData, decodeSchema, buildSchema } from "@/app/decode";
+import { demo } from "@/app/demoAddresses";
+
+import Loader from "./components/Loader.vue";
+import NotFound from "./components/NotFound.vue";
+import Results from "./components/Results.vue";
+import NavBar from "./components/NavBar.vue";
+import Landing from "./components/Landing.vue";
+
+axios.interceptors.request.use(
+  request => {
+    let url = request.url;
+    if (url.includes("chains/main/blocks") && !url.includes("head")) {
+      if (localStorage[url] !== undefined) {
+        request.data = JSON.parse(localStorage[url]);
+
+        request.adapter = () => {
+          return Promise.resolve({
+            data: JSON.parse(localStorage[url]),
+            status: request.status,
+            statusText: request.statusText,
+            headers: request.headers,
+            config: request,
+            request: request
+          });
+        };
+      }
+    }
+
+    return request;
+  },
+  error => Promise.reject(error)
+);
+
+axios.interceptors.response.use(
+  response => {
+    let url = response.config.url;
+    if (url.includes("chains/main/blocks") && !url.includes("head")) {
+      localStorage[url] = JSON.stringify(response.data);
+    }
+
+    return response;
+  },
+  error => Promise.reject(error)
+);
+
 export default {
-<<<<<<< HEAD
   name: "app",
   components: {
     Loader,
@@ -14,7 +102,6 @@ export default {
     Landing
   },
   data: () => ({
-    status: "",
     isLoading: false,
     address: "",
     tezosNet: "alpha",
@@ -49,12 +136,12 @@ export default {
     },
     baseNodeApiURL() {
       if (this.tezosNet === "main") {
-         // return "https://mainnet-node.tzscan.io/chains/main/blocks";
-         // return "https://rpc.tzbeta.net/chains/main/blocks";
-         return "https://rpc.tezrpc.me/chains/main/blocks"
+        // return "https://mainnet-node.tzscan.io/chains/main/blocks";
+        // return "https://rpc.tzbeta.net/chains/main/blocks";
+        return "https://rpc.tezrpc.me/chains/main/blocks";
       }
       return "https://alphanet-node.tzscan.io/chains/main/blocks";
-      //return "https://rpcalpha.tzbeta.net/chains/main/blocks";
+      // return "https://rpcalpha.tzbeta.net/chains/main/blocks";
     }
   },
   beforeMount() {
@@ -139,7 +226,7 @@ export default {
       return res;
     },
     isRelated(tx) {
-      return [tx.destination, tx.source].includes(this.address);
+      return tx.kind === "transaction" && [tx.destination, tx.source].includes(this.address);
     },
     async getAllNodeDataByLevels(levels) {
       const links = await this.buildNodeLinksByBlock(levels);
@@ -198,19 +285,21 @@ export default {
         let weFound = false;
 
         group.contents.forEach(function(operation) {
-          if (!['transaction', 'origination', 'delegation'].includes(operation.kind)) {
-            return;
+          if (operation.kind === "transaction") {
+            operations.push(operation);
           }
 
-          operations.push(operation);
           if (this.isRelated(operation)) {
             weFound = true;
           }
 
           if (operation.metadata.internal_operation_results != undefined) {
             operation.metadata.internal_operation_results.forEach(function(op) {
-              op["internal"] = true;
-              operations.push(op);
+              if (op.kind === "transaction") {
+                op["internal"] = true;
+                operations.push(op);
+              }
+
               if (this.isRelated(op)) {
                 weFound = true;
               }
@@ -257,7 +346,7 @@ export default {
       }, this);
     },
     async buildGroups() {
-      let data = await this.getTransactionData();
+      const data = await this.getTransactionData();
       if (data.length === 0) {
         return {};
       }
@@ -368,12 +457,12 @@ export default {
         }
       }
 
-      if (Object.keys(miniTezaurus).length > 0) {
+      if (miniTezaurus) {
         let validTezaurus = this.buildValidTezaurus(this.decoded_data, miniTezaurus, [
           ...this.bigMapJsonPath
         ]);
         this.decoded_data = this.mergeTezaurusToStorage(
-          this.decoded_data, 
+          this.decoded_data,
           this.dropNullFromObject(validTezaurus)
         );
       }
@@ -446,14 +535,14 @@ export default {
 
       return ret;
     },
-    changeBalance(balanceUpdates, address) {
+    changeBalance(balanceUpdates) {
       if (balanceUpdates === undefined) {
         return 0;
       }
       let changes = 0;
 
       balanceUpdates.forEach(function(balance) {
-        if (balance.kind === "contract" && balance.contract === address) {
+        if (balance.kind === "contract" && balance.contract === this.address) {
           changes += parseInt(balance.change);
         }
       }, this);
@@ -473,42 +562,23 @@ export default {
             op.errors = this.getUniqueErrors(op.result.errors, op.status);
             op.consumedGas = op.result.consumed_gas || 0;
             op.paidStorageDiff = op.result.paid_storage_size_diff || 0;
+            op.storageSize = op.result.storage_size;
             op.expand = false;
-
-            currentBalanceChange += this.changeBalance(op.result.balance_updates, this.address);
-            
-            if (op.kind === "origination") {
-              op.destination = op.result.originated_contracts[0];
-              op.amount = this.changeBalance(op.result.balance_updates, op.destination);
-            } else if (op.kind === "delegation") {
-              op.destination = op.delegate || "unset".padEnd(36, " ");
-            }
-
-            if (op.destination === this.address) {
-              op.rawStorage = op.result.storage;
-              op.bigMapDiff = op.result.big_map_diff;
-              op.storageSize = op.result.storage_size;
-            }
-
+            op.rawStorage = op.result.storage;
+            op.bigMapDiff = op.result.big_map_diff;
+            currentBalanceChange += this.changeBalance(op.result.balance_updates);
           } else if (op.metadata.operation_result != undefined) {
             op.status = op.metadata.operation_result.status;
             op.errors = this.getUniqueErrors(op.metadata.operation_result.errors, op.status);
             op.consumedGas = op.metadata.operation_result.consumed_gas || 0;
             op.paidStorageDiff = op.metadata.operation_result.paid_storage_size_diff || 0;
+            op.storageSize = op.metadata.operation_result.storage_size;
             op.expand = false;
-
-            currentBalanceChange += this.changeBalance(op.metadata.operation_result.balance_updates, this.address);
-
-            if (op.kind === "origination") {
-              op.destination = op.metadata.operation_result.originated_contracts[0];
-              op.amount = this.changeBalance(op.metadata.operation_result.balance_updates, op.destination); 
-            }
-
-            if (op.destination === this.address) {
-              op.rawStorage = op.metadata.operation_result.storage;
-              op.bigMapDiff = op.metadata.operation_result.big_map_diff;
-              op.storageSize = op.metadata.operation_result.storage_size;
-            }
+            op.rawStorage = op.metadata.operation_result.storage;
+            op.bigMapDiff = op.metadata.operation_result.big_map_diff;
+            currentBalanceChange += this.changeBalance(
+              op.metadata.operation_result.balance_updates
+            );
           }
 
           if (op.destination === this.address) {
@@ -625,28 +695,6 @@ export default {
 
       return res.data;
     },
-    async getOrigination() {
-      const acc_res = await axios.get(
-        `${this.baseApiURL}/v1/account_status/${this.address}`
-      );
-
-      let op_hash = acc_res.data.origination;
-
-      const op_res = await axios.get(
-        `${this.baseApiURL}/v1/operation/${op_hash}`
-      );
-
-      let operations = op_res.data.type.operations;
-
-      return operations;
-    },
-    async getOperationData(op_hash) {
-      const res = await axios.get(
-        `${this.baseApiURL}/v1/operation/${op.hash}`
-      );
-
-      return res.data;
-    },
     demo(item) {
       this.tezosNet = item.net;
       this.address = item.address;
@@ -661,11 +709,19 @@ export default {
       this.isLoading = false;
     }
   }
-=======
-  name: "App"
->>>>>>> Router step 1
 };
 </script>
 
 <style>
+@import url("https://fonts.googleapis.com/css?family=Roboto:300,400");
+@import url("https://fonts.googleapis.com/css?family=Roboto+Mono:300,400");
+
+html {
+  min-width: 1280px;
+}
+
+body {
+  font-family: "Roboto", sans-serif;
+  font-weight: 300;
+}
 </style>
