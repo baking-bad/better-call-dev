@@ -129,6 +129,15 @@ export default {
       return "AlphaNet";
     }
   },
+  beforeMount() {
+    // backward compatibility
+    if (this.$router.history.current.hash !== "") {
+      let hash = this.$router.history.current.hash.slice(1);
+      let url = hash.split(":");
+
+      this.$router.replace({ path: `/${url[0]}/${url[1]}` });
+    }
+  },
   methods: {
     explore() {
       if (
