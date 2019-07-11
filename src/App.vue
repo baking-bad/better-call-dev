@@ -141,8 +141,9 @@ export default {
          // return "https://rpc.tzbeta.net/chains/main/blocks";
          return "https://rpc.tezrpc.me/chains/main/blocks"
       }
-      return "https://alphanet-node.tzscan.io/chains/main/blocks";
-      //return "https://rpcalpha.tzbeta.net/chains/main/blocks";
+      return "https://tezos-dev.cryptonomic-infra.tech";
+      // return "https://alphanet-node.tzscan.io/chains/main/blocks";
+      // return "https://rpcalpha.tzbeta.net/chains/main/blocks";
     }
   },
   beforeMount() {
