@@ -217,7 +217,7 @@ export default {
       return res;
     },
     isRelated(tx) {
-      return tx.kind === "transaction" && [tx.destination, tx.source].includes(this.address);
+      return [tx.destination, tx.source].includes(this.address);
     },
     async getAllNodeDataByLevels(levels) {
       const links = await this.buildNodeLinksByBlock(levels);
@@ -276,20 +276,19 @@ export default {
         let weFound = false;
 
         group.contents.forEach(function(operation) {
-          if (operation.kind === "transaction") {
-            operations.push(operation);
+          if (!["transaction", "origination", "delegation"].includes(operation.kind)) {
+            return;
           }
 
+          operations.push(operation);
           if (this.isRelated(operation)) {
             weFound = true;
           }
 
           if (operation.metadata.internal_operation_results != undefined) {
             operation.metadata.internal_operation_results.forEach(function(op) {
-              if (op.kind === "transaction") {
-                op["internal"] = true;
-                operations.push(op);
-              }
+              op["internal"] = true;
+              operations.push(op);
 
               if (this.isRelated(op)) {
                 weFound = true;
@@ -337,7 +336,7 @@ export default {
       }, this);
     },
     async buildGroups() {
-      const data = await this.getTransactionData();
+      let data = await this.getTransactionData();
       if (data.length === 0) {
         return {};
       }
@@ -526,14 +525,14 @@ export default {
 
       return ret;
     },
-    changeBalance(balanceUpdates) {
+    changeBalance(balanceUpdates, address) {
       if (balanceUpdates === undefined) {
         return 0;
       }
       let changes = 0;
 
       balanceUpdates.forEach(function(balance) {
-        if (balance.kind === "contract" && balance.contract === this.address) {
+        if (balance.kind === "contract" && balance.contract === address) {
           changes += parseInt(balance.change);
         }
       }, this);
@@ -553,23 +552,43 @@ export default {
             op.errors = this.getUniqueErrors(op.result.errors, op.status);
             op.consumedGas = op.result.consumed_gas || 0;
             op.paidStorageDiff = op.result.paid_storage_size_diff || 0;
-            op.storageSize = op.result.storage_size;
             op.expand = false;
-            op.rawStorage = op.result.storage;
-            op.bigMapDiff = op.result.big_map_diff;
-            currentBalanceChange += this.changeBalance(op.result.balance_updates);
+            currentBalanceChange += this.changeBalance(op.result.balance_updates, this.address);
+
+            if (op.kind === "origination") {
+              op.destination = op.result.originated_contracts[0];
+              op.amount = this.changeBalance(op.result.balance_updates, op.destination);
+            } else if (op.kind === "delegation") {
+              op.destination = op.delegate || "unset".padEnd(36, " ");
+            }
+            if (op.destination === this.address) {
+              op.rawStorage = op.result.storage;
+              op.bigMapDiff = op.result.big_map_diff;
+              op.storageSize = op.result.storage_size;
+            }
           } else if (op.metadata.operation_result != undefined) {
             op.status = op.metadata.operation_result.status;
             op.errors = this.getUniqueErrors(op.metadata.operation_result.errors, op.status);
             op.consumedGas = op.metadata.operation_result.consumed_gas || 0;
             op.paidStorageDiff = op.metadata.operation_result.paid_storage_size_diff || 0;
-            op.storageSize = op.metadata.operation_result.storage_size;
             op.expand = false;
-            op.rawStorage = op.metadata.operation_result.storage;
-            op.bigMapDiff = op.metadata.operation_result.big_map_diff;
             currentBalanceChange += this.changeBalance(
-              op.metadata.operation_result.balance_updates
+              op.metadata.operation_result.balance_updates,
+              this.address
             );
+
+            if (op.kind === "origination") {
+              op.destination = op.metadata.operation_result.originated_contracts[0];
+              op.amount = this.changeBalance(
+                op.metadata.operation_result.balance_updates,
+                op.destination
+              );
+            }
+            if (op.destination === this.address) {
+              op.rawStorage = op.metadata.operation_result.storage;
+              op.bigMapDiff = op.metadata.operation_result.big_map_diff;
+              op.storageSize = op.metadata.operation_result.storage_size;
+            }
           }
 
           if (op.destination === this.address) {
@@ -685,6 +704,13 @@ export default {
       this.txInfo.currentPage += 1;
 
       return res.data;
+    },
+    async getOrigination() {
+      const acc_res = await axios.get(`${this.baseApiURL}/v1/account_status/${this.address}`);
+      let op_hash = acc_res.data.origination;
+      const op_res = await axios.get(`${this.baseApiURL}/v1/operation/${op_hash}`);
+      let operations = op_res.data.type.operations;
+      return operations;
     },
     demo(item) {
       this.tezosNet = item.net;
