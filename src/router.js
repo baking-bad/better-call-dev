@@ -3,6 +3,9 @@ import Router from 'vue-router'
 
 import Landing from './views/Landing.vue'
 import Dashboard from './views/Dashboard.vue'
+import Operations from './components/tabs/Operations.vue'
+import Script from './components/tabs/Script.vue'
+import State from './components/tabs/State.vue'
 
 Vue.use(Router)
 
@@ -15,6 +18,19 @@ export default new Router({
   }, {
     path: '/:network(main|alpha)/:address(KT[0-9A-z]{34})',
     name: 'dashboard',
-    component: Dashboard
+    component: Dashboard,
+    children: [{
+      path: 'operations',
+      name: 'operations',
+      component: Operations
+    }, {
+      path: 'script',
+      name: 'script',
+      component: Script
+    }, {
+      path: 'state',
+      name: 'state',
+      component: State
+    }]
   }]
 })

@@ -1,12 +1,22 @@
 <template>
   <b-col class="pl-0 pr-0" v-if="status">
-    <div class="magic-top-divider"></div>
-    <div id="tabs">
-      <b-tabs pills card vertical>
-        <b-tab active class="pl-0 pr-0 pt-0">
+    <!-- <div class="magic-top-divider"></div> -->
+    <div class="tab-menu pl-4 pt-3">
+      <router-link
+        tag="button"
+        to="operations"
+        class="btn btn-outline-success btn-sm mr-2"
+      >Operations</router-link>
+      <router-link tag="button" to="script" class="btn btn-outline-success btn-sm mr-2">Script</router-link>
+      <router-link tag="button" to="state" class="btn btn-outline-success btn-sm">State</router-link>
+    </div>
+    <router-view v-bind="myProps" />
+    <!-- <div id="tabs"> -->
+
+    <!-- <b-tab active class="pl-0 pr-0 pt-0">
           <template slot="title">
             <span v-b-tooltip.hover title="Operations">
-              <font-awesome-icon icon="exchange-alt"/>
+              <font-awesome-icon icon="exchange-alt" />
             </span>
           </template>
           <div class="tab-wrapper">
@@ -43,7 +53,7 @@
         <b-tab title="Script" class="script pl-0 pr-0 pt-0 pb-0">
           <template slot="title">
             <span v-b-tooltip.hover title="Script">
-              <font-awesome-icon icon="code"/>
+              <font-awesome-icon icon="code" />
             </span>
           </template>
           <div class="tab-wrapper">
@@ -57,12 +67,12 @@
               />
             </b-row>
           </div>
-        </b-tab>
+    </b-tab>-->
 
-        <b-tab title="State" class="state pl-0 pr-0 pt-0 pb-0">
+    <!-- <b-tab title="State" class="state pl-0 pr-0 pt-0 pb-0">
           <template slot="title">
             <span v-b-tooltip.hover title="State">
-              <font-awesome-icon icon="database"/>
+              <font-awesome-icon icon="database" />
             </span>
           </template>
           <div class="tab-wrapper">
@@ -97,7 +107,7 @@
                           <div>
                             <div class="my-subtitle">Storage</div>
                             <div class="storage-tree-view">
-                              <TreeView :data="decodedData" max-length="120" max-depth="7"/>
+                              <TreeView :data="decodedData" max-length="120" max-depth="7" />
                             </div>
                           </div>
                         </b-col>
@@ -118,33 +128,33 @@
               </b-col>
             </b-row>
           </div>
-        </b-tab>
-      </b-tabs>
-    </div>
+    </b-tab>-->
+    <!-- </b-tabs> -->
+    <!-- </div> -->
   </b-col>
 </template>
 
 <script>
 import utils from "@/app/utils";
-import TreeView from "./TreeView.vue";
-import GroupInfo from "./GroupInfo.vue";
-import TxInfo from "./TxInfo.vue";
-import ContractCode from "./ContractCode.vue";
+// import TreeView from "./TreeView.vue";
+// import GroupInfo from "./GroupInfo.vue";
+// import TxInfo from "./TxInfo.vue";
+// import ContractCode from "./ContractCode.vue";
 
-import { library } from "@fortawesome/fontawesome-svg-core";
-import { faExchangeAlt, faCode } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+// import { library } from "@fortawesome/fontawesome-svg-core";
+// import { faExchangeAlt, faCode } from "@fortawesome/free-solid-svg-icons";
+// import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
-library.add(faExchangeAlt, faCode);
+// library.add(faExchangeAlt, faCode);
 
 export default {
   name: "Results",
   components: {
-    TreeView,
-    GroupInfo,
-    TxInfo,
-    ContractCode,
-    FontAwesomeIcon
+    // TreeView,
+    // GroupInfo,
+    // TxInfo,
+    // ContractCode,
+    // FontAwesomeIcon
   },
   props: [
     "manager",
@@ -169,12 +179,47 @@ export default {
     formatXTZ(amount) {
       return utils.formatXTZ(amount);
     }
+  },
+  computed: {
+    myProps() {
+      if (this.$route.name === "script") {
+        return {
+          address: this.address,
+          manager: this.manager,
+          script: this.script,
+          parameterSchema: this.parameterSchema,
+          decodedSchema: this.decodedSchema
+        };
+      }
+      if (this.$route.name === "state") {
+        return {
+          latestGroup: this.latestGroup,
+          decodedData: this.decodedData,
+          morePages: this.morePages
+        };
+      }
+      return {
+        groups: this.groups,
+        address: this.address,
+        tezosNet: this.tezosNet,
+        morePages: this.morePages
+      };
+    }
   }
 };
 </script>
 
 <style scoped>
-.tab-pane {
+.tab-menu {
+  background-color: #fafafa;
+}
+
+.router-link-active {
+  background-color: #76a34e;
+  border-color: #649b34;
+  color: #fff;
+}
+/* .tab-pane {
   outline: none;
 }
 
@@ -205,11 +250,11 @@ export default {
 .schema-title {
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
   font-size: 14px;
-}
+} */
 </style>
 
 <style>
-.card,
+/* .card,
 .alert,
 .badge {
   border-radius: 0;
@@ -288,5 +333,5 @@ mark {
 
 .loadMore-link:hover {
   text-decoration: underline;
-}
+} */
 </style>

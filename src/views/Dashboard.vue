@@ -688,7 +688,7 @@ export default {
     demo(item) {
       this.tezosNet = item.net;
       this.address = item.address;
-      this.$router.push({ path: `/${item.net}/${item.address}` });
+      this.$router.push({ path: `/${item.net}/${item.address}/operations` });
       this.explore();
     },
     async loadMore() {
