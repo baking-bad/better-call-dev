@@ -125,9 +125,14 @@ export default {
   },
   watch: {
     "$route.params": function() {
-      this.tezosNet = this.$router.history.current.params.network;
-      this.address = this.$router.history.current.params.address;
-      this.explore();
+      let net = this.$router.history.current.params.network;
+      let adr = this.$router.history.current.params.address;
+
+      if (this.tezosNet !== net || this.address !== adr) {
+        this.tezosNet = net;
+        this.address = adr;
+        this.explore();
+      }
     }
   },
   beforeMount() {
