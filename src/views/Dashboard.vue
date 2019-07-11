@@ -3,15 +3,7 @@
     <b-container fluid>
       <Loader :status="isLoading" />
       <b-row>
-        <NavBar
-          :address="address"
-          :tezosNet="tezosNet"
-          :demoAddresses="demoAddresses"
-          @update="updateAddress"
-          @updateNet="updateNet"
-          @explore="explore"
-          @demo="demo"
-        />
+        <NavBar :address="address" :tezosNet="tezosNet" />
       </b-row>
       <b-row>
         <NotFound :status="notFound" :address="address" :tezosNet="tezosNet" />
@@ -38,7 +30,6 @@
 <script>
 import axios from "axios";
 import { bigMapDiffDecode, decodeData, decodeSchema, buildSchema } from "@/app/decode";
-import { demo } from "@/app/demoAddresses";
 
 import Loader from "@/components/Loader.vue";
 import NotFound from "@/components/NotFound.vue";
@@ -112,8 +103,7 @@ export default {
     contractBalance: 0,
     contractManager: "",
     contractScript: "",
-    latestGroup: {},
-    demoAddresses: demo
+    latestGroup: {}
   }),
   computed: {
     baseApiURL() {
@@ -129,12 +119,12 @@ export default {
         return "https://rpc.tezrpc.me/chains/main/blocks";
       }
       // return "https://alphanet-node.tzscan.io/chains/main/blocks";
-      return "https://tezos-dev.cryptonomic-infra.tech/chains/main/blocks";
       // return "https://rpcalpha.tzbeta.net/chains/main/blocks";
+      return "https://tezos-dev.cryptonomic-infra.tech/chains/main/blocks";
     }
   },
   watch: {
-    "$route.params.address": function() {
+    "$route.params": function() {
       this.tezosNet = this.$router.history.current.params.network;
       this.address = this.$router.history.current.params.address;
       this.explore();
@@ -556,8 +546,10 @@ export default {
             currentBalanceChange += this.changeBalance(op.result.balance_updates, this.address);
 
             if (op.kind === "origination") {
-              op.destination = op.result.originated_contracts[0];
-              op.amount = this.changeBalance(op.result.balance_updates, op.destination);
+              if (op.result.originated_contracts != undefined) {
+                op.destination = op.result.originated_contracts[0];
+                op.amount = this.changeBalance(op.result.balance_updates, op.destination);
+              }
             } else if (op.kind === "delegation") {
               op.destination = op.delegate || "unset".padEnd(36, " ");
             }
@@ -711,11 +703,6 @@ export default {
       const op_res = await axios.get(`${this.baseApiURL}/v1/operation/${op_hash}`);
       let operations = op_res.data.type.operations;
       return operations;
-    },
-    demo(item) {
-      this.tezosNet = item.net;
-      this.address = item.address;
-      this.$router.push({ path: `/${item.net}/${item.address}/operations` });
     },
     async loadMore() {
       this.isLoading = true;

@@ -86,18 +86,20 @@
 </template>
 
 <script>
+import { demo } from "@/app/demoAddresses";
+
 export default {
   name: "NavBar",
   data: () => ({
     isActive: false,
     localAddress: "",
     localNet: "",
-    tezosNets: [{ text: "MainNet", value: "main" }, { text: "AlphaNet", value: "alpha" }]
+    tezosNets: [{ text: "MainNet", value: "main" }, { text: "AlphaNet", value: "alpha" }],
+    demoAddresses: demo
   }),
   props: {
     address: String,
-    tezosNet: String,
-    demoAddresses: Array
+    tezosNet: String
   },
   computed: {
     currentNet() {
@@ -105,11 +107,6 @@ export default {
         return "MainNet";
       }
       return "AlphaNet";
-    }
-  },
-  watch: {
-    localAddress(address) {
-      this.$emit("update", address);
     }
   },
   beforeMount() {
@@ -124,14 +121,14 @@ export default {
       this.localAddress = item["address"];
       this.localNet = item["net"];
       this.isActive = true;
-      this.$emit("demo", item);
+      this.$router.push({ path: `/${this.localNet}/${this.localAddress}/operations` });
     },
     explore() {
-      this.$emit("explore");
+      this.isActive = true;
+      this.$router.push({ path: `/${this.localNet}/${this.localAddress}/operations` });
     },
     changeNet(value) {
       this.localNet = value;
-      this.$emit("updateNet", value);
     }
   }
 };
