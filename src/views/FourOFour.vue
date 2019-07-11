@@ -15,7 +15,7 @@
 
 <script>
 export default {
-  name: "404"
+  name: "FourOFour"
 };
 </script>
 
