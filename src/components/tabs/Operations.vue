@@ -53,14 +53,6 @@ export default {
 </script>
 
 <style scoped>
-.tab-pane {
-  outline: none;
-}
-
-.tabs .card-header {
-  padding: 0rem 1.25rem;
-}
-
 .tab-wrapper {
   background-color: #fafafa;
   padding-top: 20px;
@@ -80,11 +72,6 @@ export default {
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   background-color: rgba(220, 237, 200, 0.6);
 }
-
-.schema-title {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-  font-size: 14px;
-}
 </style>
 
 <style>
@@ -92,35 +79,6 @@ export default {
 .alert,
 .badge {
   border-radius: 0;
-}
-
-.card-header {
-  background-color: transparent;
-  padding-top: 20px;
-  border-right: 1px solid rgba(0, 0, 0, 0.12);
-}
-
-.nav-pills .nav-link.active,
-.nav-pills .show > .nav-link {
-  color: #fff;
-  background-color: rgba(0, 0, 0, 0.54);
-}
-
-.nav-pills {
-  padding: 20px 10px 10px 10px;
-  min-height: calc(100vh - (56px)) !important;
-  width: 61px;
-}
-
-.nav-pills a {
-  color: rgba(0, 0, 0, 0.54);
-  text-align: center;
-  padding: 7px 10px 7px 10px;
-}
-
-.nav-pills .nav-link {
-  border-radius: 50%;
-  margin-bottom: 20px;
 }
 
 .my-title {
@@ -133,39 +91,5 @@ export default {
   font-size: 10px;
   color: rgba(100, 100, 100, 0.8);
   text-transform: uppercase;
-}
-
-.tx-hash {
-  font-size: 12px;
-  font-family: "Roboto Mono", monospace;
-  font-weight: 300;
-}
-
-mark {
-  padding: 0;
-  background-color: transparent;
-  color: #e83e8c;
-}
-
-.storage-tree-view {
-  margin-left: -18px;
-  white-space: pre;
-  font-size: 14px;
-  font-family: "Roboto Mono", monospace;
-}
-
-.loadMore-link {
-  border: none;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-  color: #007bff;
-  text-decoration: none;
-  background-color: transparent;
-  font-weight: 300;
-}
-
-.loadMore-link:hover {
-  text-decoration: underline;
 }
 </style>

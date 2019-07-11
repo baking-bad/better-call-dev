@@ -1,9 +1,11 @@
 <template>
   <b-navbar toggleable="lg" type="dark" class="w-100 green-navbar">
-    <b-navbar-brand class="logo" href="https://better-call.dev/">
-      BETTER CALL
-      <span class="dev">DEV</span>
-    </b-navbar-brand>
+    <router-link to="/">
+      <b-navbar-brand class="logo">
+        BETTER CALL
+        <span class="dev">DEV</span>
+      </b-navbar-brand>
+    </router-link>
 
     <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 

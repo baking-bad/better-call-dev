@@ -37,7 +37,7 @@
                 </b-col>
                 <b-col lg="6">
                   <b-alert class="mt-3" variant="info" show style="font-size: 75%;">
-                    BigMap records loaded on the operation tab are displayed.
+                    BigMap records loaded on the operations tab are displayed.
                     <button
                       class="loadMore-link"
                       v-if="morePages"
@@ -101,5 +101,27 @@ export default {
   font-size: 10px;
   color: rgba(100, 100, 100, 0.8);
   text-transform: uppercase;
+}
+
+.loadMore-link {
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  color: #007bff;
+  text-decoration: none;
+  background-color: transparent;
+  font-weight: 300;
+}
+
+.loadMore-link:hover {
+  text-decoration: underline;
+}
+
+.storage-tree-view {
+  margin-left: -18px;
+  white-space: pre;
+  font-size: 14px;
+  font-family: "Roboto Mono", monospace;
 }
 </style>

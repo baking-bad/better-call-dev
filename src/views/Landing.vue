@@ -3,10 +3,12 @@
     <b-row>
       <b-col lg="12">
         <b-navbar toggleable="lg" type="light" class="w-100">
-          <b-navbar-brand class="hello-page" href="https://baking-bad.github.io/better-call-dev/">
-            BETTER CALL
-            <span class="dev">DEV</span>
-          </b-navbar-brand>
+          <router-link to="/">
+            <b-navbar-brand class="hello-page">
+              BETTER CALL
+              <span class="dev">DEV</span>
+            </b-navbar-brand>
+          </router-link>
 
           <b-collapse id="nav-collapse" is-nav>
             <!-- Right aligned nav items -->
@@ -137,14 +139,13 @@ export default {
         this.hasError = true;
         return;
       }
-      console.log("explore");
+
       this.$router.push({ path: `/${this.localNet}/${this.localAddress}` });
     },
     demo() {
       let pick = randomInteger(0, this.demoAddresses.length - 1);
       let item = this.demoAddresses[pick];
 
-      console.log("demo");
       this.$router.push({ path: `/${item["net"]}/${item["address"]}` });
     },
     changeNet(value) {

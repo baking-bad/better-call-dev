@@ -26,14 +26,14 @@
             <b-col lg="5">
               <div class="my-subtitle">Parameter</div>
               <div class="scheme-tree-view">
-                <TreeView :data="parameterSchema" max-length="64" max-depth="5"/>
+                <TreeView :data="parameterSchema" max-length="64" max-depth="5" />
               </div>
             </b-col>
             <b-col lg="7">
               <div>
                 <div class="my-subtitle">Storage</div>
                 <div class="scheme-tree-view">
-                  <TreeView :data="decodedSchema" max-length="64" max-depth="5"/>
+                  <TreeView :data="decodedSchema" max-length="64" max-depth="5" />
                 </div>
               </div>
             </b-col>
@@ -49,7 +49,7 @@
           </b-alert>
           <div class="my-subtitle">Code</div>
           <div class="micheline-wrapper">
-            <MichelineViewItem :data="getCode()" :depth="1" :path="0"/>
+            <MichelineViewItem :data="getCode()" :depth="1" :path="0" />
           </div>
         </b-card>
       </b-col>
@@ -81,10 +81,22 @@ export default {
   max-width: 1024px;
   white-space: normal;
   overflow-wrap: normal;
-  /* overflow: hidden; */
 }
+
 .scheme-tree-view {
   margin-left: -18px;
   font-size: 14px;
+}
+
+.tx-hash {
+  font-size: 12px;
+  font-family: "Roboto Mono", monospace;
+  font-weight: 300;
+}
+
+mark {
+  padding: 0;
+  background-color: transparent;
+  color: #e83e8c;
 }
 </style>

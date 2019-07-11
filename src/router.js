@@ -20,6 +20,9 @@ export default new Router({
     name: 'dashboard',
     component: Dashboard,
     children: [{
+      path: '',
+      redirect: 'operations'
+    }, {
       path: 'operations',
       name: 'operations',
       component: Operations
@@ -32,5 +35,9 @@ export default new Router({
       name: 'state',
       component: State
     }]
+  }, {
+    path: '*',
+    name: '404',
+    component: () => import( /* webpackChunkName: "404" */ './views/404.vue')
   }]
 })

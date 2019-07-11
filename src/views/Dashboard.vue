@@ -91,7 +91,6 @@ export default {
     NavBar
   },
   data: () => ({
-    status: "",
     isLoading: false,
     address: "",
     tezosNet: "alpha",
@@ -129,7 +128,8 @@ export default {
         // return "https://rpc.tzbeta.net/chains/main/blocks";
         return "https://rpc.tezrpc.me/chains/main/blocks";
       }
-      return "https://alphanet-node.tzscan.io/chains/main/blocks";
+      // return "https://alphanet-node.tzscan.io/chains/main/blocks";
+      return "https://tezos-dev.cryptonomic-infra.tech/chains/main/blocks";
       // return "https://rpcalpha.tzbeta.net/chains/main/blocks";
     }
   },
@@ -175,8 +175,8 @@ export default {
         this.handleFirstTx();
       }
 
-      this.isReady = true;
       this.isLoading = false;
+      this.isReady = true;
     },
     async initApp() {
       this.isLoading = false;
@@ -187,6 +187,7 @@ export default {
       this.parameterSchema = {};
       this.resultForParameter = {};
       this.resultForStorage = {};
+      this.bigMapJsonPath = "";
       this.txInfo.morePages = false;
       this.txInfo.currentPage = 0;
       this.txInfo.data = [];
@@ -689,7 +690,6 @@ export default {
       this.tezosNet = item.net;
       this.address = item.address;
       this.$router.push({ path: `/${item.net}/${item.address}/operations` });
-      this.explore();
     },
     async loadMore() {
       this.isLoading = true;
