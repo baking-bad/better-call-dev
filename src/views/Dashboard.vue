@@ -107,20 +107,23 @@ export default {
   }),
   computed: {
     baseApiURL() {
-      if (this.tezosNet === "main") {
-        return "https://api5.tzscan.io/v1";
+      switch (this.tezosNet) {
+        case "main": return "https://api5.tzscan.io/v1";
+        case "alpha": return "https://api.alphanet.tzscan.io/v1";
+        default: throw this.tezosNet;
       }
-      return "https://api.alphanet.tzscan.io/v1";
     },
     baseNodeApiURL() {
-      if (this.tezosNet === "main") {
+      switch (this.tezosNet) {
         // return "https://mainnet-node.tzscan.io/chains/main/blocks";
         // return "https://rpc.tzbeta.net/chains/main/blocks";
-        return "https://rpc.tezrpc.me/chains/main/blocks";
+        case "main": return "https://rpc.tezrpc.me/chains/main/blocks";
+        // return "https://alphanet-node.tzscan.io/chains/main/blocks";
+        // return "https://rpcalpha.tzbeta.net/chains/main/blocks";
+        case "alpha": return "https://tezos-dev.cryptonomic-infra.tech/chains/main/blocks";
+        case "sandbox": return "http://127.0.0.1:8732/chains/main/blocks";
+        default: throw this.tezosNet;
       }
-      // return "https://alphanet-node.tzscan.io/chains/main/blocks";
-      // return "https://rpcalpha.tzbeta.net/chains/main/blocks";
-      return "https://tezos-dev.cryptonomic-infra.tech/chains/main/blocks";
     }
   },
   watch: {
