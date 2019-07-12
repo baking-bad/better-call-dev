@@ -4,7 +4,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Yet another Tezos explorer created specifically for smart contract developers
-[![Better Call Dev](https://pbs.twimg.com/media/D-0tpCaWsAAnVBI.jpg =300x)](https://twitter.com/cryyptt2/status/1147623668031348737)
+
+<a target="_blank" href="https://twitter.com/cryyptt2/status/1147623668031348737"><img src="https://pbs.twimg.com/media/D-0tpCaWsAAnVBI.jpg" alt="Better Call Dev" width="300"/></a>
 
 ## See it in action
 [https://better-call.dev/](https://better-call.dev/)
@@ -21,3 +22,6 @@ cd better-call-dev
 npm i
 npm run serve
 ```
+
+## Sponsored by
+[Tezos Foundation](https://tezos.foundation/)
