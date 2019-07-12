@@ -22,3 +22,6 @@ cd better-call-dev
 npm i
 npm run serve
 ```
+
+## Sponsored by
+[Tezos Foundation](https://tezos.foundation/)
