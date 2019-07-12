@@ -15,7 +15,7 @@ cache:
 
 before_deploy:
   - cp dist/index.html dist/404.html
-  - "sed -i \"1i---\npermalink: /404.html\n---\" dist/404.html"
+  - "sed -i \"1i---\\\npermalink: /404.html\n---\\\" dist/404.html"
 
 deploy:
   provider: pages
