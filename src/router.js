@@ -10,7 +10,6 @@ import State from './components/tabs/State.vue'
 Vue.use(Router)
 
 export default new Router({
-  mode: "history",
   routes: [{
     path: '/',
     name: 'landing',
