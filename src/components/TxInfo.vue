@@ -1,8 +1,11 @@
 <template>
   <b-col lg="12">
     <div class="my-title" :class="tx.kind">
-      <span v-if="tx.internal">internal&nbsp;</span>{{tx.kind}}
-      <span :class="'ml-1 badge badge-outline ' + badgeClass(tx.status)">{{ tx.status }}</span>
+      <span v-if="tx.internal">internal&nbsp;</span>
+      {{tx.kind}}
+      <span
+        :class="'ml-1 badge badge-outline ' + badgeClass(tx.status)"
+      >{{ tx.status }}</span>
     </div>
 
     <b-row class="mt-2">
@@ -21,12 +24,12 @@
             </span>
           </div>
           <div class="mr-4">
-            <div class="my-subtitle">
+            <div class="my-subtitle" v-if="tx.destination">
               <span v-if="tx.kind == 'transaction'">Destination</span>
               <span v-if="tx.kind == 'origination'">New Contract</span>
               <span v-if="tx.kind == 'delegation'">Delegate</span>
             </div>
-            <span class="tx-hash">
+            <span class="tx-hash" v-if="tx.destination">
               <mark v-if="address == tx.destination">{{ tx.destination }}</mark>
               <a
                 v-else-if="tx.destination[0] == 'K'"
@@ -39,22 +42,28 @@
           <div class="mr-4" style="min-width: 90px;">
             <div class="my-subtitle" v-if="tx.amount">Amount</div>
             <span style="font-size: 75%;" v-if="tx.amount">
-              <font-awesome-icon icon="receipt" :style="{ color: '#c0b294' }"/>
+              <font-awesome-icon icon="receipt" :style="{ color: '#c0b294' }" />
               {{ formatXTZ(tx.amount) }}
             </span>
           </div>
           <div class="mr-4" style="min-width: 90px;">
             <div class="my-subtitle">Consumed Gas</div>
             <span style="font-size: 75%;">
-              <font-awesome-icon icon="burn" :style="{ color: '#007ac2' }"/>
-              &nbsp;{{ tx.consumedGas }}&nbsp;<span v-if="tx.consumedGas">({{spentPercent(tx.consumedGas)}})</span>
+              <font-awesome-icon icon="burn" :style="{ color: '#007ac2' }" />
+              &nbsp;{{ tx.consumedGas }}&nbsp;
+              <span
+                v-if="tx.consumedGas"
+              >({{spentPercent(tx.consumedGas)}})</span>
             </span>
           </div>
           <div class="mr-4">
             <div class="my-subtitle">Paid Storage Diff</div>
             <span style="font-size: 75%;">
-              <font-awesome-icon icon="coins"/>
-              &nbsp;{{ tx.paidStorageDiff }}&nbsp;<span v-if="tx.paidStorageDiff">({{paidStoragePercent(tx.paidStorageDiff)}})</span>
+              <font-awesome-icon icon="coins" />
+              &nbsp;{{ tx.paidStorageDiff }}&nbsp;
+              <span
+                v-if="tx.paidStorageDiff"
+              >({{paidStoragePercent(tx.paidStorageDiff)}})</span>
             </span>
           </div>
           <div v-if="address == tx.destination">
@@ -75,7 +84,7 @@
               <div v-if="tx.decodedParameters != null">
                 <div class="my-subtitle">Parameter</div>
                 <div class="tx-info-tree-view">
-                  <TreeView :data="tx.decodedParameters" max-length="64" max-depth="5"/>
+                  <TreeView :data="tx.decodedParameters" max-length="64" max-depth="5" />
                 </div>
               </div>
             </b-col>
@@ -84,10 +93,10 @@
                 <div class="my-subtitle">Storage</div>
                 <div class="tx-info-tree-view">
                   <div v-if="tx.status === 'applied' && tx.storage">
-                    <PatchView :prev-data="tx.prevStorage" :data="tx.storage" :max-depth="7"/>
+                    <PatchView :prev-data="tx.prevStorage" :data="tx.storage" :max-depth="7" />
                   </div>
                   <div v-if="tx.status !== 'applied' && tx.prevStorage">
-                    <PatchView :prev-data="tx.prevStorage" :data="tx.prevStorage" :max-depth="7"/>
+                    <PatchView :prev-data="tx.prevStorage" :data="tx.prevStorage" :max-depth="7" />
                   </div>
                 </div>
               </div>
@@ -101,15 +110,15 @@
         <div v-for="error in tx.errors" :key="error.id">
           <b-alert class="mr-2" variant="danger" show style="font-size: 75%;">
             <b>{{ Errors[error.id].title }}</b>
-            <br>
+            <br />
             {{ Errors[error.id].descr }}
-            <br>
+            <br />
             <i v-if="error.msg">{{error.msg}}</i>
           </b-alert>
         </div>
       </b-col>
     </b-row>
-    <br>
+    <br />
   </b-col>
 </template>
 
@@ -148,19 +157,19 @@ export default {
       let currentGas = parseInt(gas);
       let percent = Math.round((currentGas / gasLimit) * 100);
       if (percent === 0) {
-        return "<1 %"
+        return "<1 %";
       } else {
-        return percent + " %"
+        return percent + " %";
       }
     },
     paidStoragePercent(diff) {
       let storageLimit = parseInt(this.storageLimit);
       let paidStorageDiff = parseInt(diff);
-      let percent = Math.round((paidStorageDiff / storageLimit) * 100)
+      let percent = Math.round((paidStorageDiff / storageLimit) * 100);
       if (percent === 0) {
-        return "<1 %"
+        return "<1 %";
       } else {
-        return percent + " %"
+        return percent + " %";
       }
     },
     formatAddress(address) {
@@ -234,7 +243,8 @@ export default {
   text-transform: uppercase;
 }
 
-.my-title.delegation, .my-title.origination {
+.my-title.delegation,
+.my-title.origination {
   color: navy;
 }
 

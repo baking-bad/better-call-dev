@@ -2,11 +2,11 @@
   <b-col lg="6" offset-lg="3" class="mt-5 mb-3 text-center" v-if="status">
     <b-alert show variant="danger">
       Oops. No info for smart-contract
-      <br>
+      <br />
       <b>{{ address }}</b> in
       <b>{{ currentNet }}</b>.
-      <br>
-      <br>Try to switch the net.
+      <br />
+      <br />Try to switch the net.
     </b-alert>
   </b-col>
 </template>
@@ -21,7 +21,7 @@ export default {
   },
   computed: {
     currentNet() {
-      if (this.localNet === "main") {
+      if (this.tezosNet === "main") {
         return "MainNet";
       }
       return "AlphaNet";

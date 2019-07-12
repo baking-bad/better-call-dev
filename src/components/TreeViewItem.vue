@@ -7,11 +7,7 @@
           v-if="!isRootObject(data)"
           class="tree-view-item-key tree-view-item-key-with-chevron"
         >{{getKey(data)}}</span>
-        <span 
-          class="prim" 
-          v-show="data.comment && data.comment !== data.key">
-          {{data.comment}}&nbsp;
-        </span>
+        <span class="prim" v-show="data.comment && data.comment !== data.key">{{data.comment}}&nbsp;</span>
         <span
           class="tree-view-item-hint"
           v-show="!isOpen() && data.children.length === 1"
@@ -66,14 +62,15 @@
         class="tree-view-item-key"
         :class="{prim: isPrim(data.key), index: isIndex(data.key)}"
       >{{getKey(data)}}</span>
-      <span 
-        v-if="isLink(data.value)" 
+      <span
+        v-if="isLink(data.value)"
         style="word-break: break-all;"
         class="tree-view-item-value make-big-data"
-        ><a :href="getLink(data)" target="_blank">{{data.value}}</a>
+      >
+        <a :href="getLink(data)" target="_blank">{{data.value}}</a>
       </span>
-      <span 
-        v-else-if="isLong(data)" 
+      <span
+        v-else-if="isLong(data)"
         style="word-break: break-all;"
         class="tree-view-item-value make-big-data"
         @click="changeLen($event, data)"
@@ -95,7 +92,7 @@
         <span class="when-closed">show</span>
       </button>
       <b-collapse id="collapse-1">
-        <MichelineViewItem :data="data.lambda" :depth="1" :path="0"/>
+        <MichelineViewItem :data="data.lambda" :depth="1" :path="0" />
       </b-collapse>
     </div>
     <div
@@ -111,7 +108,7 @@
 <script>
 import _ from "lodash";
 import MichelineViewItem from "./MichelineView.vue";
-import { sanitizeUrl } from '@braintree/sanitize-url'
+import { sanitizeUrl } from "@braintree/sanitize-url";
 
 export default {
   name: "TreeViewItem",
@@ -160,7 +157,7 @@ export default {
       return false;
     },
     makeShort: function(str, key) {
-      if (str.length > this.maxLength - key.length) {
+      if (str !== null && str.length > this.maxLength - key.length) {
         return str.substr(0, 7) + "..." + str.substr(str.length - 7, 7);
       }
       return str;
@@ -214,7 +211,10 @@ export default {
         return this.makeShort(value.value, value.key);
       }
       if (value.op === "replace") {
-        return `${this.makeShort(value.prevValue, value.key)} => ${this.makeShort(value.value, value.key)}`;
+        return `${this.makeShort(value.prevValue, value.key)} => ${this.makeShort(
+          value.value,
+          value.key
+        )}`;
       }
       if (_.isNumber(value.value)) {
         return this.makeShort(value.value, value.key);
@@ -223,6 +223,7 @@ export default {
         return "null";
       }
       if (_.isString(value.value)) {
+        // do nothing
       }
       return this.makeShort(value.value, value.key);
     },
@@ -233,7 +234,7 @@ export default {
       return _.isInteger(value);
     },
     isLink: function(value) {
-      return _.isString(value) && value.startsWith('http');
+      return _.isString(value) && value.startsWith("http");
     },
     getColor(op) {
       if (op === "add") {

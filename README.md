@@ -4,10 +4,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Yet another Tezos explorer created specifically for smart contract developers
-[![Better Call Dev](https://pbs.twimg.com/media/D-0tpCaWsAAnVBI.jpg)](https://twitter.com/cryyptt2/status/1147623668031348737)
+[![Better Call Dev](https://pbs.twimg.com/media/D-0tpCaWsAAnVBI.jpg =300x)](https://twitter.com/cryyptt2/status/1147623668031348737)
 
 ## See it in action
-[https://baking-bad.github.io/better-call-dev/](https://baking-bad.github.io/better-call-dev/)
+[https://better-call.dev/](https://better-call.dev/)
 
 ## Read the paper
 [Michelson rocks but you better call dev](https://medium.com/coinmonks/michelson-rocks-but-you-better-call-dev-e23cd32a299a)
