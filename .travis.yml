@@ -14,7 +14,8 @@ cache:
     - "node_modules"
 
 before_deploy:
-  - cp ./dist/index.html ./dist/404.html
+  - cp dist/index.html dist/404.html
+  - ls -al dist/
   - sed -i "1i---\npermalink: /404.html\n---" ./dist/404.html
 
 deploy:
