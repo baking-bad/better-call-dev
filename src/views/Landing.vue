@@ -140,7 +140,6 @@ export default {
   },
   methods: {
     explore() {
-      console.log("TEST LINTER")
       if (
         this.localAddress.length !== 36 ||
         this.localAddress[0] !== "K" ||
