@@ -372,7 +372,7 @@ export default {
       txQuery = ConseilQueryBuilder.setLimit(txQuery, 9999);
 
       let origQuery = ConseilQueryBuilder.blankQuery();
-      // origQuery = ConseilQueryBuilder.addFields(origQuery, 'block_level', 'timestamp');
+      origQuery = ConseilQueryBuilder.addFields(origQuery, 'block_level', 'timestamp');
       origQuery = ConseilQueryBuilder.addPredicate(origQuery, 'originated_contracts', ConseilOperator.EQ, [address], false);
       origQuery = ConseilQueryBuilder.addOrdering(origQuery, 'block_level', ConseilSortDirection.DESC);
       origQuery = ConseilQueryBuilder.setLimit(origQuery, 9999);
