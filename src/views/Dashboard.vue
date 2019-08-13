@@ -31,6 +31,8 @@
 import axios from "axios";
 import { bigMapDiffDecode, decodeData, decodeSchema, buildSchema } from "@/app/decode";
 
+import { ConseilQueryBuilder, ConseilOperator, ConseilSortDirection, ConseilDataClient } from "conseiljs";
+
 import Loader from "@/components/Loader.vue";
 import NotFound from "@/components/NotFound.vue";
 import Results from "@/components/Results.vue";
@@ -103,7 +105,8 @@ export default {
     contractBalance: 0,
     contractManager: "",
     contractScript: "",
-    latestGroup: {}
+    latestGroup: {},
+    blockData: []
   }),
   computed: {
     baseApiURL() {
@@ -168,6 +171,8 @@ export default {
       this.decoded_data = decodeData(data, this.resultForStorage);
       this.decoded_schema = decodeSchema(this.resultForStorage.collapsed_tree);
       this.parameterSchema = decodeSchema(this.resultForParameter.collapsed_tree);
+      
+      this.blockData = await this.getBlockData(this.address);
       this.groups = await this.buildGroups();
       if (Object.keys(this.groups).length > 0) {
         this.handleFirstTx();
@@ -195,6 +200,7 @@ export default {
       this.contractManager = "";
       this.contractScript = {};
       this.latestGroup = {};
+      this.blockData = [];
     },
     updateNet(value) {
       this.tezosNet = value;
@@ -215,7 +221,14 @@ export default {
       return res;
     },
     isRelated(tx) {
-      return [tx.destination, tx.source].includes(this.address);
+      return [tx.destination, tx.source].includes(this.address) || this.isOrigination(tx);
+    },
+    isOrigination(tx) {
+      if (tx.kind === "origination") {
+        return tx.metadata.operation_result.originated_contracts.includes(this.address)
+      }
+
+      return false;
     },
     async getAllNodeDataByLevels(levels) {
       const links = await this.buildNodeLinksByBlock(levels);
@@ -249,8 +262,7 @@ export default {
       const tezaurus = {};
 
       transactions.forEach(tx => {
-        const operation = tx.type.operations[0];
-        tezaurus[operation.op_level] = operation.timestamp;
+        tezaurus[tx.block_level] = tx.timestamp;
       });
 
       return tezaurus;
@@ -333,6 +345,44 @@ export default {
         }
       }, this);
     },
+    async getBlockData(address) {
+      let network = "";
+      let url = "";
+      const apiKey = "galleon";
+      const platform = "tezos";
+      const entity = "operations";
+
+      if (this.tezosNet === "alpha") {
+        network = "alphanet"
+        url = 'https://conseil-dev.cryptonomic-infra.tech'
+      } else if (this.tezosNet === "main") {
+        network = "mainnet"
+        url = 'https://conseil-prod.cryptonomic-infra.tech'
+      } else {
+        // eslint-disable-next-line
+        console.log("we have a problem")
+      }
+      
+      const conseilServer = { url: url, apiKey: apiKey };
+
+      let txQuery = ConseilQueryBuilder.blankQuery();
+      txQuery = ConseilQueryBuilder.addFields(txQuery, 'block_level', 'timestamp');
+      txQuery = ConseilQueryBuilder.addPredicate(txQuery, 'destination', ConseilOperator.EQ, [address], false);
+      txQuery = ConseilQueryBuilder.addOrdering(txQuery, 'block_level', ConseilSortDirection.DESC);
+      txQuery = ConseilQueryBuilder.setLimit(txQuery, 9999);
+
+      let origQuery = ConseilQueryBuilder.blankQuery();
+      // origQuery = ConseilQueryBuilder.addFields(origQuery, 'block_level', 'timestamp');
+      origQuery = ConseilQueryBuilder.addPredicate(origQuery, 'originated_contracts', ConseilOperator.EQ, [address], false);
+      origQuery = ConseilQueryBuilder.addOrdering(origQuery, 'block_level', ConseilSortDirection.DESC);
+      origQuery = ConseilQueryBuilder.setLimit(origQuery, 9999);
+
+      const txResult = await ConseilDataClient.executeEntityQuery(conseilServer, platform, network, entity, txQuery);
+      const origResult = await ConseilDataClient.executeEntityQuery(conseilServer, platform, network, entity, origQuery);
+      const transactions = txResult.concat(origResult).sort((a, b) => { return a['timestamp'] - b['timestamp'] });
+
+      return transactions
+    },
     async buildGroups() {
       let data = await this.getTransactionData();
       if (data.length === 0) {
@@ -390,8 +440,19 @@ export default {
 
       return res;
     },
+    getReversedTxHashes(groups) {
+      let res = [];
+
+      Object.keys(groups).forEach(function(hash) {
+        if (groups[hash].operations[0].kind === "transaction") {
+          res.push(hash)
+        }
+      })
+
+      return res.reverse()
+    },
     async getOldStorage(groups) {
-      let hashes = Object.keys(groups).reverse();
+      let hashes = this.getReversedTxHashes(groups)
       let firstHash = hashes[0];
       let prevBlock = groups[firstHash]["level"] - 1;
 
@@ -585,7 +646,11 @@ export default {
               );
             }
             if (op.destination === this.address) {
-              op.rawStorage = op.metadata.operation_result.storage;
+              if (op.kind === "origination") {
+                op.rawStorage = op.script.storage;
+              } else {
+                op.rawStorage = op.metadata.operation_result.storage;
+              }
               op.bigMapDiff = op.metadata.operation_result.big_map_diff;
               op.storageSize = op.metadata.operation_result.storage_size;
             }
@@ -696,22 +761,24 @@ export default {
       }
     },
     async getTransactionData() {
-      const res = await axios.get(
-        `${this.baseApiURL}/operations/${this.address}?type=Transaction&number=10&p=${this.txInfo.currentPage}`
-      );
+      let res = this.blockData.slice(0, 10);
+      this.blockData = this.blockData.slice(10);
 
-      this.txInfo.morePages = res.data.length === 10;
+      this.txInfo.morePages = res.length === 10;
       this.txInfo.currentPage += 1;
 
-      return res.data;
+      return res;
     },
-    async getOrigination() {
-      const acc_res = await axios.get(`${this.baseApiURL}/v1/account_status/${this.address}`);
-      let op_hash = acc_res.data.origination;
-      const op_res = await axios.get(`${this.baseApiURL}/v1/operation/${op_hash}`);
-      let operations = op_res.data.type.operations;
-      return operations;
-    },
+    // async getTransactionData() {
+    //   const res = await axios.get(
+    //     `${this.baseApiURL}/operations/${this.address}?type=Transaction&number=10&p=${this.txInfo.currentPage}`
+    //   );
+
+    //   this.txInfo.morePages = res.data.length === 10;
+    //   this.txInfo.currentPage += 1;
+
+    //   return res.data;
+    // },
     async loadMore() {
       this.isLoading = true;
 
