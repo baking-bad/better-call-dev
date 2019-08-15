@@ -68,10 +68,10 @@
     </b-row>
     <b-row>
       <b-col lg="6" offset-lg="3" class="text-center">
-        <b-alert show variant="danger" v-if="hasError">Looks like contract address is wrong</b-alert>
+        <b-alert show variant="danger" v-if="hasError">Looks like contract address or operation hash is wrong</b-alert>
         <b-input-group class="mt-3" :class="{ 'has-error': hasError }">
           <b-form-input
-            placeholder="Enter KT-address"
+            placeholder="Enter KT-address or Operation hash"
             v-model="localAddress"
             @input="$emit('update:address', localAddress)"
             @keyup.enter="explore"
@@ -140,16 +140,12 @@ export default {
   },
   methods: {
     explore() {
-      if (
-        this.localAddress.length !== 36 ||
-        this.localAddress[0] !== "K" ||
-        this.localAddress[1] !== "T"
-      ) {
-        this.hasError = true;
-        return;
+      if (this.isValidKT(this.localAddress) || this.isValidOperation(this.localAddress)) {
+        this.$router.push({ path: `/${this.localNet}/${this.localAddress}` });
       }
 
-      this.$router.push({ path: `/${this.localNet}/${this.localAddress}` });
+      this.hasError = true;
+      return;
     },
     demo() {
       let pick = randomInteger(0, this.demoAddresses.length - 1);
@@ -159,6 +155,12 @@ export default {
     },
     changeNet(value) {
       this.localNet = value;
+    },
+    isValidKT(addr) {
+      return addr.length === 36 && addr[0] === "K" && addr[1] === "T";
+    },
+    isValidOperation(hash) {
+      return hash.length === 51 && hash[0] === "o";
     }
   }
 };

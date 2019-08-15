@@ -30,8 +30,8 @@
 <script>
 import axios from "axios";
 import { bigMapDiffDecode, decodeData, decodeSchema, buildSchema } from "@/app/decode";
-
 import { ConseilQueryBuilder, ConseilOperator, ConseilSortDirection, ConseilDataClient } from "conseiljs";
+import { setupConseil } from "@/app/conseil";
 
 import Loader from "@/components/Loader.vue";
 import NotFound from "@/components/NotFound.vue";
@@ -346,24 +346,7 @@ export default {
       }, this);
     },
     async getBlockData(address) {
-      let network = "";
-      let url = "";
-      const apiKey = "galleon";
-      const platform = "tezos";
-      const entity = "operations";
-
-      if (this.tezosNet === "alpha") {
-        network = "alphanet"
-        url = 'https://conseil-dev.cryptonomic-infra.tech'
-      } else if (this.tezosNet === "main") {
-        network = "mainnet"
-        url = 'https://conseil-prod.cryptonomic-infra.tech'
-      } else {
-        // eslint-disable-next-line
-        console.log("we have a problem")
-      }
-      
-      const conseilServer = { url: url, apiKey: apiKey };
+      const cnsl = setupConseil(this.tezosNet);
 
       let txQuery = ConseilQueryBuilder.blankQuery();
       txQuery = ConseilQueryBuilder.addFields(txQuery, 'block_level', 'timestamp');
@@ -377,8 +360,8 @@ export default {
       origQuery = ConseilQueryBuilder.addOrdering(origQuery, 'block_level', ConseilSortDirection.DESC);
       origQuery = ConseilQueryBuilder.setLimit(origQuery, 9999);
 
-      const txResult = await ConseilDataClient.executeEntityQuery(conseilServer, platform, network, entity, txQuery);
-      const origResult = await ConseilDataClient.executeEntityQuery(conseilServer, platform, network, entity, origQuery);
+      const txResult = await ConseilDataClient.executeEntityQuery(cnsl.server, cnsl.platform, cnsl.network, cnsl.entity, txQuery);
+      const origResult = await ConseilDataClient.executeEntityQuery(cnsl.server, cnsl.platform, cnsl.network, cnsl.entity, origQuery);
       const transactions = txResult.concat(origResult).sort((a, b) => { return a['timestamp'] - b['timestamp'] });
 
       return transactions
