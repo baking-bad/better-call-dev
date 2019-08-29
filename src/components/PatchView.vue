@@ -56,12 +56,12 @@ export default {
           children: this.generateArrayChildren(a, b)
         };
       } else {
-        if (a === undefined) {
-          return this.transform(undefined, b, key, "add");
+        if (a === undefined || a === null) {
+          return this.transform([], b, key, "add");
         }
 
-        if (b === undefined) {
-          return this.transform(a, undefined, key, "remove");
+        if (b === undefined || b === null) {
+          return this.transform(a, [], key, "remove");
         }
 
         if (a != b) {
@@ -353,7 +353,9 @@ export default {
       return klass;
     },
     diffData: function() {
-      return this.makeDiff(this.prevData, this.data, "storage", "deeper", true);
+      let a = JSON.parse(JSON.stringify(this.prevData));
+      let b = JSON.parse(JSON.stringify(this.data));
+      return this.makeDiff(a, b, "storage", "deeper", true);
     }
   }
 };

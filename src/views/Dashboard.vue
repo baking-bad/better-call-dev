@@ -172,7 +172,6 @@ export default {
       this.decoded_schema = decodeSchema(this.resultForStorage.collapsed_tree);
       this.parameterSchema = decodeSchema(this.resultForParameter.collapsed_tree);
       
-      this.blockData = await this.getBlockData(this.address);
       this.groups = await this.buildGroups();
       if (Object.keys(this.groups).length > 0) {
         this.handleFirstTx();
@@ -225,6 +224,9 @@ export default {
     },
     isOrigination(tx) {
       if (tx.kind === "origination") {
+        if (tx.internal) {
+          return tx.result.originated_contracts.includes(this.address)
+        }
         return tx.metadata.operation_result.originated_contracts.includes(this.address)
       }
 
@@ -261,9 +263,20 @@ export default {
     buildTezaurus(transactions) {
       const tezaurus = {};
 
-      transactions.forEach(tx => {
-        tezaurus[tx.block_level] = tx.timestamp;
-      });
+      if (this.tezosNet === "main") {
+        transactions.forEach(tx => {
+          const operation = tx.type.operations[0];
+          tezaurus[operation.op_level] = operation.timestamp;
+        });
+      } else if (this.tezosNet === "alpha") {
+         transactions.forEach(tx => {
+          tezaurus[tx.block_level] = tx.timestamp;
+        });
+      } else {
+        // eslint-disable-next-line
+        console.log("Sandbox again?")
+      }
+     
 
       return tezaurus;
     },
@@ -362,12 +375,21 @@ export default {
 
       const txResult = await ConseilDataClient.executeEntityQuery(cnsl.server, cnsl.platform, cnsl.network, cnsl.entity, txQuery);
       const origResult = await ConseilDataClient.executeEntityQuery(cnsl.server, cnsl.platform, cnsl.network, cnsl.entity, origQuery);
-      const transactions = txResult.concat(origResult).sort((a, b) => { return a['timestamp'] - b['timestamp'] });
+      const transactions = txResult.concat(origResult).sort((a, b) => { return b['timestamp'] - a['timestamp'] });
 
       return transactions
     },
     async buildGroups() {
-      let data = await this.getTransactionData();
+      let data = {};
+      if (this.tezosNet === "main") {
+        data = await this.getTransactionData();
+      } else if (this.tezosNet === "alpha") {
+        data = await this.getConseilTransactionData();
+      } else {
+        // eslint-disable-next-line
+        console.log("sandbox?")
+      }
+
       if (data.length === 0) {
         return {};
       }
@@ -427,7 +449,7 @@ export default {
       let res = [];
 
       Object.keys(groups).forEach(function(hash) {
-        if (groups[hash].operations[0].kind === "transaction") {
+        if (["transaction", "origination"].includes(groups[hash].operations[0].kind)) {
           res.push(hash)
         }
       })
@@ -458,6 +480,9 @@ export default {
         });
 
       currentStorage = decodeData(currentStorage, this.resultForStorage);
+      if (currentStorage === undefined) {
+        currentStorage = null;
+      }
       groups[firstHash]["operations"][0]["prevStorage"] = currentStorage;
 
       for (let i = 0; i < hashes.length; i++) {
@@ -743,25 +768,28 @@ export default {
         this.bigMapJsonPath = this.getJsonPath(this.resultForStorage.type_map, "00");
       }
     },
-    async getTransactionData() {
-      let res = this.blockData.slice(0, 10);
-      this.blockData = this.blockData.slice(10);
+    async getConseilTransactionData() {
+      this.blockData = await this.getBlockData(this.address);
 
-      this.txInfo.morePages = res.length === 10;
+      const txsPerPage = 10;
+      let res = this.blockData.slice(0, txsPerPage);
+      this.blockData = this.blockData.slice(txsPerPage);
+
+      this.txInfo.morePages = res.length === txsPerPage;
       this.txInfo.currentPage += 1;
 
       return res;
     },
-    // async getTransactionData() {
-    //   const res = await axios.get(
-    //     `${this.baseApiURL}/operations/${this.address}?type=Transaction&number=10&p=${this.txInfo.currentPage}`
-    //   );
+    async getTransactionData() {
+      const res = await axios.get(
+        `${this.baseApiURL}/operations/${this.address}?type=Transaction&number=10&p=${this.txInfo.currentPage}`
+      );
 
-    //   this.txInfo.morePages = res.data.length === 10;
-    //   this.txInfo.currentPage += 1;
+      this.txInfo.morePages = res.data.length === 10;
+      this.txInfo.currentPage += 1;
 
-    //   return res.data;
-    // },
+      return res.data;
+    },
     async loadMore() {
       this.isLoading = true;
 
