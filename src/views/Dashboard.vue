@@ -121,7 +121,8 @@ export default {
         // return "https://alphanet-node.tzscan.io/chains/main/blocks";
         // return "https://rpcalpha.tzbeta.net/chains/main/blocks";
         case "alpha": return "https://tezos-dev.cryptonomic-infra.tech/chains/main/blocks";
-        case "sandbox": return "http://127.0.0.1:8732/chains/main/blocks";
+        case "sandbox": return "https://tezos-dev.cryptonomic-infra.tech/chains/main/blocks";
+        // case "sandbox": return "http://127.0.0.1:8732/chains/main/blocks";
         default: throw this.tezosNet;
       }
     }
@@ -334,13 +335,16 @@ export default {
       }, this);
     },
     async buildGroups() {
-      let data = await this.getTransactionData();
-      if (data.length === 0) {
-        return {};
-      }
+      let tezaurus = {};
 
-      let tezaurus = this.buildTezaurus(data);
-      tezaurus = this.removeDuplicates(tezaurus);
+      if (this.tezosNet === "sandbox") {
+        tezaurus = await this.getSandboxData();
+        console.log("getSandboxData:", tezaurus);
+        return {};
+      } else {
+        tezaurus = await this.getTzscanData();
+      } 
+
       const levels = Object.keys(tezaurus).sort((a, b) => b - a);
 
       const operationGroups = await this.getAllNodeDataByLevels(levels);
@@ -353,6 +357,27 @@ export default {
       }
 
       return groups;
+    },
+    async getSandboxData() {
+      let res = await this.getSandboxFirstBlock();
+      let data = await this.getSandboxTenBlocks(res.level);
+      console.log("data:", data)
+
+      let tezaurus = this.buildTezaurus(data);
+      tezaurus = this.removeDuplicates(tezaurus);
+
+      return tezaurus
+    },
+    async getTzscanData() {
+      let data = await this.getTransactionData();
+      if (data.length === 0) {
+        return {};
+      }
+
+      let tezaurus = this.buildTezaurus(data);
+      tezaurus = this.removeDuplicates(tezaurus);
+
+      return tezaurus
     },
     buildPostLinksForNode(miniTezaurus, block) {
       const links = [];
@@ -694,6 +719,21 @@ export default {
       ) {
         this.bigMapJsonPath = this.getJsonPath(this.resultForStorage.type_map, "00");
       }
+    },
+    async getSandboxFirstBlock() {
+      const res = await axios.get(`${this.baseNodeApiURL}/head/header`);
+      return res.data;
+    },
+    async getSandboxTenBlocks(level) {
+      const links = [];
+      for (let i = level; i > level - 10; i--) {
+        links.push(`${this.baseNodeApiURL}/${level}/operations/3`);
+      }
+      const promiseArray = links.map(url => axios.get(url));
+
+      let res = (await axios.all(promiseArray)).map(res=>res.data)
+
+      return res;
     },
     async getTransactionData() {
       const res = await axios.get(

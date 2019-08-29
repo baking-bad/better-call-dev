@@ -16,7 +16,7 @@ export default new Router({
     name: 'landing',
     component: Landing
   }, {
-    path: '/:network(main|alpha)/:address(KT[0-9A-z]{34})',
+    path: '/:network(main|alpha|sandbox)/:address(KT[0-9A-z]{34})',
     name: 'dashboard',
     component: Dashboard,
     children: [{
