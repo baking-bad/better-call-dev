@@ -260,7 +260,7 @@ export default {
 
       return links;
     },
-    async buildTezaurus(transactions) {
+    async buildTezaurus() {
       let tezaurus = {};
       let data = {};
 
