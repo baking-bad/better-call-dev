@@ -19,7 +19,7 @@
             <b-col lg="12" class="mb-3 pt-3 pl-4">
               <b-row v-for="(op, id) in contents" :key="id + '-' + op.kind + '-' + op.source">
                 <OperationInfo
-                  :op="op"
+                  :op="op" :tezosNet="tezosNet"
                 />
               </b-row>
             </b-col>

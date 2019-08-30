@@ -25,7 +25,10 @@
               <span v-if="op.kind === 'reveal'">Public Key</span>
             </div>
             <span class="tx-hash" v-if="op.destination">
-              <span style="white-space: pre;">{{ formatAddress(op.destination) }}</span>
+              <a v-if="op.destination[0] == 'K'" :href="baseAppURL + tezosNet + '/' + op.destination">
+                <span style="white-space: pre;">{{ formatAddress(op.destination) }}</span>
+              </a>
+              <span v-else style="white-space: pre;">{{ formatAddress(op.destination) }}</span>
             </span>
           </div>
           <div class="mr-4" style="min-width: 104px;" v-if="op.amount">
@@ -90,13 +93,14 @@ library.add(faReceipt, faBurn, faCoins);
 export default {
   name: "OperationInfo",
   data: () => ({
+    baseAppURL: "https://better-call.dev/",
     Errors
   }),
   components: {
     FontAwesomeIcon
   },
   props: [
-    "op"
+    "op", "tezosNet"
   ],
   methods: {
     formatAddress(address) {

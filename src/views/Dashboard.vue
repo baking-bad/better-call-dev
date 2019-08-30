@@ -260,24 +260,29 @@ export default {
 
       return links;
     },
-    buildTezaurus(transactions) {
-      const tezaurus = {};
+    async buildTezaurus(transactions) {
+      let tezaurus = {};
+      let data = {};
 
       if (this.tezosNet === "main") {
-        transactions.forEach(tx => {
+        data = await this.getTransactionData();
+        data.forEach(tx => {
           const operation = tx.type.operations[0];
           tezaurus[operation.op_level] = operation.timestamp;
         });
+        tezaurus = this.removeDuplicates(tezaurus);
+
       } else if (this.tezosNet === "alpha") {
-         transactions.forEach(tx => {
+        data = await this.getConseilTransactionData();
+        data.forEach(tx => {
           tezaurus[tx.block_level] = tx.timestamp;
         });
+
       } else {
         // eslint-disable-next-line
-        console.log("Sandbox again?")
+        console.log("sandbox?")
       }
-     
-
+    
       return tezaurus;
     },
     removeDuplicates(tezaurus) {
@@ -358,46 +363,13 @@ export default {
         }
       }, this);
     },
-    async getBlockData(address) {
-      const cnsl = setupConseil(this.tezosNet);
-
-      let txQuery = ConseilQueryBuilder.blankQuery();
-      txQuery = ConseilQueryBuilder.addFields(txQuery, 'block_level', 'timestamp');
-      txQuery = ConseilQueryBuilder.addPredicate(txQuery, 'destination', ConseilOperator.EQ, [address], false);
-      txQuery = ConseilQueryBuilder.addOrdering(txQuery, 'block_level', ConseilSortDirection.DESC);
-      txQuery = ConseilQueryBuilder.setLimit(txQuery, 9999);
-
-      let origQuery = ConseilQueryBuilder.blankQuery();
-      origQuery = ConseilQueryBuilder.addFields(origQuery, 'block_level', 'timestamp');
-      origQuery = ConseilQueryBuilder.addPredicate(origQuery, 'originated_contracts', ConseilOperator.EQ, [address], false);
-      origQuery = ConseilQueryBuilder.addOrdering(origQuery, 'block_level', ConseilSortDirection.DESC);
-      origQuery = ConseilQueryBuilder.setLimit(origQuery, 9999);
-
-      const txResult = await ConseilDataClient.executeEntityQuery(cnsl.server, cnsl.platform, cnsl.network, cnsl.entity, txQuery);
-      const origResult = await ConseilDataClient.executeEntityQuery(cnsl.server, cnsl.platform, cnsl.network, cnsl.entity, origQuery);
-      const transactions = txResult.concat(origResult).sort((a, b) => { return b['timestamp'] - a['timestamp'] });
-
-      return transactions
-    },
     async buildGroups() {
-      let data = {};
-      if (this.tezosNet === "main") {
-        data = await this.getTransactionData();
-      } else if (this.tezosNet === "alpha") {
-        data = await this.getConseilTransactionData();
-      } else {
-        // eslint-disable-next-line
-        console.log("sandbox?")
-      }
-
-      if (data.length === 0) {
+      let tezaurus = await this.buildTezaurus();
+      if (Object.keys(tezaurus).length == 0) {
         return {};
       }
 
-      let tezaurus = this.buildTezaurus(data);
-      tezaurus = this.removeDuplicates(tezaurus);
       const levels = Object.keys(tezaurus).sort((a, b) => b - a);
-
       const operationGroups = await this.getAllNodeDataByLevels(levels);
       this.tezaurus = Object.assign({}, this.tezaurus, tezaurus);
 
@@ -467,28 +439,27 @@ export default {
       let miniTezaurusRaw = bigMapDiffDecode(result, this.resultForStorage);
       let miniTezaurus = this.dropNullFromObject(miniTezaurusRaw);
 
-      let currentStorage = {};
+      let currentStorage = undefined;
       let currentStorageSize = "0";
-      await axios
-        .get(`${this.baseNodeApiURL}/${prevBlock}/context/contracts/${this.address}`)
-        .then(response => {
-          currentStorage = response.data.script.storage;
-        })
-        .catch(error => {
-          // eslint-disable-next-line
-          console.log(error);
-        });
+      if (groups[firstHash]["operations"][0]["kind"] != "origination") {
+        await axios
+          .get(`${this.baseNodeApiURL}/${prevBlock}/context/contracts/${this.address}`)
+          .then(response => {
+            currentStorage = response.data.script.storage;
+          })
+          .catch(error => {
+            // eslint-disable-next-line
+            console.log(error);
+          });
+      }
 
       currentStorage = decodeData(currentStorage, this.resultForStorage);
-      if (currentStorage === undefined) {
-        currentStorage = null;
-      }
-      groups[firstHash]["operations"][0]["prevStorage"] = currentStorage;
+      groups[firstHash]["operations"][0]["prevStorage"] = JSON.parse(JSON.stringify(currentStorage));
 
       for (let i = 0; i < hashes.length; i++) {
         let group = groups[hashes[i]];
         group["operations"].forEach(function(tx) {
-          tx.prevStorage = JSON.parse(JSON.stringify(currentStorage));
+          tx.prevStorage = currentStorage;
           if (tx.status === "applied" && tx.destination === this.address) {
             currentStorage = JSON.parse(JSON.stringify(tx.storage));
             currentStorageSize = tx.storageSize;
@@ -768,15 +739,38 @@ export default {
         this.bigMapJsonPath = this.getJsonPath(this.resultForStorage.type_map, "00");
       }
     },
+    async getBlockData(address) {
+      const cnsl = setupConseil(this.tezosNet);
+
+      let txQuery = ConseilQueryBuilder.blankQuery();
+      txQuery = ConseilQueryBuilder.addFields(txQuery, 'block_level', 'timestamp');
+      txQuery = ConseilQueryBuilder.addPredicate(txQuery, 'destination', ConseilOperator.EQ, [address], false);
+      txQuery = ConseilQueryBuilder.addOrdering(txQuery, 'block_level', ConseilSortDirection.DESC);
+      txQuery = ConseilQueryBuilder.setLimit(txQuery, 999999);
+
+      let origQuery = ConseilQueryBuilder.blankQuery();
+      origQuery = ConseilQueryBuilder.addFields(origQuery, 'block_level', 'timestamp');
+      origQuery = ConseilQueryBuilder.addPredicate(origQuery, 'originated_contracts', ConseilOperator.EQ, [address], false);
+      origQuery = ConseilQueryBuilder.addOrdering(origQuery, 'block_level', ConseilSortDirection.DESC);
+      origQuery = ConseilQueryBuilder.setLimit(origQuery, 999999);
+
+      const txResult = await ConseilDataClient.executeEntityQuery(cnsl.server, cnsl.platform, cnsl.network, cnsl.entity, txQuery);
+      const origResult = await ConseilDataClient.executeEntityQuery(cnsl.server, cnsl.platform, cnsl.network, cnsl.entity, origQuery);
+      const transactions = txResult.concat(origResult).sort((a, b) => { return b['timestamp'] - a['timestamp'] });
+
+      return transactions
+    },
     async getConseilTransactionData() {
-      this.blockData = await this.getBlockData(this.address);
+      if (this.txInfo.currentPage == 0) {
+        this.blockData = await this.getBlockData(this.address);
+      }
 
       const txsPerPage = 10;
-      let res = this.blockData.slice(0, txsPerPage);
-      this.blockData = this.blockData.slice(txsPerPage);
+      const offset = this.txInfo.currentPage * txsPerPage;
+      let res = this.blockData.slice(offset, Math.min(offset + txsPerPage, this.blockData.length));
 
-      this.txInfo.morePages = res.length === txsPerPage;
       this.txInfo.currentPage += 1;
+      this.txInfo.morePages = offset + txsPerPage < this.blockData.length;
 
       return res;
     },
