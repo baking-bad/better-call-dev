@@ -18,7 +18,7 @@
               <a
                 v-else-if="tx.source[0] == 'K'"
                 target="_blank"
-                :href="baseAppURL + tezosNet + ':' + tx.source"
+                :href="baseAppURL + tezosNet + '/' + tx.source"
               >{{ tx.source }}</a>
               <span v-else style="white-space: pre;">{{ formatAddress(tx.source) }}</span>
             </span>
@@ -34,7 +34,7 @@
               <a
                 v-else-if="tx.destination[0] == 'K'"
                 target="_blank"
-                :href="baseAppURL + tezosNet + ':' + tx.destination"
+                :href="baseAppURL + tezosNet + '/' + tx.destination"
               >{{ tx.destination }}</a>
               <span v-else style="white-space: pre;">{{ formatAddress(tx.destination) }}</span>
             </span>
@@ -86,6 +86,10 @@
                 <div class="tx-info-tree-view">
                   <TreeView :data="tx.decodedParameters" max-length="64" max-depth="5" />
                 </div>
+              </div>
+              <div v-if="tx.kind == 'origination' && tx.destination == address">
+                <div class="my-subtitle">Code</div>
+                <router-link to="script"><span style="font-size: 80%;">view </span></router-link>
               </div>
             </b-col>
             <b-col lg="7">
@@ -148,7 +152,7 @@ export default {
     storageLimit: String
   },
   data: () => ({
-    baseAppURL: "https://baking-bad.github.io/better-call-dev/#",
+    baseAppURL: "https://better-call.dev/",
     Errors
   }),
   methods: {

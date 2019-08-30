@@ -29,7 +29,7 @@
           <b-form-input
             size="sm"
             class="mr-sm-2 input-address"
-            placeholder="Enter KT-address"
+            placeholder="Enter KT-address or Operation hash"
             v-model="localAddress"
             @input="$emit('update:address', localAddress)"
             @click="isActive = true"
@@ -131,7 +131,7 @@ export default {
     },
     explore() {
       this.isActive = true;
-      this.$router.push({ path: `/${this.localNet}/${this.localAddress}/operations` });
+      this.$router.push({ path: `/${this.localNet}/${this.localAddress}` });
     },
     changeNet(value) {
       this.localNet = value;

@@ -6,6 +6,7 @@ import Dashboard from './views/Dashboard.vue'
 import Operations from './components/tabs/Operations.vue'
 import Script from './components/tabs/Script.vue'
 import State from './components/tabs/State.vue'
+import Operation from './views/Operation.vue'
 
 Vue.use(Router)
 
@@ -35,6 +36,10 @@ export default new Router({
       name: 'state',
       component: State
     }]
+  }, {
+    path: '/:network(main|alpha)/:hash(o[0-9A-z]{50})',
+    name: 'operation',
+    component: Operation
   }, {
     path: '*',
     name: '404',

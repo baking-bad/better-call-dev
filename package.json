@@ -16,6 +16,7 @@
     "bootstrap-vue": "^2.0.0-rc.19",
     "bs58check": "^2.1.2",
     "buffer": "^5.2.1",
+    "conseiljs": "^0.2.6",
     "core-js": "^2.6.5",
     "i": "^0.3.6",
     "lodash": "^4.17.13",
