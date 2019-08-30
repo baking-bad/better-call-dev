@@ -57,11 +57,11 @@ export default {
         };
       } else {
         if (a === undefined || a === null) {
-          return this.transform([], b, key, "add");
+          return this.transform(undefined, b, key, "add", isRoot);
         }
 
         if (b === undefined || b === null) {
-          return this.transform(a, [], key, "remove");
+          return this.transform(a, undefined, key, "remove", isRoot);
         }
 
         if (a != b) {
