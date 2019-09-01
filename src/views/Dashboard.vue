@@ -376,7 +376,7 @@ export default {
       if (this.tezosNet === "sandbox") {
         groups = await this.getSandboxData();
       } else {
-        tezaurus = await this.buildTezaurus();
+        let tezaurus = await this.buildTezaurus();
         if (Object.keys(tezaurus).length == 0) {
           return {};
         }
