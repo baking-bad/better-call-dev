@@ -96,7 +96,7 @@
               <div>
                 <div class="my-subtitle">Storage</div>
                 <div class="tx-info-tree-view">
-                  <div v-if="tx.status === 'applied' && tx.storage">
+                  <div v-if="tx.status === 'applied' && tx.storage !== undefined">
                     <PatchView :prev-data="tx.prevStorage" :data="tx.storage" :max-depth="7" />
                   </div>
                   <div v-if="tx.status !== 'applied' && tx.prevStorage">
@@ -146,10 +146,10 @@ export default {
   },
   props: {
     tx: Object,
-    gasLimit: String,
+    gasLimit: Number,
     address: String,
     tezosNet: String,
-    storageLimit: String
+    storageLimit: Number
   },
   data: () => ({
     baseAppURL: "https://better-call.dev/",

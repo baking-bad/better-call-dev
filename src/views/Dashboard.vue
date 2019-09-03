@@ -220,9 +220,9 @@ export default {
       return res;
     },
     isRelated(tx) {
-      return [tx.destination, tx.source].includes(this.address) || this.isOrigination(tx);
+      return [tx.destination, tx.source].includes(this.address) || this.isRelatedOrigination(tx);
     },
-    isOrigination(tx) {
+    isRelatedOrigination(tx) {
       if (tx.kind === "origination") {
         if (tx.internal) {
           return tx.result.originated_contracts.includes(this.address)
@@ -296,11 +296,15 @@ export default {
 
       return res;
     },
-    pushOperationsToGroups(operationGroups) {
+    pushOperationsToGroups(operationGroups, level=0) {
       const groups = {};
 
       operationGroups.forEach(function(group) {
         const operations = [];
+        const lvl = level > 0 ? level : group.level;
+        let fee = 0; 
+        let gasLimit = 0;
+        let storageLimit = 0;
         let weFound = false;
 
         group.contents.forEach(function(operation) {
@@ -309,6 +313,10 @@ export default {
           }
 
           operations.push(operation);
+          fee += parseInt(operation.fee);
+          gasLimit += parseInt(operation.gas_limit);
+          storageLimit += parseInt(operation.storage_limit)
+
           if (this.isRelated(operation)) {
             weFound = true;
           }
@@ -327,15 +335,14 @@ export default {
 
         if (weFound) {
           const groupHash = group.hash;
-          const { level } = group;
-          const dateObj = new Date(this.tezaurus[level]);
+          const dateObj = new Date(this.tezaurus[lvl]);
 
           groups[groupHash] = {
             operations,
-            level,
-            fee: operations[0]["fee"],
-            gasLimit: operations[0]["gas_limit"],
-            storageLimit: operations[0]["storage_limit"],
+            level: lvl,
+            fee: fee,
+            gasLimit: gasLimit,
+            storageLimit: storageLimit,
             date: dateObj.toLocaleString("en-GB", {
               day: "numeric",
               month: "short",
@@ -364,16 +371,22 @@ export default {
       }, this);
     },
     async buildGroups() {
-      let tezaurus = await this.buildTezaurus();
-      if (Object.keys(tezaurus).length == 0) {
-        return {};
+      let groups = {};
+
+      if (this.tezosNet === "sandbox") {
+        groups = await this.getSandboxData();
+      } else {
+        let tezaurus = await this.buildTezaurus();
+        if (Object.keys(tezaurus).length == 0) {
+          return {};
+        }
+        this.tezaurus = Object.assign({}, this.tezaurus, tezaurus);
+
+        const levels = Object.keys(tezaurus).sort((a, b) => b - a);
+        const operationGroups = await this.getAllNodeDataByLevels(levels);
+        groups = this.pushOperationsToGroups(operationGroups);
       }
 
-      const levels = Object.keys(tezaurus).sort((a, b) => b - a);
-      const operationGroups = await this.getAllNodeDataByLevels(levels);
-      this.tezaurus = Object.assign({}, this.tezaurus, tezaurus);
-
-      let groups = this.pushOperationsToGroups(operationGroups);
       if (Object.keys(groups).length > 0) {
         this.buildBigMapAndParams(groups);
         groups = await this.getOldStorage(groups);
@@ -738,6 +751,36 @@ export default {
       ) {
         this.bigMapJsonPath = this.getJsonPath(this.resultForStorage.type_map, "00");
       }
+    },
+    async getSandboxData() {
+      let groups = {};
+      const txsPerPage = 10;
+
+      while ((this.txInfo.currentPage > 2 || this.txInfo.currentPage === 0) && Object.keys(groups).length < txsPerPage) {
+        let blockId = this.txInfo.currentPage == 0 ? 'head' : this.txInfo.currentPage - 1;
+        let block = await this.getEntireBlock(blockId);
+        this.tezaurus[block.header.level] = block.header.timestamp;
+
+        let blockGroups = this.pushOperationsToGroups(block.operations[3], block.header.level);
+        if (Object.keys(blockGroups).length > 0) {
+          groups = Object.assign({}, groups, blockGroups);
+        }
+
+        if (this.txInfo.currentPage == 0) {
+          this.txInfo.currentPage = block.header.level;
+        } else if (this.txInfo.currentPage > 2) {
+          this.txInfo.currentPage--;
+          this.morePages = true;
+        } else {
+          this.morePages = false
+        }
+      }
+      
+      return groups;
+    },
+    async getEntireBlock(block_id) {
+      const res = await axios.get(`${this.baseNodeApiURL}/${block_id}`);
+      return res.data;
     },
     async getBlockData(address) {
       const cnsl = setupConseil(this.tezosNet);

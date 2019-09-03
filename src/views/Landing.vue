@@ -117,7 +117,11 @@ export default {
   data: () => ({
     localAddress: "",
     localNet: "alpha",
-    tezosNets: [{ text: "MainNet", value: "main" }, { text: "AlphaNet", value: "alpha" }],
+    tezosNets: [
+      { text: "MainNet", value: "main" },
+      { text: "AlphaNet", value: "alpha" },
+      { text: "Sandbox", value: "sandbox" }
+    ],
     hasError: false,
     demoAddresses: demo
   }),
@@ -125,8 +129,10 @@ export default {
     currentNet() {
       if (this.localNet === "main") {
         return "MainNet";
+      } else if (this.localNet === "alpha") {
+        return "AlphaNet";
       }
-      return "AlphaNet";
+        return "Sandbox";
     }
   },
   beforeMount() {
