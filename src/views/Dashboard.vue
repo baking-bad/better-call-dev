@@ -225,9 +225,18 @@ export default {
     isRelatedOrigination(tx) {
       if (tx.kind === "origination") {
         if (tx.internal) {
-          return tx.result.originated_contracts.includes(this.address)
+          if (tx.result.status === 'applied') {
+            return tx.result.originated_contracts.includes(this.address)
+          } else {
+            return false;
+          }
+        } else {
+          if (tx.metadata.operation_result.status === 'applied') {
+            return tx.metadata.operation_result.originated_contracts.includes(this.address)
+          } else {
+            return false;
+          }
         }
-        return tx.metadata.operation_result.originated_contracts.includes(this.address)
       }
 
       return false;
