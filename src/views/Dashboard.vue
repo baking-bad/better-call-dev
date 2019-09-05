@@ -41,7 +41,7 @@ import NavBar from "@/components/NavBar.vue";
 axios.interceptors.request.use(
   request => {
     let url = request.url;
-    if (url.includes("chains/main/blocks") && !url.includes("head")) {
+    if (url.includes("chains/main/blocks") && !url.includes("head") && !url.includes("127.0.0.1")) {
       if (localStorage[url] !== undefined) {
         request.data = JSON.parse(localStorage[url]);
 
