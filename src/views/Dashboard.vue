@@ -66,7 +66,7 @@ axios.interceptors.request.use(
 axios.interceptors.response.use(
   response => {
     let url = response.config.url;
-    if (url.includes("chains/main/blocks") && !url.includes("head")) {
+    if (url.includes("chains/main/blocks") && !url.includes("head") && !url.includes("127.0.0.1")) {
       localStorage[url] = JSON.stringify(response.data);
     }
 
