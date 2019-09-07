@@ -6,7 +6,8 @@
         <NavBar :address="hash" :tezosNet="tezosNet" />
       </b-row>
       <b-row v-if="!isLoading">
-        <div class="tab-wrapper">
+        <NotFound :status="notFound" :address="''" :tezosNet="tezosNet" />
+        <div class="tab-wrapper" v-if="!notFound">
           <b-row class="styled-row">
             <b-col lg="12" class="pt-3 info-wrapper">
               <GroupHeader
@@ -35,6 +36,7 @@ import GroupHeader from "@/components/operation/GroupHeader.vue";
 import OperationInfo from "@/components/operation/OperationInfo.vue";
 import Loader from "@/components/Loader.vue";
 import NavBar from "@/components/NavBar.vue";
+import NotFound from "@/components/NotFound.vue";
 
 import axios from "axios";
 import { ConseilQueryBuilder, ConseilOperator, ConseilDataClient } from "conseiljs";
@@ -46,7 +48,8 @@ export default {
     GroupHeader,
     OperationInfo,
     Loader,
-    NavBar
+    NavBar,
+    NotFound
   },
   data: () => ({
     isLoading: false,
@@ -54,7 +57,8 @@ export default {
     hash: "",
     blockLevel: 0,
     timestamp: 0,
-    contents: []
+    contents: [],
+    notFound: false
   }),
   watch: {
     "$route.params": function() {
@@ -86,15 +90,20 @@ export default {
       this.isLoading = true;
 
       let opData = await this.getOperationData(this.tezosNet, this.hash);
-      this.blockLevel = opData.level;
-      this.timestamp = opData.ts;
+      if (opData === undefined) {
+        this.isLoading = false;
+        this.notFound = true;
+      } else {
+        this.blockLevel = opData.level;
+        this.timestamp = opData.ts;
 
-      let operations = await this.getOperations(opData.level);
-      let rawContents = operations.find(op => op.hash === this.hash).contents;
-      let contentsWithInternal = this.getInternalContents(rawContents);
+        let operations = await this.getOperations(opData.level);
+        let rawContents = operations.find(op => op.hash === this.hash).contents;
+        let contentsWithInternal = this.getInternalContents(rawContents);
 
-      this.contents = this.restructureContents(contentsWithInternal); 
-      this.isLoading = false;
+        this.contents = this.restructureContents(contentsWithInternal); 
+        this.isLoading = false;
+      }
     },
     async getOperations(block) {
       let res = {};
@@ -117,10 +126,14 @@ export default {
       txQuery = ConseilQueryBuilder.setLimit(txQuery, 1);
 
       const txResult = await ConseilDataClient.executeEntityQuery(cnsl.server, cnsl.platform, cnsl.network, cnsl.entity, txQuery);
-
-      return {
-        level: txResult[0].block_level,
-        ts: txResult[0].timestamp
+      if (txResult.length > 0) {
+        return {
+          level: txResult[0].block_level,
+          ts: txResult[0].timestamp
+        }
+      }
+      else {
+        return undefined
       }
     },
     getInternalContents(contents) {
