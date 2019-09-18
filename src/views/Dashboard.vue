@@ -124,7 +124,11 @@ export default {
         // return "https://alphanet-node.tzscan.io/chains/main/blocks";
         // return "https://rpcalpha.tzbeta.net/chains/main/blocks";
         case "alpha": return "https://tezos-dev.cryptonomic-infra.tech/chains/main/blocks";
-        case "sandbox": return "http://127.0.0.1:8732/chains/main/blocks";
+        case "sandbox": {
+          const host = this.$route.query.host || '127.0.0.1';
+          const port = this.$route.query.port || 8732;
+          return `http://${host}:${port}/chains/main/blocks`;
+        }
         default: throw this.tezosNet;
       }
     }

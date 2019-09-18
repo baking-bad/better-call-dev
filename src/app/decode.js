@@ -359,7 +359,7 @@ function decode_literal(node, prim) {
   if (prim === "timestamp") {
     let date;
 
-    if (core_type === "string") {
+    if (core_type === "string" && value.length !== 10) {
       date = new Date(value);
     } else {
       let ts = parseInt(value) * 1000;
