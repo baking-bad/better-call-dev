@@ -28,52 +28,15 @@
 </template>
 
 <script>
-import axios from "axios";
 import { bigMapDiffDecode, decodeData, decodeSchema, buildSchema } from "@/app/decode";
 import { ConseilQueryBuilder, ConseilOperator, ConseilSortDirection, ConseilDataClient } from "conseiljs";
 import { setupConseil } from "@/app/conseil";
+import { get, post } from "@/app/http";
 
 import Loader from "@/components/Loader.vue";
 import NotFound from "@/components/NotFound.vue";
 import Results from "@/components/Results.vue";
 import NavBar from "@/components/NavBar.vue";
-
-axios.interceptors.request.use(
-  request => {
-    let url = request.url;
-    if (url.includes("chains/main/blocks") && !url.includes("head") && !url.includes("127.0.0.1")) {
-      if (localStorage[url] !== undefined) {
-        request.data = JSON.parse(localStorage[url]);
-
-        request.adapter = () => {
-          return Promise.resolve({
-            data: JSON.parse(localStorage[url]),
-            status: request.status,
-            statusText: request.statusText,
-            headers: request.headers,
-            config: request,
-            request: request
-          });
-        };
-      }
-    }
-
-    return request;
-  },
-  error => Promise.reject(error)
-);
-
-axios.interceptors.response.use(
-  response => {
-    let url = response.config.url;
-    if (url.includes("chains/main/blocks") && !url.includes("head") && !url.includes("127.0.0.1")) {
-      localStorage[url] = JSON.stringify(response.data);
-    }
-
-    return response;
-  },
-  error => Promise.reject(error)
-);
 
 export default {
   name: "Dashboard",
@@ -208,16 +171,7 @@ export default {
       this.address = value;
     },
     async getContractsData() {
-      let res = {};
-      await axios
-        .get(`${this.baseNodeApiURL}/head/context/contracts/${this.address}`)
-        .then(response => {
-          res = response.data;
-        })
-        .catch(() => {
-          res = undefined;
-        });
-      return res;
+      return await get(`${this.baseNodeApiURL}/head/context/contracts/${this.address}`);
     },
     isRelated(tx) {
       return [tx.destination, tx.source].includes(this.address) || this.isRelatedOrigination(tx);
@@ -243,20 +197,17 @@ export default {
     },
     async getAllNodeDataByLevels(levels) {
       const links = await this.buildNodeLinksByBlock(levels);
-      const promiseArray = links.map(url => axios.get(url));
-
+      const promiseArray = links.map(url => get(url));
       const res = [];
 
-      await axios.all(promiseArray).then(
-        axios.spread((...args) => {
-          for (let i = 0; i < args.length; i++) {
-            args[i].data.forEach(opGroup => {
-              opGroup.level = levels[i];
-              res.push(opGroup);
-            });
-          }
+      let items = (await Promise.all(promiseArray));
+
+      for (let i = 0; i < items.length; i++) {
+        items[i].forEach(opGroup => {
+          opGroup.level = levels[i]
+          res.push(opGroup)
         })
-      );
+      }
 
       return res;
     },
@@ -408,10 +359,7 @@ export default {
       Object.keys(miniTezaurus).forEach(function(key) {
         links.push({
           link: `${this.baseNodeApiURL}/${block}/context/contracts/${this.address}/big_map_get?key=${key}`,
-          postParams: JSON.stringify(miniTezaurus[key]),
-          headers: {
-            headers: { "Content-Type": "application/json" }
-          },
+          postParams: miniTezaurus[key],
           key: miniTezaurus[key].key
         });
       }, this);
@@ -419,22 +367,19 @@ export default {
       return links;
     },
     async getAllBigMapFromNode(links) {
-      let promiseArray = links.map(l => axios.post(l.link, l.postParams, l.headers));
-
+      let promiseArray = links.map(l => post(l.link, l.postParams));
       let res = [];
 
-      await axios.all(promiseArray).then(
-        axios.spread((...args) => {
-          for (let i = 0; i < args.length; i++) {
-            if (args[i].data !== null) {
-              res.push({
-                key: links[i]["key"],
-                value: args[i].data
-              });
-            }
-          }
-        })
-      );
+      let items = (await Promise.all(promiseArray)).flatMap(x => x);
+
+      for (let i = 0; i < items.length; i++) {
+        if (items[i]) {
+          res.push({
+            key: links[i].key,
+            value: items[i]
+          })
+        }
+      }      
 
       return res;
     },
@@ -463,15 +408,8 @@ export default {
       let currentStorage = undefined;
       let currentStorageSize = "0";
       if (groups[firstHash]["operations"][0]["kind"] != "origination") {
-        await axios
-          .get(`${this.baseNodeApiURL}/${prevBlock}/context/contracts/${this.address}`)
-          .then(response => {
-            currentStorage = response.data.script.storage;
-          })
-          .catch(error => {
-            // eslint-disable-next-line
-            console.log(error);
-          });
+        let stResponse = await get(`${this.baseNodeApiURL}/${prevBlock}/context/contracts/${this.address}`)
+        currentStorage = stResponse.script.storage;
       }
 
       currentStorage = decodeData(currentStorage, this.resultForStorage);
@@ -787,8 +725,7 @@ export default {
       return groups;
     },
     async getEntireBlock(block_id) {
-      const res = await axios.get(`${this.baseNodeApiURL}/${block_id}`);
-      return res.data;
+      return await get(`${this.baseNodeApiURL}/${block_id}`)
     },
     async getBlockData(address) {
       const cnsl = setupConseil(this.tezosNet);
@@ -826,14 +763,12 @@ export default {
       return res;
     },
     async getTransactionData() {
-      const res = await axios.get(
-        `${this.baseApiURL}/operations/${this.address}?type=Transaction&number=10&p=${this.txInfo.currentPage}`
-      );
+      const res = await get(`${this.baseApiURL}/operations/${this.address}?type=Transaction&number=10&p=${this.txInfo.currentPage}`);
 
-      this.txInfo.morePages = res.data.length === 10;
+      this.txInfo.morePages = res.length === 10;
       this.txInfo.currentPage += 1;
 
-      return res.data;
+      return res;
     },
     async loadMore() {
       this.isLoading = true;
