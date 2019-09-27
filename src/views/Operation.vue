@@ -38,9 +38,9 @@ import Loader from "@/components/Loader.vue";
 import NavBar from "@/components/NavBar.vue";
 import NotFound from "@/components/NotFound.vue";
 
-import axios from "axios";
 import { ConseilQueryBuilder, ConseilOperator, ConseilDataClient } from "conseiljs";
 import { setupConseil } from "@/app/conseil";
+import { get } from "@/app/http";
 
 export default {
   name: "Operation",
@@ -106,16 +106,7 @@ export default {
       }
     },
     async getOperations(block) {
-      let res = {};
-      await axios
-        .get(`${this.baseNodeApiURL}/${block}/operations/3`)
-        .then(response => {
-          res = response.data;
-        })
-        .catch(() => {
-          res = undefined;
-        });
-      return res;
+      return await get(`${this.baseNodeApiURL}/${block}/operations/3`);
     },
     async getOperationData(net, hash) {
       const cnsl = setupConseil(net);

@@ -35,6 +35,12 @@ export async function get(uri, timeout = 10000) {
 }
 
 export async function post(uri, object, timeout = 10000) {
+  if (isCacheable(uri)) {
+    if (localStorage[uri]) {
+      return JSON.parse(localStorage[uri]);
+    }
+  }
+
   let response = await withTimeout(timeout,
       fetch(uri, {
         method: 'POST',
@@ -49,7 +55,13 @@ export async function post(uri, object, timeout = 10000) {
   if (!response.ok) {
     throw new RequestError(response);
   }
-  return await response.json();
+
+  let jsonResponse = await response.json();
+
+  if (isCacheable(uri)) {
+    localStorage[uri] = JSON.stringify(jsonResponse);
+  }
+  return jsonResponse;
 }
 
 
