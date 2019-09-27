@@ -1,3 +1,5 @@
+import lscache from "lscache";
+
 export class TimeoutError extends Error {}
 export class RequestError extends Error {
     constructor(response) {
@@ -8,8 +10,8 @@ export class RequestError extends Error {
 
 export async function get(uri, timeout = 10000) {
   if (isCacheable(uri)) {
-    if (localStorage[uri]) {
-      return JSON.parse(localStorage[uri]);
+    if (lscache.get(uri)) {
+      return JSON.parse(lscache.get(uri))
     }
   }
 
@@ -29,15 +31,15 @@ export async function get(uri, timeout = 10000) {
   let jsonResponse = await response.json();
 
   if (isCacheable(uri)) {
-    localStorage[uri] = JSON.stringify(jsonResponse);
+    lscache.set(uri, JSON.stringify(jsonResponse), 42000);
   }
   return jsonResponse;
 }
 
 export async function post(uri, object, timeout = 10000) {
   if (isCacheable(uri)) {
-    if (localStorage[uri]) {
-      return JSON.parse(localStorage[uri]);
+    if (lscache.get(uri)) {
+      return JSON.parse(lscache.get(uri))
     }
   }
 
@@ -59,7 +61,7 @@ export async function post(uri, object, timeout = 10000) {
   let jsonResponse = await response.json();
 
   if (isCacheable(uri)) {
-    localStorage[uri] = JSON.stringify(jsonResponse);
+    lscache.set(uri, JSON.stringify(jsonResponse), 42000);
   }
   return jsonResponse;
 }
