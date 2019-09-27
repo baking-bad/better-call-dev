@@ -41,6 +41,7 @@ import NotFound from "@/components/NotFound.vue";
 import { ConseilQueryBuilder, ConseilOperator, ConseilDataClient } from "conseiljs";
 import { setupConseil } from "@/app/conseil";
 import { get } from "@/app/http";
+import lscache from "lscache";
 
 export default {
   name: "Operation",
@@ -79,6 +80,13 @@ export default {
   },
   methods: {
     async initApp() {
+      if (!localStorage["WASTED"]) {
+        localStorage.clear();
+        localStorage["WASTED"] = true;
+      }
+
+      lscache.flushExpired();
+
       this.isLoading = false;
       this.blockLevel = 0;
       this.timestamp = 0;

@@ -32,6 +32,7 @@ import { bigMapDiffDecode, decodeData, decodeSchema, buildSchema } from "@/app/d
 import { ConseilQueryBuilder, ConseilOperator, ConseilSortDirection, ConseilDataClient } from "conseiljs";
 import { setupConseil } from "@/app/conseil";
 import { get, post } from "@/app/http";
+import lscache from "lscache";
 
 import Loader from "@/components/Loader.vue";
 import NotFound from "@/components/NotFound.vue";
@@ -144,6 +145,13 @@ export default {
       this.isReady = true;
     },
     async initApp() {
+      if (!localStorage["WASTED"]) {
+        localStorage.clear();
+        localStorage["WASTED"] = true;
+      }
+
+      lscache.flushExpired();
+
       this.isLoading = false;
       this.isReady = false;
       this.notFound = false;
