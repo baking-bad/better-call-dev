@@ -1,39 +1,4 @@
-
-const tezosNets = {
-  main: {
-    value: "main",
-    text: "MainNet", 
-    blockUrl: "https://rpc.tezrpc.me/chains/main/blocks",
-    tzScanUrl: "https://api5.tzscan.io/v1",
-    conseil: {
-      server: {
-        apiKey: "galleon",
-        url: "https://conseil-prod.cryptonomic-infra.tech"
-      },
-      platform: "tezos",
-      network: "mainnet"
-    }
-  },
-  alpha: {
-    value: "alpha",
-    text: "AlphaNet", 
-    blockUrl: "https://tezos-dev.cryptonomic-infra.tech/chains/main/blocks",
-    tzScanUrl: "https://api.alphanet.tzscan.io/v1",
-    conseil: {
-      server: {
-        apiKey: "galleon",
-        url: "https://conseil-dev.cryptonomic-infra.tech"
-      },
-      platform: "tezos",
-      network: "alphanet",
-    }
-  },
-  sandbox: {
-    value: "sandbox",
-    text: "Sandbox", 
-    blockUrl: "http://127.0.0.1:8732/chains/main/blocks"
-  }
-};
+import tezosNets from './tezosNets.json'
 
 const networks = Object.keys(tezosNets);
 
