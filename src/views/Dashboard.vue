@@ -118,11 +118,7 @@ export default {
     },
     baseNodeApiURL() {
       switch (this.tezosNet) {
-        // return "https://mainnet-node.tzscan.io/chains/main/blocks";
-        // return "https://rpc.tzbeta.net/chains/main/blocks";
         case "main": return "https://rpc.tezrpc.me/chains/main/blocks";
-        // return "https://alphanet-node.tzscan.io/chains/main/blocks";
-        // return "https://rpcalpha.tzbeta.net/chains/main/blocks";
         case "alpha": return "https://tezos-dev.cryptonomic-infra.tech/chains/main/blocks";
         case "sandbox": {
           const host = this.$route.query.host || '127.0.0.1';
@@ -277,20 +273,19 @@ export default {
       let tezaurus = {};
       let data = {};
 
-      if (this.tezosNet === "main") {
-        data = await this.getTransactionData();
-        data.forEach(tx => {
-          const operation = tx.type.operations[0];
-          tezaurus[operation.op_level] = operation.timestamp;
-        });
-        tezaurus = this.removeDuplicates(tezaurus);
-
-      } else if (this.tezosNet === "alpha") {
+      // if (this.tezosNet === "main") {
+      //   data = await this.getTransactionData();
+      //   data.forEach(tx => {
+      //     const operation = tx.type.operations[0];
+      //     tezaurus[operation.op_level] = operation.timestamp;
+      //   });
+      //   tezaurus = this.removeDuplicates(tezaurus);
+      // } 
+      if (this.tezosNet === "alpha" || this.tezosNet === "main") {
         data = await this.getConseilTransactionData();
         data.forEach(tx => {
           tezaurus[tx.block_level] = tx.timestamp;
         });
-
       } else {
         // eslint-disable-next-line
         console.log("sandbox?")
