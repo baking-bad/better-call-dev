@@ -42,6 +42,7 @@ import { ConseilQueryBuilder, ConseilOperator, ConseilDataClient } from "conseil
 import { setupConseil } from "@/app/conseil";
 import { get } from "@/app/http";
 import lscache from "lscache";
+import { NetConfig } from "../netConfig";
 
 export default {
   name: "Operation",
@@ -200,13 +201,13 @@ export default {
         minute: "2-digit"
       })
     },
+
+    netConfig() {
+      return new NetConfig(this.tezosNet);
+    },
+
     baseNodeApiURL() {
-      switch (this.tezosNet) {
-        case "main": return "https://rpc.tezrpc.me/chains/main/blocks";
-        case "alpha": return "https://tezos-dev.cryptonomic-infra.tech/chains/main/blocks";
-        case "sandbox": return "http://127.0.0.1:8732/chains/main/blocks";
-        default: throw this.tezosNet;
-      }
+      return this.netConfig().blockUrl();
     }
   }
 };

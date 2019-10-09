@@ -111,28 +111,20 @@
 
 <script>
 import { demo } from "@/app/demoAddresses";
+import { networks, tezosNets, NetConfig } from "../netConfig";
 
 export default {
   name: "Landing",
   data: () => ({
     localAddress: "",
-    localNet: "alpha",
-    tezosNets: [
-      { text: "MainNet", value: "main" },
-      { text: "AlphaNet", value: "alpha" },
-      { text: "Sandbox", value: "sandbox" }
-    ],
+    localNet:networks[0],
+    tezosNets: tezosNets,
     hasError: false,
     demoAddresses: demo
   }),
   computed: {
     currentNet() {
-      if (this.localNet === "main") {
-        return "MainNet";
-      } else if (this.localNet === "alpha") {
-        return "AlphaNet";
-      }
-        return "Sandbox";
+      return this.netConfig().text;
     }
   },
   beforeMount() {
@@ -145,6 +137,10 @@ export default {
     }
   },
   methods: {
+    netConfig() {
+      return new NetConfig(this.localNet).netConfig;
+    },
+    
     explore() {
       if (this.isValidKT(this.localAddress) || this.isValidOperation(this.localAddress)) {
         this.$router.push({ path: `/${this.localNet}/${this.localAddress}` });

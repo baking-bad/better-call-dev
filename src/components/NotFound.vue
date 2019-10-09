@@ -12,6 +12,8 @@
 </template>
 
 <script>
+import { NetConfig } from "../netConfig";
+
 export default {
   name: "NotFound",
   props: {
@@ -21,10 +23,12 @@ export default {
   },
   computed: {
     currentNet() {
-      if (this.tezosNet === "main") {
-        return "MainNet";
-      }
-      return "AlphaNet";
+      return this.netConfig().text;
+    }
+  },
+  methods: {
+    netConfig() {
+      return new NetConfig(this.tezosNet).netConfig;
     }
   }
 };

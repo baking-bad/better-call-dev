@@ -38,6 +38,7 @@ import Loader from "@/components/Loader.vue";
 import NotFound from "@/components/NotFound.vue";
 import Results from "@/components/Results.vue";
 import NavBar from "@/components/NavBar.vue";
+import { NetConfig } from "../netConfig";
 
 export default {
   name: "Dashboard",
@@ -74,23 +75,10 @@ export default {
   }),
   computed: {
     baseApiURL() {
-      switch (this.tezosNet) {
-        case "main": return "https://api5.tzscan.io/v1";
-        case "alpha": return "https://api.alphanet.tzscan.io/v1";
-        default: throw this.tezosNet;
-      }
+      return this.tzScanUrl();
     },
     baseNodeApiURL() {
-      switch (this.tezosNet) {
-        case "main": return "https://rpc.tezrpc.me/chains/main/blocks";
-        case "alpha": return "https://tezos-dev.cryptonomic-infra.tech/chains/main/blocks";
-        case "sandbox": {
-          const host = this.$route.query.host || '127.0.0.1';
-          const port = this.$route.query.port || 8732;
-          return `http://${host}:${port}/chains/main/blocks`;
-        }
-        default: throw this.tezosNet;
-      }
+      return this.blockUrl();
     }
   },
   watch: {
@@ -111,6 +99,18 @@ export default {
     this.explore();
   },
   methods: {
+    netConfig() {
+      return new NetConfig(this.tezosNet);
+    },
+    tzScanUrl() {
+      return this.netConfig().tzScanUrl();
+    },
+    blockUrl() {
+      return this.netConfig().blockUrl();
+    },
+    implementsConseil() {
+      return this.netConfig().implementsConseil();
+    },
     async explore() {
       await this.initApp();
 
@@ -232,22 +232,11 @@ export default {
       let tezaurus = {};
       let data = {};
 
-      // if (this.tezosNet === "main") {
-      //   data = await this.getTransactionData();
-      //   data.forEach(tx => {
-      //     const operation = tx.type.operations[0];
-      //     tezaurus[operation.op_level] = operation.timestamp;
-      //   });
-      //   tezaurus = this.removeDuplicates(tezaurus);
-      // } 
-      if (this.tezosNet === "alpha" || this.tezosNet === "main") {
+      if (this.implementsConseil()) {
         data = await this.getConseilTransactionData();
         data.forEach(tx => {
           tezaurus[tx.block_level] = tx.timestamp;
         });
-      } else {
-        // eslint-disable-next-line
-        console.log("sandbox?")
       }
     
       return tezaurus;
