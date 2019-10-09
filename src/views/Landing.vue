@@ -111,13 +111,13 @@
 
 <script>
 import { demo } from "@/app/demoAddresses";
-import { tezosNets, NetConfig } from "../netConfig";
+import { networks, tezosNets, NetConfig } from "../netConfig";
 
 export default {
   name: "Landing",
   data: () => ({
     localAddress: "",
-    localNet: "alpha",
+    localNet:networks[0],
     tezosNets: tezosNets,
     hasError: false,
     demoAddresses: demo
