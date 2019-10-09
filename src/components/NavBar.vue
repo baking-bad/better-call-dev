@@ -87,6 +87,7 @@
 
 <script>
 import { demo } from "@/app/demoAddresses";
+import { tezosNets, NetConfig } from "../netConfig";
 
 export default {
   name: "NavBar",
@@ -94,11 +95,7 @@ export default {
     isActive: false,
     localAddress: "",
     localNet: "",
-    tezosNets: [
-      { text: "MainNet", value: "main" },
-      { text: "AlphaNet", value: "alpha" },
-      { text: "Sandbox", value: "sandbox" }
-    ],
+    tezosNets: tezosNets,
     demoAddresses: demo
   }),
   props: {
@@ -107,12 +104,7 @@ export default {
   },
   computed: {
     currentNet() {
-      if (this.localNet === "main") {
-        return "MainNet";
-      } else if (this.localNet === "alpha") {
-        return "AlphaNet";
-      }
-        return "Sandbox";
+      return this.netConfig().text;
     }
   },
   beforeMount() {
@@ -128,6 +120,9 @@ export default {
       this.localNet = item["net"];
       this.isActive = true;
       this.$router.push({ path: `/${this.localNet}/${this.localAddress}/operations` });
+    },
+    netConfig() {
+      return new NetConfig(this.localNet).netConfig;
     },
     explore() {
       this.isActive = true;
