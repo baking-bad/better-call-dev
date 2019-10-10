@@ -1,0 +1,7 @@
+.gitignore
+.git/
+.travis.yml
+.prettierrc
+package-lock.json
+/node_modules
+/dist
