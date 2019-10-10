@@ -23,5 +23,20 @@ npm i
 npm run serve
 ```
 
+## Run in docker
+Verified dockerhub build at [https://hub.docker.com/r/bakingbad/better-call-dev](https://hub.docker.com/r/bakingbad/better-call-dev)
+
+```bash
+docker run --name mybcd -p 127.0.0.1:8080:80 -d bakingbad/better-call-dev
+```
+
+## Change Tezos RPC endpoint
+
+Add `?blockUrl=` query parameter containing an urlencoded URI:  
+`{scheme}://{host}:{port}/{path}/chains/{chain}/blocks`  
+
+Example:  
+[http://better-call.dev/alpha/KT1QiAJocHUKYN29BegaCnCaSQ9FT2ZXGfuJ/operations?blockUrl=https%3A%2F%2Ftezos-dev.cryptonomic-infra.tech%2Fchains%2Fmain%2Fblocks](http://better-call.dev/alpha/KT1QiAJocHUKYN29BegaCnCaSQ9FT2ZXGfuJ/operations?blockUrl=https%3A%2F%2Ftezos-dev.cryptonomic-infra.tech%2Fchains%2Fmain%2Fblocks)
+
 ## Sponsored by
 [Tezos Foundation](https://tezos.foundation/)

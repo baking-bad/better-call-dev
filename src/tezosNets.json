@@ -1,7 +1,7 @@
 {
   "main": {
     "value": "main",
-    "text": "MainNet", 
+    "text": "Mainnet", 
     "blockUrl": "https://rpc.tezrpc.me/chains/main/blocks",
     "tzScanUrl": "https://api5.tzscan.io/v1",
     "conseil": {
