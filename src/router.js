@@ -11,7 +11,7 @@ import {networks} from './netConfig'
 
 Vue.use(Router)
 
-export default new Router({
+const router = new Router({
   mode: "history",
   routes: [{
     path: '/',
@@ -46,4 +46,18 @@ export default new Router({
     name: '404',
     component: () => import( './views/FourOFour.vue' )
   }]
+});
+
+function hasQueryParams(route) {
+  return !!Object.keys(route.query).length
+}
+
+router.beforeEach((to, from, next) => {
+   if(!hasQueryParams(to) && hasQueryParams(from)){
+    next({...to, query: from.query});
+  } else {
+    next()
+  }
 })
+
+export default router;

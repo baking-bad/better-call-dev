@@ -15,7 +15,7 @@
   },
   "alpha": {
     "value": "alpha",
-    "text": "AlphaNet", 
+    "text": "Athens", 
     "blockUrl": "https://tezos-dev.cryptonomic-infra.tech/chains/main/blocks",
     "tzScanUrl": "https://api.alphanet.tzscan.io/v1",
     "conseil": {
