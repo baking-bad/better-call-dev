@@ -5,7 +5,7 @@
 
 Yet another Tezos explorer created specifically for smart contract developers
 
-<a target="_blank" href="https://twitter.com/cryyptt2/status/1147623668031348737"><img src="https://pbs.twimg.com/media/D-0tpCaWsAAnVBI.jpg" alt="Better Call Dev" width="300"/></a>
+[![Better Call Dev](https://miro.medium.com/max/1632/1*shi7Y-RVeMCbozwk2rzbsQ.png)](https://better-call.dev)
 
 ## See it in action
 [https://better-call.dev/](https://better-call.dev/)
