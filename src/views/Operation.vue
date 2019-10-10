@@ -207,7 +207,11 @@ export default {
     },
 
     baseNodeApiURL() {
-      return this.netConfig().blockUrl();
+      if (this.$route.query.blockUrl !== undefined) {
+        return decodeURI(this.$route.query.blockUrl);
+      } else {
+        return this.netConfig().blockUrl();
+      }
     }
   }
 };
