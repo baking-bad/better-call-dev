@@ -142,7 +142,6 @@ export default {
       const code = contractsData.script.code;
       const data = contractsData.script.storage;
       this.contractBalance = parseInt(contractsData.balance);
-      this.contractManager = contractsData.manager;
       this.contractScript = contractsData.script;
 
       await this.buildSchemas(code);
@@ -762,7 +761,7 @@ export default {
       txQuery = ConseilQueryBuilder.setLimit(txQuery, 999999);
 
       let origQuery = ConseilQueryBuilder.blankQuery();
-      origQuery = ConseilQueryBuilder.addFields(origQuery, "block_level", "timestamp");
+      origQuery = ConseilQueryBuilder.addFields(origQuery, "block_level", "timestamp", "source");
       origQuery = ConseilQueryBuilder.addPredicate(
         origQuery,
         "originated_contracts",
@@ -795,11 +794,17 @@ export default {
         return b["timestamp"] - a["timestamp"];
       });
 
-      return transactions;
+      if (origResult.length !== 0 && origResult[0].source !== undefined) {
+        return { txs: transactions, manager: origResult[0].source };
+      }
+
+      return { txs: [], manager: "" };
     },
     async getConseilTransactionData() {
       if (this.txInfo.currentPage == 0) {
-        this.blockData = await this.getBlockData(this.address);
+        let res = await this.getBlockData(this.address);
+        this.blockData = res.txs;
+        this.contractManager = res.manager;
       }
 
       const txsPerPage = 10;
