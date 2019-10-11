@@ -149,7 +149,11 @@ export default {
       }
       if (this.isArray(this.data)) {
         let klass = "tree-view-wrapper-array";
-        if (this.data.some(function(x) { return this.isArray(x) || this.isObject(x) }, this)) {
+        if (
+          this.data.some(function(x) {
+            return this.isArray(x) || this.isObject(x);
+          }, this)
+        ) {
           klass += " tree-view-wrapper-chevron";
         }
         return this.transformArray(this.data, this.root, true, klass);
@@ -165,7 +169,11 @@ export default {
       }
 
       let klass = "tree-view-wrapper-object";
-      if (Object.values(this.data).some(function(x) { return this.isArray(x) || this.isObject(x) }, this)) {
+      if (
+        Object.values(this.data).some(function(x) {
+          return this.isArray(x) || this.isObject(x);
+        }, this)
+      ) {
         klass += " tree-view-wrapper-chevron";
       }
       return this.transformObject(this.data, this.root, true, klass);
