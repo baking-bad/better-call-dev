@@ -89,7 +89,9 @@
               </div>
               <div v-if="tx.kind == 'origination' && tx.destination == address">
                 <div class="my-subtitle">Code</div>
-                <router-link to="script"><span style="font-size: 80%;">view </span></router-link>
+                <router-link to="script">
+                  <span style="font-size: 80%;">view</span>
+                </router-link>
               </div>
             </b-col>
             <b-col lg="7">
@@ -113,9 +115,9 @@
       <b-col lg="6">
         <div v-for="error in tx.errors" :key="error.id">
           <b-alert class="mr-2" variant="danger" show style="font-size: 75%;">
-            <b>{{ Errors[error.id].title }}</b>
+            <b>{{ errorTitle(error.id) }}</b>
             <br />
-            {{ Errors[error.id].descr }}
+            {{ errorDescription(error.id) }}
             <br />
             <i v-if="error.msg">{{error.msg}}</i>
           </b-alert>
@@ -181,6 +183,28 @@ export default {
     },
     formatXTZ(amount) {
       return utils.formatXTZ(amount);
+    },
+    errorTitle(id) {
+      let errID = this.formatId(id);
+      if (Errors.hasOwnProperty(errID)) {
+        return Errors[errID].title;
+      }
+
+      return "Error occured:";
+    },
+    errorDescription(id) {
+      let errID = this.formatId(id);
+      if (Errors.hasOwnProperty(errID)) {
+        return Errors[errID].descr;
+      }
+
+      return id;
+    },
+    formatId(id) {
+      return id
+        .split(".")
+        .slice(2)
+        .join(".");
     },
     badgeClass(status) {
       if (status == "failed") {
