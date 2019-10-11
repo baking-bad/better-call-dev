@@ -25,7 +25,7 @@
           >{{option.text}}</b-dropdown-item>
         </b-nav-item-dropdown>
 
-        <b-nav-form>
+        <b-nav-form @submit="explore">
           <b-form-input
             size="sm"
             class="mr-sm-2 input-address"
@@ -35,7 +35,6 @@
             @click="isActive = true"
             @blur="isActive = (localAddress !== '')"
             v-bind:class="{ active: isActive }"
-            @keyup.enter="explore"
           ></b-form-input>
           <b-button size="sm" class="my-2 mr-5 my-sm-0" @click="explore">Go</b-button>
         </b-nav-form>
@@ -124,7 +123,8 @@ export default {
     netConfig() {
       return new NetConfig(this.localNet).netConfig;
     },
-    explore() {
+    explore(evt) {
+      evt.preventDefault();
       this.isActive = true;
       this.$router.push({ path: `/${this.localNet}/${this.localAddress}` });
     },

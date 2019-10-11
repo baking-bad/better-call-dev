@@ -68,7 +68,11 @@
     </b-row>
     <b-row>
       <b-col lg="6" offset-lg="3" class="text-center">
-        <b-alert show variant="danger" v-if="hasError">Looks like contract address or operation hash is wrong</b-alert>
+        <b-alert
+          show
+          variant="danger"
+          v-if="hasError"
+        >Looks like contract address or operation hash is wrong</b-alert>
         <b-input-group class="mt-3" :class="{ 'has-error': hasError }">
           <b-form-input
             placeholder="Enter KT-address or Operation hash"
@@ -117,7 +121,7 @@ export default {
   name: "Landing",
   data: () => ({
     localAddress: "",
-    localNet:networks[0],
+    localNet: networks[0],
     tezosNets: tezosNets,
     hasError: false,
     demoAddresses: demo
@@ -140,7 +144,7 @@ export default {
     netConfig() {
       return new NetConfig(this.localNet).netConfig;
     },
-    
+
     explore() {
       if (this.isValidKT(this.localAddress) || this.isValidOperation(this.localAddress)) {
         this.$router.push({ path: `/${this.localNet}/${this.localAddress}` });
