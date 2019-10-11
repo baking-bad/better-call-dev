@@ -15,6 +15,34 @@ export function bigMapDiffDecode(data, schema) {
   return res;
 }
 
+const RESERVED_ENTRYPOINTS = [
+  // "default",
+  // "root",
+  "do",
+  "set_delegate",
+  "remove_delegate"
+]
+
+export function decodeParameters(data, schema) {
+  if (schema.collapsed_tree.prim === "or") {
+    let treeArgs = schema.collapsed_tree.args;
+
+    for (let i = 0; i < treeArgs.length; i++) {
+      if (treeArgs[i].name === data.entrypoint) {
+        return { [data.entrypoint]: decodeData(data.value, schema, true, true, treeArgs[i].path) }
+      }
+    }
+  }
+
+  let res = decodeData(data.value, schema);
+
+  if (RESERVED_ENTRYPOINTS.includes(data.entrypoint)) {
+    return { [data.entrypoint]: res }
+  }
+
+  return res
+}
+
 export function decodeData(data, schema, annotations = true, literals = true, rootNode = "0") {
   function decode_node(node, path = "0") {
     let res = {};
@@ -103,7 +131,7 @@ export function decodeData(data, schema, annotations = true, literals = true, ro
         const args = [];
 
         if (type_info.prim === "lambda") {
-          res = {prim: "Lambda", args: node};
+          res = { prim: "Lambda", args: node };
         } else {
           node.forEach(item => {
             args.push(decode_node(item, `${path}0`));
@@ -127,12 +155,12 @@ export function decodeData(data, schema, annotations = true, literals = true, ro
     if (data) {
       let res = decode_node(data, rootNode);
       if (res instanceof Nested) {
-        return {'__unknown_entry__': get_flat_nested(res)}
+        return { '__unknown_entry__': get_flat_nested(res) }
       }
       return res
     }
     return null;
-  } catch(e) {
+  } catch (e) {
     // eslint-disable-next-line
     console.log("Houston we have a problem 2: ", e);
     return JSON.parse(JSON.stringify(data))
@@ -222,14 +250,14 @@ export function decodeSchema(collapsed_tree) {
       });
 
       if (isObject) {
-        if (resArr.every(function(item) {return item === 'unit';})) {
-            return {
-              'or': Object.keys(resObj)
-            }
+        if (resArr.every(function (item) { return item === 'unit'; })) {
+          return {
+            'or': Object.keys(resObj)
+          }
         }
-        return {'or': resObj}
+        return { 'or': resObj }
       }
-      return {'or': resArr}
+      return { 'or': resArr }
     }
 
     if (node.prim === "pair") {
@@ -329,8 +357,8 @@ function onlyUnique(value, index, self) {
   return self.indexOf(value) === index;
 }
 
-class Nested extends Object {}
-class Route extends Object {}
+class Nested extends Object { }
+class Route extends Object { }
 
 function getAnnotation(x, prefix, def = undefined) {
   const ret = [];
@@ -385,7 +413,7 @@ function decode_literal(node, prim) {
       return b58cencode(value.substring(4), prefix[value.substring(0, 4)])
     }
 
-    return b58cencode(value.substring(2, 42), new Uint8Array([2,90,121]))
+    return b58cencode(value.substring(2, 42), new Uint8Array([2, 90, 121]))
   }
   if (prim === "key" && core_type === "bytes") {
     if (value[0] === "0") {
