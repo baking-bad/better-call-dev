@@ -21,6 +21,7 @@ export default {
   name: "Results",
   props: [
     "manager",
+    "delegate",
     "script",
     "address",
     "tezosNet",
@@ -56,6 +57,7 @@ export default {
       }
       if (this.$route.name === "state") {
         return {
+          delegate: this.delegate,
           latestGroup: this.latestGroup,
           decodedData: this.decodedData,
           morePages: this.morePages

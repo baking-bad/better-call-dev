@@ -22,6 +22,10 @@
                 <div class="my-subtitle">Storage size</div>
                 <span style="font-size: 75%;">{{ latestGroup.storageSize }}</span>
               </div>
+              <div class="mr-4">
+                <div class="my-subtitle">Delegate</div>
+                <span style="font-size: 75%;">{{ contractDelegate }}</span>
+              </div>
             </div>
           </b-col>
           <b-col lg="12" class="mb-3">
@@ -60,7 +64,7 @@ import TreeView from "@/components/TreeView.vue";
 
 export default {
   name: "State",
-  props: ["latestGroup", "decodedData", "morePages"],
+  props: ["delegate", "latestGroup", "decodedData", "morePages"],
   components: {
     TreeView
   },
@@ -70,6 +74,11 @@ export default {
     },
     formatXTZ(amount) {
       return utils.formatXTZ(amount);
+    }
+  },
+  computed: {
+    contractDelegate() {
+      return this.delegate || "Not delegated";
     }
   }
 };
