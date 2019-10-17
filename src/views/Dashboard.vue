@@ -145,7 +145,12 @@ export default {
       const data = contractsData.script.storage;
       this.contractBalance = parseInt(contractsData.balance);
       this.contractScript = contractsData.script;
-      this.contractDelegate = contractsData.delegate;
+
+      if (contractsData.delegate && contractsData.delegate.setable !== undefined) {
+        this.contractDelegate = contractsData.delegate.value
+      } else {
+        this.contractDelegate = contractsData.delegate
+      }
 
       await this.buildSchemas(code);
 

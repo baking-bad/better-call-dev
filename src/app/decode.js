@@ -24,6 +24,10 @@ const RESERVED_ENTRYPOINTS = [
 ]
 
 export function decodeParameters(data, schema) {
+  if (data.value === undefined || data.entrypoint === undefined) {
+    return decodeData(data, schema);
+  }
+
   if (schema.collapsed_tree.prim === "or") {
     let treeArgs = schema.collapsed_tree.args;
 
