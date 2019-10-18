@@ -11,6 +11,7 @@
           v-if="!notFound"
           :address="address"
           :manager="contractManager"
+          :delegate="contractDelegate"
           :script="contractScript"
           :tezosNet="tezosNet"
           :status="isReady"
@@ -28,8 +29,19 @@
 </template>
 
 <script>
-import { bigMapDiffDecode, decodeData, decodeSchema, buildSchema } from "@/app/decode";
-import { ConseilQueryBuilder, ConseilOperator, ConseilSortDirection, ConseilDataClient } from "conseiljs";
+import {
+  bigMapDiffDecode,
+  decodeParameters,
+  decodeData,
+  decodeSchema,
+  buildSchema
+} from "@/app/decode";
+import {
+  ConseilQueryBuilder,
+  ConseilOperator,
+  ConseilSortDirection,
+  ConseilDataClient
+} from "conseiljs";
 import { setupConseil } from "@/app/conseil";
 import { get, post } from "@/app/http";
 import lscache from "lscache";
@@ -69,6 +81,7 @@ export default {
     tezaurus: {},
     contractBalance: 0,
     contractManager: "",
+    contractDelegate: "",
     contractScript: "",
     latestGroup: {},
     blockData: []
@@ -131,15 +144,20 @@ export default {
       const code = contractsData.script.code;
       const data = contractsData.script.storage;
       this.contractBalance = parseInt(contractsData.balance);
-      this.contractManager = contractsData.manager;
       this.contractScript = contractsData.script;
+
+      if (contractsData.delegate && contractsData.delegate.setable !== undefined) {
+        this.contractDelegate = contractsData.delegate.value
+      } else {
+        this.contractDelegate = contractsData.delegate
+      }
 
       await this.buildSchemas(code);
 
       this.decoded_data = decodeData(data, this.resultForStorage);
       this.decoded_schema = decodeSchema(this.resultForStorage.collapsed_tree);
       this.parameterSchema = decodeSchema(this.resultForParameter.collapsed_tree);
-      
+
       this.groups = await this.buildGroups();
       if (Object.keys(this.groups).length > 0) {
         this.handleFirstTx();
@@ -172,6 +190,7 @@ export default {
       this.tezaurus = {};
       this.contractBalance = 0;
       this.contractManager = "";
+      this.contractDelegate = "";
       this.contractScript = {};
       this.latestGroup = {};
       this.blockData = [];
@@ -191,14 +210,14 @@ export default {
     isRelatedOrigination(tx) {
       if (tx.kind === "origination") {
         if (tx.internal) {
-          if (tx.result.status === 'applied') {
-            return tx.result.originated_contracts.includes(this.address)
+          if (tx.result.status === "applied") {
+            return tx.result.originated_contracts.includes(this.address);
           } else {
             return false;
           }
         } else {
-          if (tx.metadata.operation_result.status === 'applied') {
-            return tx.metadata.operation_result.originated_contracts.includes(this.address)
+          if (tx.metadata.operation_result.status === "applied") {
+            return tx.metadata.operation_result.originated_contracts.includes(this.address);
           } else {
             return false;
           }
@@ -212,13 +231,13 @@ export default {
       const promiseArray = links.map(url => get(url));
       const res = [];
 
-      let items = (await Promise.all(promiseArray));
+      let items = await Promise.all(promiseArray);
 
       for (let i = 0; i < items.length; i++) {
         items[i].forEach(opGroup => {
-          opGroup.level = levels[i]
-          res.push(opGroup)
-        })
+          opGroup.level = levels[i];
+          res.push(opGroup);
+        });
       }
 
       return res;
@@ -242,7 +261,7 @@ export default {
           tezaurus[tx.block_level] = tx.timestamp;
         });
       }
-    
+
       return tezaurus;
     },
     removeDuplicates(tezaurus) {
@@ -256,13 +275,13 @@ export default {
 
       return res;
     },
-    pushOperationsToGroups(operationGroups, level=0) {
+    pushOperationsToGroups(operationGroups, level = 0) {
       const groups = {};
 
       operationGroups.forEach(function(group) {
         const operations = [];
         const lvl = level > 0 ? level : group.level;
-        let fee = 0; 
+        let fee = 0;
         let gasLimit = 0;
         let storageLimit = 0;
         let weFound = false;
@@ -275,7 +294,7 @@ export default {
           operations.push(operation);
           fee += parseInt(operation.fee);
           gasLimit += parseInt(operation.gas_limit);
-          storageLimit += parseInt(operation.storage_limit)
+          storageLimit += parseInt(operation.storage_limit);
 
           if (this.isRelated(operation)) {
             weFound = true;
@@ -378,9 +397,9 @@ export default {
           res.push({
             key: links[i].key,
             value: items[i]
-          })
+          });
         }
-      }      
+      }
 
       return res;
     },
@@ -389,14 +408,14 @@ export default {
 
       Object.keys(groups).forEach(function(hash) {
         if (["transaction", "origination"].includes(groups[hash].operations[0].kind)) {
-          res.push(hash)
+          res.push(hash);
         }
-      })
+      });
 
-      return res.reverse()
+      return res.reverse();
     },
     async getOldStorage(groups) {
-      let hashes = this.getReversedTxHashes(groups)
+      let hashes = this.getReversedTxHashes(groups);
       let firstHash = hashes[0];
       let prevBlock = groups[firstHash]["level"] - 1;
 
@@ -416,7 +435,9 @@ export default {
       }
 
       currentStorage = decodeData(currentStorage, this.resultForStorage);
-      groups[firstHash]["operations"][0]["prevStorage"] = JSON.parse(JSON.stringify(currentStorage));
+      groups[firstHash]["operations"][0]["prevStorage"] = JSON.parse(
+        JSON.stringify(currentStorage)
+      );
 
       for (let i = 0; i < hashes.length; i++) {
         let group = groups[hashes[i]];
@@ -609,9 +630,9 @@ export default {
             }
             if (op.parameters !== undefined) {
               if (op.errors.length > 0 && op.errors[0].id.endsWith("badContractParameter")) {
-                op.decodedParameters = decodeData(op.parameters, null);
+                op.decodedParameters = decodeParameters(op.parameters, null);
               } else {
-                op.decodedParameters = decodeData(op.parameters, this.resultForParameter);
+                op.decodedParameters = decodeParameters(op.parameters, this.resultForParameter);
               }
             }
           }
@@ -707,8 +728,11 @@ export default {
       let groups = {};
       const txsPerPage = 10;
 
-      while ((this.txInfo.currentPage > 2 || this.txInfo.currentPage === 0) && Object.keys(groups).length < txsPerPage) {
-        let blockId = this.txInfo.currentPage == 0 ? 'head' : this.txInfo.currentPage - 1;
+      while (
+        (this.txInfo.currentPage > 2 || this.txInfo.currentPage === 0) &&
+        Object.keys(groups).length < txsPerPage
+      ) {
+        let blockId = this.txInfo.currentPage == 0 ? "head" : this.txInfo.currentPage - 1;
         let block = await this.getEntireBlock(blockId);
         this.tezaurus[block.header.level] = block.header.timestamp;
 
@@ -723,39 +747,75 @@ export default {
           this.txInfo.currentPage--;
           this.morePages = true;
         } else {
-          this.morePages = false
+          this.morePages = false;
         }
       }
-      
+
       return groups;
     },
     async getEntireBlock(block_id) {
-      return await get(`${this.baseNodeApiURL}/${block_id}`)
+      return await get(`${this.baseNodeApiURL}/${block_id}`);
     },
     async getBlockData(address) {
       const cnsl = setupConseil(this.tezosNet);
 
       let txQuery = ConseilQueryBuilder.blankQuery();
-      txQuery = ConseilQueryBuilder.addFields(txQuery, 'block_level', 'timestamp');
-      txQuery = ConseilQueryBuilder.addPredicate(txQuery, 'destination', ConseilOperator.EQ, [address], false);
-      txQuery = ConseilQueryBuilder.addOrdering(txQuery, 'block_level', ConseilSortDirection.DESC);
+      txQuery = ConseilQueryBuilder.addFields(txQuery, "block_level", "timestamp");
+      txQuery = ConseilQueryBuilder.addPredicate(
+        txQuery,
+        "destination",
+        ConseilOperator.EQ,
+        [address],
+        false
+      );
+      txQuery = ConseilQueryBuilder.addOrdering(txQuery, "block_level", ConseilSortDirection.DESC);
       txQuery = ConseilQueryBuilder.setLimit(txQuery, 999999);
 
       let origQuery = ConseilQueryBuilder.blankQuery();
-      origQuery = ConseilQueryBuilder.addFields(origQuery, 'block_level', 'timestamp');
-      origQuery = ConseilQueryBuilder.addPredicate(origQuery, 'originated_contracts', ConseilOperator.EQ, [address], false);
-      origQuery = ConseilQueryBuilder.addOrdering(origQuery, 'block_level', ConseilSortDirection.DESC);
+      origQuery = ConseilQueryBuilder.addFields(origQuery, "block_level", "timestamp", "source");
+      origQuery = ConseilQueryBuilder.addPredicate(
+        origQuery,
+        "originated_contracts",
+        ConseilOperator.EQ,
+        [address],
+        false
+      );
+      origQuery = ConseilQueryBuilder.addOrdering(
+        origQuery,
+        "block_level",
+        ConseilSortDirection.DESC
+      );
       origQuery = ConseilQueryBuilder.setLimit(origQuery, 999999);
 
-      const txResult = await ConseilDataClient.executeEntityQuery(cnsl.server, cnsl.platform, cnsl.network, cnsl.entity, txQuery);
-      const origResult = await ConseilDataClient.executeEntityQuery(cnsl.server, cnsl.platform, cnsl.network, cnsl.entity, origQuery);
-      const transactions = txResult.concat(origResult).sort((a, b) => { return b['timestamp'] - a['timestamp'] });
+      const txResult = await ConseilDataClient.executeEntityQuery(
+        cnsl.server,
+        cnsl.platform,
+        cnsl.network,
+        cnsl.entity,
+        txQuery
+      );
+      const origResult = await ConseilDataClient.executeEntityQuery(
+        cnsl.server,
+        cnsl.platform,
+        cnsl.network,
+        cnsl.entity,
+        origQuery
+      );
+      const transactions = txResult.concat(origResult).sort((a, b) => {
+        return b["timestamp"] - a["timestamp"];
+      });
 
-      return transactions
+      if (origResult.length !== 0 && origResult[0].source !== undefined) {
+        return { txs: transactions, manager: origResult[0].source };
+      }
+
+      return { txs: [], manager: "" };
     },
     async getConseilTransactionData() {
       if (this.txInfo.currentPage == 0) {
-        this.blockData = await this.getBlockData(this.address);
+        let res = await this.getBlockData(this.address);
+        this.blockData = res.txs;
+        this.contractManager = res.manager;
       }
 
       const txsPerPage = 10;
@@ -768,7 +828,9 @@ export default {
       return res;
     },
     async getTransactionData() {
-      const res = await get(`${this.baseApiURL}/operations/${this.address}?type=Transaction&number=10&p=${this.txInfo.currentPage}`);
+      const res = await get(
+        `${this.baseApiURL}/operations/${this.address}?type=Transaction&number=10&p=${this.txInfo.currentPage}`
+      );
 
       this.txInfo.morePages = res.length === 10;
       this.txInfo.currentPage += 1;
