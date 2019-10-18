@@ -410,7 +410,9 @@ export default {
       let currentStorageSize = "0";
       if (groups[firstHash]["operations"][0]["kind"] != "origination") {
         let stResponse = await get(`${this.baseNodeApiURL}/${prevBlock}/context/contracts/${this.address}`)
-        currentStorage = stResponse.script.storage;
+        if (stResponse.script !== undefined) {
+          currentStorage = stResponse.script.storage;
+        }
       }
 
       currentStorage = decodeData(currentStorage, this.resultForStorage);
@@ -421,8 +423,10 @@ export default {
         group["operations"].forEach(function(tx) {
           tx.prevStorage = currentStorage;
           if (tx.status === "applied" && tx.destination === this.address) {
-            currentStorage = JSON.parse(JSON.stringify(tx.storage));
-            currentStorageSize = tx.storageSize;
+            if (tx.storage) {
+              currentStorage = JSON.parse(JSON.stringify(tx.storage));
+              currentStorageSize = tx.storageSize;
+            }
 
             if (tx.decodedBigMapDiff) {
               tx.storage = this.mergeBigMapToStorage(tx.storage, tx.decodedBigMapDiff);
