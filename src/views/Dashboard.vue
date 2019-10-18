@@ -145,11 +145,10 @@ export default {
       const data = contractsData.script.storage;
       this.contractBalance = parseInt(contractsData.balance);
       this.contractScript = contractsData.script;
+      this.contractDelegate = contractsData.delegate;
 
       if (contractsData.delegate && contractsData.delegate.setable !== undefined) {
-        this.contractDelegate = contractsData.delegate.value
-      } else {
-        this.contractDelegate = contractsData.delegate
+        this.contractDelegate = contractsData.delegate.value;
       }
 
       await this.buildSchemas(code);
@@ -428,7 +427,9 @@ export default {
       let currentStorage = undefined;
       let currentStorageSize = "0";
       if (groups[firstHash]["operations"][0]["kind"] != "origination") {
-        let stResponse = await get(`${this.baseNodeApiURL}/${prevBlock}/context/contracts/${this.address}`)
+        let stResponse = await get(
+          `${this.baseNodeApiURL}/${prevBlock}/context/contracts/${this.address}`
+        );
         if (stResponse.script !== undefined) {
           currentStorage = stResponse.script.storage;
         }
