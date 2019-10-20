@@ -10,18 +10,11 @@
         <div class="tab-wrapper" v-if="!notFound">
           <b-row class="styled-row">
             <b-col lg="12" class="pt-3 info-wrapper">
-              <GroupHeader
-                :opDate="opDate"
-                :opTime="opTime"
-                :blockLevel="blockLevel"
-                :hash="hash"
-              />
+              <GroupHeader :opDate="opDate" :opTime="opTime" :blockLevel="blockLevel" :hash="hash" />
             </b-col>
             <b-col lg="12" class="mb-3 pt-3 pl-4">
               <b-row v-for="(op, id) in contents" :key="id + '-' + op.kind + '-' + op.source">
-                <OperationInfo
-                  :op="op" :tezosNet="tezosNet"
-                />
+                <OperationInfo :op="op" :tezosNet="tezosNet" />
               </b-row>
             </b-col>
           </b-row>
@@ -110,7 +103,7 @@ export default {
         let rawContents = operations.find(op => op.hash === this.hash).contents;
         let contentsWithInternal = this.getInternalContents(rawContents);
 
-        this.contents = this.restructureContents(contentsWithInternal); 
+        this.contents = this.restructureContents(contentsWithInternal);
         this.isLoading = false;
       }
     },
@@ -121,19 +114,30 @@ export default {
       const cnsl = setupConseil(net);
 
       let txQuery = ConseilQueryBuilder.blankQuery();
-      txQuery = ConseilQueryBuilder.addFields(txQuery, 'block_level', 'timestamp');
-      txQuery = ConseilQueryBuilder.addPredicate(txQuery, 'operation_group_hash', ConseilOperator.EQ, [hash], false);
+      txQuery = ConseilQueryBuilder.addFields(txQuery, "block_level", "timestamp");
+      txQuery = ConseilQueryBuilder.addPredicate(
+        txQuery,
+        "operation_group_hash",
+        ConseilOperator.EQ,
+        [hash],
+        false
+      );
       txQuery = ConseilQueryBuilder.setLimit(txQuery, 1);
 
-      const txResult = await ConseilDataClient.executeEntityQuery(cnsl.server, cnsl.platform, cnsl.network, cnsl.entity, txQuery);
+      const txResult = await ConseilDataClient.executeEntityQuery(
+        cnsl.server,
+        cnsl.platform,
+        cnsl.network,
+        cnsl.entity,
+        txQuery
+      );
       if (txResult.length > 0) {
         return {
           level: txResult[0].block_level,
           ts: txResult[0].timestamp
-        }
-      }
-      else {
-        return undefined
+        };
+      } else {
+        return undefined;
       }
     },
     getInternalContents(contents) {
@@ -148,9 +152,9 @@ export default {
             op.gas_limit = operation.gas_limit;
             op.storage_limit = operation.storage_limit;
             res.push(op);
-          })
+          });
         }
-      })
+      });
 
       return res;
     },
@@ -179,8 +183,11 @@ export default {
             op.destination = op.public_key;
           }
         }
-      })
-      return contents
+      });
+      return contents;
+    },
+    netConfig() {
+      return new NetConfig(this.tezosNet);
     }
   },
   computed: {
@@ -191,7 +198,7 @@ export default {
         day: "numeric",
         month: "short",
         year: "2-digit"
-      })
+      });
     },
     opTime() {
       const dateObj = new Date(this.timestamp);
@@ -199,13 +206,8 @@ export default {
       return dateObj.toLocaleTimeString("en-GB", {
         hour: "2-digit",
         minute: "2-digit"
-      })
+      });
     },
-
-    netConfig() {
-      return new NetConfig(this.tezosNet);
-    },
-
     baseNodeApiURL() {
       if (this.$route.query.blockUrl !== undefined) {
         return decodeURI(this.$route.query.blockUrl);
