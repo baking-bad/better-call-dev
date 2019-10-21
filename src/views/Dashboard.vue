@@ -45,6 +45,7 @@ import {
 import { setupConseil } from "@/app/conseil";
 import { get, post } from "@/app/http";
 import lscache from "lscache";
+import utils from "@/app/utils";
 
 import Loader from "@/components/Loader.vue";
 import NotFound from "@/components/NotFound.vue";
@@ -83,6 +84,7 @@ export default {
     contractManager: "",
     contractDelegate: "",
     contractScript: "",
+    isPayoutContract: false,
     latestGroup: {},
     blockData: []
   }),
@@ -146,6 +148,7 @@ export default {
       this.contractBalance = parseInt(contractsData.balance);
       this.contractScript = contractsData.script;
       this.contractDelegate = contractsData.delegate;
+      this.isPayoutContract = this.checkPayoutSignature(code);
 
       if (contractsData.delegate && contractsData.delegate.setable !== undefined) {
         this.contractDelegate = contractsData.delegate.value;
@@ -191,6 +194,7 @@ export default {
       this.contractManager = "";
       this.contractDelegate = "";
       this.contractScript = {};
+      this.isPayoutContract = false;
       this.latestGroup = {};
       this.blockData = [];
     },
@@ -202,6 +206,32 @@ export default {
     },
     async getContractsData() {
       return await get(`${this.baseNodeApiURL}/head/context/contracts/${this.address}`);
+    },
+    isValidOperation(operation) {
+      let isOrignation = operation.kind === "origination";
+      let isDelegation = operation.kind === "delegation";
+      let isTranscation = operation.kind === "transaction";
+
+      if (this.isPayoutContract) {
+        isTranscation = this.checkRelatedPayoutTx(operation);
+      }
+
+      return isOrignation || isDelegation || isTranscation;
+    },
+    checkRelatedPayoutTx(operation) {
+      if (operation.kind !== "transaction") {
+        return true;
+      }
+
+      if (operation.parameters !== undefined) {
+        return true;
+      }
+
+      if (this.isRelated(operation)) {
+        return true;
+      }
+
+      return false;
     },
     isRelated(tx) {
       return [tx.destination, tx.source].includes(this.address) || this.isRelatedOrigination(tx);
@@ -290,22 +320,32 @@ export default {
             return;
           }
 
-          operations.push(operation);
-          fee += parseInt(operation.fee);
-          gasLimit += parseInt(operation.gas_limit);
-          storageLimit += parseInt(operation.storage_limit);
+          if (this.isValidOperation(operation)) {
+            if (this.isPayoutContract) {
+              operation.reward = true;
+            }
+            operations.push(operation);
+            fee += parseInt(operation.fee);
+            gasLimit += parseInt(operation.gas_limit);
+            storageLimit += parseInt(operation.storage_limit);
 
-          if (this.isRelated(operation)) {
-            weFound = true;
+            if (this.isRelated(operation)) {
+              weFound = true;
+            }
           }
 
-          if (operation.metadata.internal_operation_results != undefined) {
+          if (operation.metadata.internal_operation_results !== undefined) {
             operation.metadata.internal_operation_results.forEach(function(op) {
-              op["internal"] = true;
-              operations.push(op);
+              if (this.isValidOperation(op)) {
+                if (this.isPayoutContract) {
+                  op.reward = true;
+                }
+                op.internal = true;
+                operations.push(op);
 
-              if (this.isRelated(op)) {
-                weFound = true;
+                if (this.isRelated(op)) {
+                  weFound = true;
+                }
               }
             }, this);
           }
@@ -571,7 +611,7 @@ export default {
         currentBalanceChange = 0;
 
         groups[hash].operations.forEach(function(op) {
-          if (op.result != undefined) {
+          if (op.result !== undefined) {
             op.status = op.result.status;
             op.errors = this.getUniqueErrors(op.result.errors, op.status);
             op.consumedGas = op.result.consumed_gas || 0;
@@ -811,6 +851,12 @@ export default {
       }
 
       return { txs: [], manager: "" };
+    },
+    checkPayoutSignature(code) {
+      const signature = utils.payoutSignature();
+      let res = code.find(x => x.prim === "code");
+
+      return signature === JSON.stringify(res);
     },
     async getConseilTransactionData() {
       if (this.txInfo.currentPage == 0) {

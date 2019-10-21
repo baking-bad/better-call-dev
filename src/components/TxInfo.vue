@@ -1,11 +1,10 @@
 <template>
   <b-col lg="12">
     <div class="my-title" :class="tx.kind">
-      <span v-if="tx.internal">internal&nbsp;</span>
-      {{tx.kind}}
-      <span
-        :class="'ml-1 badge badge-outline ' + badgeClass(tx.status)"
-      >{{ tx.status }}</span>
+      <span v-if="tx.internal">internal</span>
+      <span v-if="tx.reward">Reward Payment</span>
+      <span v-else>{{tx.kind}}</span>
+      <span :class="'ml-1 badge badge-outline ' + badgeClass(tx.status)">{{ tx.status }}</span>
     </div>
 
     <b-row class="mt-2">
@@ -56,7 +55,7 @@
               >({{spentPercent(tx.consumedGas)}})</span>
             </span>
           </div>
-          <div class="mr-4">
+          <div class="mr-4" v-if="!tx.reward">
             <div class="my-subtitle">Paid Storage Diff</div>
             <span style="font-size: 75%;">
               <font-awesome-icon icon="coins" />
@@ -66,7 +65,7 @@
               >({{paidStoragePercent(tx.paidStorageDiff)}})</span>
             </span>
           </div>
-          <div v-if="address == tx.destination">
+          <div v-if="address == tx.destination && !tx.reward">
             <div class="my-subtitle">Parameter / Storage</div>
             <span>
               <button class="my-button" @click="expand(tx)">
@@ -75,9 +74,15 @@
               </button>
             </span>
           </div>
+          <div v-if="tx.reward">
+            <div class="my-subtitle">Audit</div>
+            <span style="font-size: 80%;">
+              <a :href="'https://baking-bad.org/'+address" target="_blank">Baking Bad</a>
+            </span>
+          </div>
         </div>
       </b-col>
-      <b-col lg="12" class="mb-2" v-if="tx.expand && address == tx.destination">
+      <b-col lg="12" class="mb-2" v-if="tx.expand && address == tx.destination && !tx.reward">
         <b-card>
           <b-row>
             <b-col lg="5">
