@@ -120,6 +120,9 @@ export default {
     tzScanUrl() {
       return this.netConfig().tzScanUrl();
     },
+    tzStatsUrl() {
+      return this.netConfig().tzStatsUrl();
+    },
     blockUrl() {
       if (this.$route.query.blockUrl !== undefined) {
         return decodeURI(this.$route.query.blockUrl);
@@ -129,6 +132,9 @@ export default {
     },
     implementsConseil() {
       return this.netConfig().implementsConseil();
+    },
+    implementsTzStats() {
+      return this.netConfig().implementsTzStats();
     },
     async explore() {
       await this.initApp();
@@ -284,11 +290,18 @@ export default {
       let tezaurus = {};
       let data = {};
 
-      if (this.implementsConseil()) {
+      if (this.implementsTzStats()) {
+        data = await this.getTzStatsTransactionData();
+        data.forEach(tx => {
+          tezaurus[tx[0]] = tx[1]
+        });
+      } else if (this.implementsConseil()) {
         data = await this.getConseilTransactionData();
         data.forEach(tx => {
           tezaurus[tx.block_level] = tx.timestamp;
         });
+      } else {
+        throw "Cannot build tezaurus";
       }
 
       return tezaurus;
@@ -652,7 +665,9 @@ export default {
             }
             if (op.destination === this.address) {
               if (op.kind === "origination") {
-                op.rawStorage = op.script.storage;
+                if (op.script !== undefined) {
+                  op.rawStorage = op.script.storage;
+                }
               } else {
                 op.rawStorage = op.metadata.operation_result.storage;
               }
@@ -881,6 +896,31 @@ export default {
 
       this.txInfo.morePages = res.length === 10;
       this.txInfo.currentPage += 1;
+
+      return res;
+    },
+    async getTzStatsTransactionData() {
+      if (this.txInfo.currentPage == 0) {
+        const res = await get(
+          `${this.tzStatsUrl()}/tables/op?receiver=${this.address}&columns=height,time,type,manager,sender&order=desc&limit=50000`
+        )
+        this.blockData = res;
+        if (res.length > 0) {
+          const op = res[res.length - 1];
+          if (op[2] === 'origination') {
+            this.contractManager = op[3] || op[4];
+          } else {
+            console.log("Origination is missing, perhaps TF contract")
+          }
+        }
+      }
+
+      const txsPerPage = 10;
+      const offset = this.txInfo.currentPage * txsPerPage;
+      let res = this.blockData.slice(offset, Math.min(offset + txsPerPage, this.blockData.length));
+
+      this.txInfo.currentPage += 1;
+      this.txInfo.morePages = offset + txsPerPage < this.blockData.length;
 
       return res;
     },
