@@ -34,5 +34,9 @@ export const demo = [
   {
     net: "main",
     address: "KT1G7dP6KqKY7ZEEm8vn7m98gs2AMEHCpcia"
+  },
+  {
+    net: "main",
+    address: "KT1DUT68M5Hn8Fu1GkiQ6KVCep6BDMwueFMk"
   }
 ]
