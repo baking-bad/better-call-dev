@@ -2,19 +2,6 @@ import bs58check from 'bs58check'
 // eslint-disable-next-line
 Buffer = require("buffer/").Buffer;
 
-export function bigMapDiffDecode(data, schema) {
-  const paths = getBigMapSchema(schema.type_map);
-  const res = {};
-
-  data.forEach(item => {
-    const key = decodeData(item.key, schema, true, true, paths.key_path);
-    const val = decodeData(item.value, schema, true, true, paths.val_path);
-    res[key] = val;
-  });
-
-  return res;
-}
-
 const RESERVED_ENTRYPOINTS = [
   // "default",
   // "root",
@@ -119,14 +106,18 @@ export function decodeData(data, schema, annotations = true, literals = true, ro
         res = args[0];
       } else if (node.prim === "None") {
         res = null;
-      } else if (literals) {
-        res = decode_literal(node, type_info.prim);
       } else {
-        const key = Object.keys(node)[0];
-        res = node[key];
+        if (type_info.prim == 'big_map') {
+          res = {};
+        } else if (literals) {
+          res = decode_literal(node, type_info.prim);
+        } else {
+          const key = Object.keys(node)[0];
+          res = node[key];
+        }
       }
     } else if (Array.isArray(node)) {
-      if (["map", "big_map"].indexOf(type_info.prim) != -1) {
+      if (["map", "big_map"].indexOf(type_info.prim) != -1) {  
         node.forEach(item => {
           const elt = decode_node(item, path);
           res[elt[0]] = elt[1];
@@ -201,7 +192,7 @@ export function buildSchema(code) {
       res.prim = node.prim;
       res.args = args;
 
-      if (typename || parent_prim != node.prim) {
+      if ((typename && node.prim === "pair") || parent_prim != node.prim) {
         args = get_flat_nested(res);
         type_map[path].children = args.map(x => x.path);
 
@@ -461,16 +452,4 @@ function b58cencode(payload, prefix) {
   n.set(payload, prefix.length);
 
   return bs58check.encode(Buffer.from(n.buffer));
-}
-
-function getBigMapSchema(typeMap) {
-  const res = {};
-  Object.keys(typeMap).forEach(key => {
-    if (typeMap[key].prim === "big_map") {
-      res.key_path = `${key.toString()}0`;
-      res.val_path = `${key.toString()}1`;
-    }
-  });
-
-  return res;
 }

@@ -19,7 +19,7 @@
           :morePages="txInfo.morePages"
           :decodedData="decoded_data"
           :decodedSchema="decoded_schema"
-          :parameterSchema="parameterSchema"
+          :parameterSchema="parameterSchemaView"
           :latestGroup="latestGroup"
           @loadmore="loadMore"
         />
@@ -30,11 +30,10 @@
 
 <script>
 import {
-  bigMapDiffDecode,
   decodeParameters,
   decodeData,
   decodeSchema,
-  buildSchema
+  buildSchema,
 } from "@/app/decode";
 import {
   ConseilQueryBuilder,
@@ -45,6 +44,7 @@ import {
 import { setupConseil } from "@/app/conseil";
 import { get, post } from "@/app/http";
 import lscache from "lscache";
+import utils from "@/app/utils";
 
 import Loader from "@/components/Loader.vue";
 import NotFound from "@/components/NotFound.vue";
@@ -63,12 +63,11 @@ export default {
   data: () => ({
     isLoading: false,
     address: "",
-    tezosNet: "alpha",
+    tezosNet: "main",
     isReady: false,
     notFound: false,
     resultForParameter: {},
     resultForStorage: {},
-    bigMapJsonPath: "",
     decoded_data: {},
     decoded_schema: {},
     parameterSchema: {},
@@ -83,6 +82,7 @@ export default {
     contractManager: "",
     contractDelegate: "",
     contractScript: "",
+    isPayoutContract: false,
     latestGroup: {},
     blockData: []
   }),
@@ -118,6 +118,9 @@ export default {
     tzScanUrl() {
       return this.netConfig().tzScanUrl();
     },
+    tzStatsUrl() {
+      return this.netConfig().tzStatsUrl();
+    },
     blockUrl() {
       if (this.$route.query.blockUrl !== undefined) {
         return decodeURI(this.$route.query.blockUrl);
@@ -128,12 +131,37 @@ export default {
     implementsConseil() {
       return this.netConfig().implementsConseil();
     },
+    implementsTzStats() {
+      return this.netConfig().implementsTzStats();
+    },
+    getStorageSchema(blockLevel) {
+      if (this.tezosNet == "main") {
+        if (blockLevel > 655359) {
+          return this.storageSchema.babylon;
+        } else {
+          return this.storageSchema.athens;
+        }
+      } else {
+        return this.storageSchema.babylon;
+      }
+    },
+    getParameterSchema(blockLevel) {
+      if (this.tezosNet == "main") {
+        if (blockLevel > 655359) {
+          return this.parameterSchema.babylon;
+        } else {
+          return this.parameterSchema.athens;
+        }
+      } else {
+        return this.parameterSchema.babylon;
+      }
+    },
     async explore() {
       await this.initApp();
 
       this.isLoading = true;
 
-      const contractsData = await this.getContractsData();
+      const contractsData = await this.getContractsData('head');
       if (contractsData === undefined || contractsData.script === undefined) {
         this.notFound = true;
         this.isLoading = false;
@@ -145,18 +173,33 @@ export default {
       const data = contractsData.script.storage;
       this.contractBalance = parseInt(contractsData.balance);
       this.contractScript = contractsData.script;
+      this.contractDelegate = contractsData.delegate;
+      this.isPayoutContract = this.checkPayoutSignature(code);
 
       if (contractsData.delegate && contractsData.delegate.setable !== undefined) {
-        this.contractDelegate = contractsData.delegate.value
-      } else {
-        this.contractDelegate = contractsData.delegate
+        this.contractDelegate = contractsData.delegate.value;
       }
 
-      await this.buildSchemas(code);
+      let athensCode = null;
+      if (this.tezosNet == "main") {
+        const contractsDataAthens = await this.getContractsData('655359').catch(e => e);
+        if (contractsDataAthens !== undefined && contractsDataAthens.script !== undefined) {
+          athensCode = contractsDataAthens.script.code;
+        }
+      }
 
-      this.decoded_data = decodeData(data, this.resultForStorage);
-      this.decoded_schema = decodeSchema(this.resultForStorage.collapsed_tree);
-      this.parameterSchema = decodeSchema(this.resultForParameter.collapsed_tree);
+      this.parameterSchema = {
+        babylon: buildSchema(code[0]),
+        athens: athensCode? buildSchema(athensCode[0]) : null
+      }
+      this.storageSchema = {
+        babylon: buildSchema(code[1]),
+        athens: athensCode? buildSchema(athensCode[1]) : null
+      }
+
+      this.decoded_data = decodeData(data, this.storageSchema.babylon);
+      this.decoded_schema = decodeSchema(this.storageSchema.babylon.collapsed_tree);
+      this.parameterSchemaView = decodeSchema(this.parameterSchema.babylon.collapsed_tree);
 
       this.groups = await this.buildGroups();
       if (Object.keys(this.groups).length > 0) {
@@ -179,10 +222,9 @@ export default {
       this.notFound = false;
       this.decoded_data = {};
       this.decoded_schema = {};
+      this.parameterSchemaView = {};
       this.parameterSchema = {};
-      this.resultForParameter = {};
-      this.resultForStorage = {};
-      this.bigMapJsonPath = "";
+      this.storageSchema = {};
       this.txInfo.morePages = false;
       this.txInfo.currentPage = 0;
       this.txInfo.data = [];
@@ -192,6 +234,7 @@ export default {
       this.contractManager = "";
       this.contractDelegate = "";
       this.contractScript = {};
+      this.isPayoutContract = false;
       this.latestGroup = {};
       this.blockData = [];
     },
@@ -201,8 +244,34 @@ export default {
     updateAddress(value) {
       this.address = value;
     },
-    async getContractsData() {
-      return await get(`${this.baseNodeApiURL}/head/context/contracts/${this.address}`);
+    async getContractsData(blockId) {
+      return await get(`${this.baseNodeApiURL}/${blockId}/context/contracts/${this.address}`);
+    },
+    isValidOperation(operation) {
+      let isOrignation = operation.kind === "origination";
+      let isDelegation = operation.kind === "delegation";
+      let isTranscation = operation.kind === "transaction";
+
+      if (this.isPayoutContract) {
+        isTranscation = this.checkRelatedPayoutTx(operation);
+      }
+
+      return isOrignation || isDelegation || isTranscation;
+    },
+    checkRelatedPayoutTx(operation) {
+      if (operation.kind !== "transaction") {
+        return true;
+      }
+
+      if (operation.parameters !== undefined) {
+        return true;
+      }
+
+      if (this.isRelated(operation)) {
+        return true;
+      }
+
+      return false;
     },
     isRelated(tx) {
       return [tx.destination, tx.source].includes(this.address) || this.isRelatedOrigination(tx);
@@ -255,11 +324,18 @@ export default {
       let tezaurus = {};
       let data = {};
 
-      if (this.implementsConseil()) {
+      if (this.implementsTzStats()) {
+        data = await this.getTzStatsTransactionData();
+        data.forEach(tx => {
+          tezaurus[tx[0]] = tx[1]
+        });
+      } else if (this.implementsConseil()) {
         data = await this.getConseilTransactionData();
         data.forEach(tx => {
           tezaurus[tx.block_level] = tx.timestamp;
         });
+      } else {
+        throw "Cannot build tezaurus";
       }
 
       return tezaurus;
@@ -274,6 +350,12 @@ export default {
       }, this);
 
       return res;
+    },
+    isPayoutTransaction(tx) {
+      return this.isPayoutContract
+        && tx.kind === "transaction"
+        && tx.parameters === undefined
+        && tx.destination.startsWith('KT1');
     },
     pushOperationsToGroups(operationGroups, level = 0) {
       const groups = {};
@@ -291,22 +373,28 @@ export default {
             return;
           }
 
-          operations.push(operation);
-          fee += parseInt(operation.fee);
-          gasLimit += parseInt(operation.gas_limit);
-          storageLimit += parseInt(operation.storage_limit);
+          if (this.isValidOperation(operation)) {
+            operation.reward = this.isPayoutTransaction(operation);
+            operations.push(operation);
+            fee += parseInt(operation.fee);
+            gasLimit += parseInt(operation.gas_limit);
+            storageLimit += parseInt(operation.storage_limit);
 
-          if (this.isRelated(operation)) {
-            weFound = true;
+            if (this.isRelated(operation)) {
+              weFound = true;
+            }
           }
 
-          if (operation.metadata.internal_operation_results != undefined) {
+          if (operation.metadata.internal_operation_results !== undefined) {
             operation.metadata.internal_operation_results.forEach(function(op) {
-              op["internal"] = true;
-              operations.push(op);
+              if (this.isValidOperation(op)) {
+                op.reward = this.isPayoutTransaction(op);
+                op.internal = true;
+                operations.push(op);
 
-              if (this.isRelated(op)) {
-                weFound = true;
+                if (this.isRelated(op)) {
+                  weFound = true;
+                }
               }
             }, this);
           }
@@ -373,30 +461,47 @@ export default {
 
       return groups;
     },
-    buildPostLinksForNode(miniTezaurus, block) {
+    async getBigMapPrev(bigMapDiff, blockLevel) {
       const links = [];
+      bigMapDiff.forEach(change => {
+        if (change.action === "alloc") {
+          return;
+        }
+        if (change.big_map !== undefined) {
+          links.push({
+            link: `${this.baseNodeApiURL}/${blockLevel}/context/big_maps/${change.big_map}/${change.key_hash}`,
+            big_map: change.big_map,
+            key: change.key
+          });
+        } else {
+          links.push({
+            link: `${this.baseNodeApiURL}/${blockLevel}/context/contracts/${this.address}/big_map_get?key=${change.key_hash}`,
+            postParams: {
+              key: change.key,
+              type: this.getStorageSchema(blockLevel).type_map["000"]
+            },
+            key: change.key
+          });
+        }
+      });
 
-      Object.keys(miniTezaurus).forEach(function(key) {
-        links.push({
-          link: `${this.baseNodeApiURL}/${block}/context/contracts/${this.address}/big_map_get?key=${key}`,
-          postParams: miniTezaurus[key],
-          key: miniTezaurus[key].key
-        });
-      }, this);
-
-      return links;
-    },
-    async getAllBigMapFromNode(links) {
-      let promiseArray = links.map(l => post(l.link, l.postParams));
+      let promiseArray = links.map(l => {
+        if (l.postParams) {
+          return post(l.link, l.postParams);
+        } else {
+          return get(l.link);
+        }
+      });
       let res = [];
 
-      let items = (await Promise.all(promiseArray)).flatMap(x => x);
+      let items = (await Promise.all(promiseArray.map(p => p.catch(e => e)))).flatMap(x => x);
 
       for (let i = 0; i < items.length; i++) {
         if (items[i]) {
           res.push({
             key: links[i].key,
-            value: items[i]
+            value: items[i],
+            big_map: links[i].big_map
           });
         }
       }
@@ -419,109 +524,52 @@ export default {
       let firstHash = hashes[0];
       let prevBlock = groups[firstHash]["level"] - 1;
 
-      let keys = this.buildBigMapTezaurus(groups, hashes);
-      let links = this.buildPostLinksForNode(keys, prevBlock);
-      let result = await this.getAllBigMapFromNode(links);
-      let miniTezaurusRaw = bigMapDiffDecode(result, this.resultForStorage);
-      let miniTezaurus = this.dropNullFromObject(miniTezaurusRaw);
-
-      let currentStorage = undefined;
+      let currentStorageRaw = undefined;
       let currentStorageSize = "0";
       if (groups[firstHash]["operations"][0]["kind"] != "origination") {
         let stResponse = await get(
           `${this.baseNodeApiURL}/${prevBlock}/context/contracts/${this.address}`
         );
-        currentStorage = stResponse.script.storage;
+        if (stResponse.script !== undefined) {
+          currentStorageRaw = stResponse.script.storage;
+        }
       }
 
-      currentStorage = decodeData(currentStorage, this.resultForStorage);
-      groups[firstHash]["operations"][0]["prevStorage"] = JSON.parse(
-        JSON.stringify(currentStorage)
-      );
+      groups[firstHash]["operations"][0]["prevStorage"] = decodeData(
+        currentStorageRaw, this.getStorageSchema(groups[firstHash]["level"]));
 
       for (let i = 0; i < hashes.length; i++) {
         let group = groups[hashes[i]];
-        group["operations"].forEach(function(tx) {
-          tx.prevStorage = currentStorage;
+        for (var tx of group["operations"]) {
+          tx.rawPrevStorage = currentStorageRaw;
           if (tx.status === "applied" && tx.destination === this.address) {
-            currentStorage = JSON.parse(JSON.stringify(tx.storage));
-            currentStorageSize = tx.storageSize;
+            if (tx.rawStorage) {
 
-            if (tx.decodedBigMapDiff) {
-              tx.storage = this.mergeBigMapToStorage(tx.storage, tx.decodedBigMapDiff);
+              if (tx.bigMapDiff) {
+                tx.rawStorage = this.mergeBigMapToStorage(tx.rawStorage, tx.bigMapDiff);
 
-              Object.keys(tx.decodedBigMapDiff).forEach(function(key) {
-                if (miniTezaurus[key] !== undefined) {
-                  let temp = {};
-                  temp[key] = miniTezaurus[key];
-                  tx.prevStorage = this.mergeBigMapToStorage(tx.prevStorage, temp);
+                if (tx.rawPrevStorage) {
+                  tx.rawPrevBigMap = await this.getBigMapPrev(tx.bigMapDiff, group["level"] - 1);
+                  tx.rawPrevStorage = this.mergeBigMapToStorage(tx.rawPrevStorage, tx.rawPrevBigMap);
                 }
+              }
 
-                miniTezaurus[key] = tx.decodedBigMapDiff[key];
-              }, this);
+              currentStorageRaw = tx.rawStorage;
+              currentStorageSize = tx.storageSize;
             }
+
+            tx.storage = decodeData(tx.rawStorage, this.getStorageSchema(group['level']));
           }
-        }, this);
+          
+          tx.prevStorage = decodeData(tx.rawPrevStorage, this.getStorageSchema(group['level'] - 1));
+        }
 
         if (group.storageSize === undefined) {
           group.storageSize = currentStorageSize;
         }
       }
 
-      if (Object.keys(miniTezaurus).length > 0) {
-        let validTezaurus = this.buildValidTezaurus(this.decoded_data, miniTezaurus, [
-          ...this.bigMapJsonPath
-        ]);
-        this.decoded_data = this.mergeTezaurusToStorage(
-          this.decoded_data,
-          this.dropNullFromObject(validTezaurus)
-        );
-      }
-
       return groups;
-    },
-    buildValidTezaurus(decodedData, miniTezaurus, jsonPath) {
-      let current = {};
-      for (let i = 0; i < jsonPath.length; i++) {
-        let key = jsonPath[i];
-        current = decodedData[key];
-      }
-
-      if (current === undefined) {
-        current = {};
-      }
-
-      let whiteListKeys = Object.keys(current);
-      let validTezaurus = {};
-
-      Object.keys(miniTezaurus).forEach(function(key) {
-        if (!whiteListKeys.includes(key)) {
-          validTezaurus = { ...validTezaurus, [key]: miniTezaurus[key] };
-        }
-      });
-
-      return validTezaurus;
-    },
-    buildBigMapTezaurus(groups, hashes) {
-      let tezaurus = {};
-
-      for (let i = 0; i < hashes.length; i++) {
-        let group = groups[hashes[i]];
-        group["operations"].forEach(function(tx) {
-          if (tx.decodedBigMapDiff) {
-            tx.bigMapDiff.forEach(function(item) {
-              let key = item.key[Object.keys(item.key)[0]];
-              let type = { prim: this.resultForStorage.type_map["000"]["prim"] };
-              tezaurus[key] = {
-                key: item.key,
-                type: type
-              };
-            }, this);
-          }
-        }, this);
-      }
-
-      return tezaurus;
     },
     getUniqueErrors(errors, status) {
       if (status !== "failed") {
@@ -568,7 +616,7 @@ export default {
         currentBalanceChange = 0;
 
         groups[hash].operations.forEach(function(op) {
-          if (op.result != undefined) {
+          if (op.result !== undefined) {
             op.status = op.result.status;
             op.errors = this.getUniqueErrors(op.result.errors, op.status);
             op.consumedGas = op.result.consumed_gas || 0;
@@ -609,7 +657,9 @@ export default {
             }
             if (op.destination === this.address) {
               if (op.kind === "origination") {
-                op.rawStorage = op.script.storage;
+                if (op.script !== undefined) {
+                  op.rawStorage = op.script.storage;
+                }
               } else {
                 op.rawStorage = op.metadata.operation_result.storage;
               }
@@ -620,17 +670,12 @@ export default {
 
           if (op.destination === this.address) {
             groups[hash].storageSize = op.storageSize;
-            if (op.rawStorage !== undefined) {
-              op.storage = decodeData(op.rawStorage, this.resultForStorage);
-            }
-            if (op.bigMapDiff !== undefined) {
-              op.decodedBigMapDiff = bigMapDiffDecode(op.bigMapDiff, this.resultForStorage);
-            }
             if (op.parameters !== undefined) {
               if (op.errors.length > 0 && op.errors[0].id.endsWith("badContractParameter")) {
                 op.decodedParameters = decodeParameters(op.parameters, null);
               } else {
-                op.decodedParameters = decodeParameters(op.parameters, this.resultForParameter);
+                op.decodedParameters = decodeParameters(
+                  op.parameters, this.getParameterSchema(groups[hash]['level']));
               }
             }
           }
@@ -651,37 +696,51 @@ export default {
 
       return diff;
     },
-    mergeBigMapToStorage(storage, decodedBigMapDiff) {
-      let current = storage;
-      let diff = this.dropNullFromObject(decodedBigMapDiff);
-
-      for (let i = 0; i < this.bigMapJsonPath.length; i++) {
-        let key = this.bigMapJsonPath[i];
-
-        if (i + 1 === this.bigMapJsonPath.length) {
-          current[key] = Object.assign(current[key], diff);
-          break;
+    findBigMapPath(rawStorage, bigMapId) {
+      let binPath = "00";
+      let walk = function(x, path) {
+        if (x.args) {
+          for (var i = 0; i < x.args.length; i++) {
+            if (x.args[i].int == bigMapId) {
+              binPath = path;
+            } else {
+              walk(x.args[i], path + i.toString());
+            }
+          }
         }
-
-        current = current[key];
       }
-
-      return current;
+      walk(rawStorage, "0");
+      return binPath;
     },
-    mergeTezaurusToStorage(storage, tezaurus) {
-      let current = Object.assign({}, storage);
-
-      for (let i = 0; i < this.bigMapJsonPath.length; i++) {
-        let key = this.bigMapJsonPath[i];
-
-        if (i + 1 === this.bigMapJsonPath.length) {
-          current[key] = Object.assign({}, current[key], tezaurus);
-          break;
-        }
-
-        current = current[key];
+    getBigMapNode(rawStorage, binPath) {
+      let node = rawStorage;
+      for (var i = 1; i < binPath.length - 1; i++) {
+        node = node.args[parseInt(i)];
       }
-
+      const lastIndex = parseInt(binPath[binPath.length - 1]);
+      // eslint-disable-next-line
+      if (typeof(node.args[lastIndex]) !== "array") {
+         node.args[lastIndex] = [];
+      }
+      return node.args[lastIndex];
+    },
+    mergeBigMapToStorage(rawStorage, bigMapDiff) {
+      let current = JSON.parse(JSON.stringify(rawStorage));
+      bigMapDiff.forEach(change => {
+        if (change.value === undefined || change.action === "alloc") {
+          return;
+        }
+        let path = "00";
+        if (change.big_map !== undefined) {
+          path = this.findBigMapPath(rawStorage, change.big_map);
+        }
+        
+        let node = this.getBigMapNode(current, path);
+        node.push({
+          prim: "Elt",
+          args: [change.key, change.value]
+        })
+      });
       return current;
     },
     getJsonPath(typeMap, path) {
@@ -704,23 +763,6 @@ export default {
         });
 
       return jsonPath;
-    },
-    async buildSchemas(code) {
-      code.forEach(function(element) {
-        if (element.prim === "storage") {
-          this.resultForStorage = buildSchema(element);
-        }
-        if (element.prim === "parameter") {
-          this.resultForParameter = buildSchema(element);
-        }
-      }, this);
-
-      if (
-        this.resultForStorage.type_map["00"] !== undefined &&
-        this.resultForStorage.type_map["00"]["prim"] === "big_map"
-      ) {
-        this.bigMapJsonPath = this.getJsonPath(this.resultForStorage.type_map, "00");
-      }
     },
     async getSandboxData() {
       let groups = {};
@@ -809,6 +851,12 @@ export default {
 
       return { txs: [], manager: "" };
     },
+    checkPayoutSignature(code) {
+      const signature = utils.payoutSignature();
+      let res = code.find(x => x.prim === "code");
+
+      return signature === JSON.stringify(res);
+    },
     async getConseilTransactionData() {
       if (this.txInfo.currentPage == 0) {
         let res = await this.getBlockData(this.address);
@@ -832,6 +880,32 @@ export default {
 
       this.txInfo.morePages = res.length === 10;
       this.txInfo.currentPage += 1;
+
+      return res;
+    },
+    async getTzStatsTransactionData() {
+      if (this.txInfo.currentPage == 0) {
+        const res = await get(
+          `${this.tzStatsUrl()}/tables/op?receiver=${this.address}&columns=height,time,type,manager,sender&order=desc&limit=50000`
+        )
+        this.blockData = res;
+        if (res.length > 0) {
+          const op = res[res.length - 1];
+          if (op[2] === 'origination') {
+            this.contractManager = op[3] || op[4];
+          } else {
+            // eslint-disable-next-line
+            console.log("Origination is missing, perhaps TF contract")
+          }
+        }
+      }
+
+      const txsPerPage = 10;
+      const offset = this.txInfo.currentPage * txsPerPage;
+      let res = this.blockData.slice(offset, Math.min(offset + txsPerPage, this.blockData.length));
+
+      this.txInfo.currentPage += 1;
+      this.txInfo.morePages = offset + txsPerPage < this.blockData.length;
 
       return res;
     },

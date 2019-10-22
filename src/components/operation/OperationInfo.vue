@@ -25,7 +25,10 @@
               <span v-if="op.kind === 'reveal'">Public Key</span>
             </div>
             <span class="tx-hash" v-if="op.destination">
-              <a v-if="op.destination[0] == 'K'" :href="baseAppURL + tezosNet + '/' + op.destination">
+              <a
+                v-if="op.destination[0] == 'K'"
+                :href="baseAppURL + tezosNet + '/' + op.destination"
+              >
                 <span style="white-space: pre;">{{ formatAddress(op.destination) }}</span>
               </a>
               <span v-else style="white-space: pre;">{{ formatAddress(op.destination) }}</span>
@@ -40,18 +43,29 @@
           </div>
           <div class="mr-4" style="min-width: 90px;">
             <div class="my-subtitle">Consumed Gas</div>
-            <span v-if="op.consumedGas !== null" style="font-size: 75%;" :class="checkOverflow(op.consumedGas, op.gas_limit)">
+            <span
+              v-if="op.consumedGas !== null"
+              style="font-size: 75%;"
+              :class="checkOverflow(op.consumedGas, op.gas_limit)"
+            >
               <font-awesome-icon icon="burn" :style="{ color: '#007ac2' }" />
               &nbsp;{{ op.consumedGas }}
-              <span v-if="op.consumedGas > 0">({{spentPercent(op.consumedGas, op.gas_limit)}})</span>
+              <span
+                v-if="op.consumedGas > 0"
+              >({{spentPercent(op.consumedGas, op.gas_limit)}})</span>
             </span>
           </div>
           <div class="mr-4">
             <div class="my-subtitle">Paid Storage Diff</div>
-            <span style="font-size: 75%;" :class="checkOverflow(op.paidStorageDiff, op.storage_limit)">
+            <span
+              style="font-size: 75%;"
+              :class="checkOverflow(op.paidStorageDiff, op.storage_limit)"
+            >
               <font-awesome-icon icon="coins" />
               &nbsp;{{ op.paidStorageDiff }}
-              <span v-if="op.paidStorageDiff > 0">({{spentPercent(op.paidStorageDiff, op.storage_limit)}})</span>
+              <span
+                v-if="op.paidStorageDiff > 0"
+              >({{spentPercent(op.paidStorageDiff, op.storage_limit)}})</span>
             </span>
           </div>
           <div class="mr-4" style="min-width: 90px;">
@@ -99,9 +113,7 @@ export default {
   components: {
     FontAwesomeIcon
   },
-  props: [
-    "op", "tezosNet"
-  ],
+  props: ["op", "tezosNet"],
   methods: {
     formatAddress(address) {
       return utils.formatAddress(address);
@@ -135,9 +147,9 @@ export default {
     },
     checkOverflow(value, limit) {
       if (parseInt(value) > parseInt(limit)) {
-        return 'overflow-error'
+        return "overflow-error";
       }
-      return ''
+      return "";
     }
   }
 };
