@@ -24,7 +24,7 @@
         "url": "https://conseil-dev.cryptonomic-infra.tech"
       },
       "platform": "tezos",
-      "network": "alphanet"
+      "network": "babylonnet"
     }
   },
   "zero": {
