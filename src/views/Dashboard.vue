@@ -63,7 +63,7 @@ export default {
   data: () => ({
     isLoading: false,
     address: "",
-    tezosNet: "alpha",
+    tezosNet: "main",
     isReady: false,
     notFound: false,
     resultForParameter: {},
@@ -135,17 +135,25 @@ export default {
       return this.netConfig().implementsTzStats();
     },
     getStorageSchema(blockLevel) {
-      if (blockLevel > 655359) {
-        return this.storageSchema.babylon;
+      if (this.tezosNet == "main") {
+        if (blockLevel > 655359) {
+          return this.storageSchema.babylon;
+        } else {
+          return this.storageSchema.athens;
+        }
       } else {
-        return this.storageSchema.athens;
+        return this.storageSchema.babylon;
       }
     },
     getParameterSchema(blockLevel) {
-      if (blockLevel > 655359) {
-        return this.parameterSchema.babylon;
+      if (this.tezosNet == "main") {
+        if (blockLevel > 655359) {
+          return this.parameterSchema.babylon;
+        } else {
+          return this.parameterSchema.athens;
+        }
       } else {
-        return this.parameterSchema.athens;
+        return this.parameterSchema.babylon;
       }
     },
     async explore() {
@@ -172,10 +180,12 @@ export default {
         this.contractDelegate = contractsData.delegate.value;
       }
 
-      const contractsDataAthens = await this.getContractsData('655359');
       let athensCode = null;
-      if (contractsDataAthens !== undefined && contractsDataAthens.script !== undefined) {
-        athensCode = contractsDataAthens.script.code;
+      if (this.tezosNet == "main") {
+        const contractsDataAthens = await this.getContractsData('655359');
+        if (contractsDataAthens !== undefined && contractsDataAthens.script !== undefined) {
+          athensCode = contractsDataAthens.script.code;
+        }
       }
 
       this.parameterSchema = {
@@ -463,10 +473,10 @@ export default {
           });
         } else {
           links.push({
-            link: `${this.baseNodeApiURL}/${blockLevel}/context/contracts/${this.address}/big_map_get?key=${change.key}`,
+            link: `${this.baseNodeApiURL}/${blockLevel}/context/contracts/${this.address}/big_map_get?key=${change.key_hash}`,
             postParams: {
               key: change.key,
-              type: change.key_type
+              type: this.getStorageSchema(blockLevel).type_map["000"]
             },
             key: change.key
           });

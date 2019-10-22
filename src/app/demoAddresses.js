@@ -18,5 +18,13 @@ export const demo = [
   {
     net: "main",
     address: "KT1RA48D7YPmS1bcpfhZKsN6DpZbC4oAxpVW"
+  },
+  {
+    net: "babylon",
+    address: "KT1Fc7XHbZhpd8wkYvzSJnAj37GxNyqSsHhZ"
+  },
+  {
+    net: "babylon",
+    address: "KT1M3gUfMDWrW9BxHzn6iwwuQ6V9HQe5rk6a"
   }
 ]
