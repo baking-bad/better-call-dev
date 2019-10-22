@@ -1,7 +1,7 @@
 {
   "main": {
     "value": "main",
-    "text": "MainNet", 
+    "text": "Mainnet", 
     "blockUrl": "https://rpc.tezrpc.me/chains/main/blocks",
     "tzStatsUrl": "https://api.tzstats.com",
     "conseil": {
@@ -15,7 +15,7 @@
   },
   "babylon": {
     "value": "babylon",
-    "text": "BabylonNet",
+    "text": "Babylon",
     "blockUrl": "https://rpc.tzkt.io/babylonnet/chains/main/blocks",
     "tzStatsUrl": "https://api.babylonnet.tzstats.com",
     "conseil": {
@@ -29,13 +29,13 @@
   },
   "zero": {
     "value": "zero",
-    "text": "ZeroNet",
+    "text": "Zeronet",
     "blockUrl": "https://rpc.tzkt.io/zeronet/chains/main/blocks",
     "tzStatsUrl": "https://api.zeronet.tzstats.com"
   },
   "sandbox": {
     "value": "sandbox",
-    "text": "SandboxNet", 
+    "text": "Sandbox", 
     "blockUrl": "http://127.0.0.1:8732/chains/main/blocks"
   }
 }
