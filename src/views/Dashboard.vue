@@ -19,7 +19,7 @@
           :morePages="txInfo.morePages"
           :decodedData="decoded_data"
           :decodedSchema="decoded_schema"
-          :parameterSchema="parameterSchema"
+          :parameterSchema="parameterSchemaView"
           :latestGroup="latestGroup"
           @loadmore="loadMore"
         />
@@ -68,7 +68,6 @@ export default {
     notFound: false,
     resultForParameter: {},
     resultForStorage: {},
-    bigMapJsonPath: "",
     decoded_data: {},
     decoded_schema: {},
     parameterSchema: {},
@@ -135,12 +134,26 @@ export default {
     implementsTzStats() {
       return this.netConfig().implementsTzStats();
     },
+    getStorageSchema(blockLevel) {
+      if (blockLevel > 655359) {
+        return this.storageSchema.babylon;
+      } else {
+        return this.storageSchema.athens;
+      }
+    },
+    getParameterSchema(blockLevel) {
+      if (blockLevel > 655359) {
+        return this.parameterSchema.babylon;
+      } else {
+        return this.parameterSchema.athens;
+      }
+    },
     async explore() {
       await this.initApp();
 
       this.isLoading = true;
 
-      const contractsData = await this.getContractsData();
+      const contractsData = await this.getContractsData('head');
       if (contractsData === undefined || contractsData.script === undefined) {
         this.notFound = true;
         this.isLoading = false;
@@ -159,11 +172,24 @@ export default {
         this.contractDelegate = contractsData.delegate.value;
       }
 
-      await this.buildSchemas(code);
+      const contractsDataAthens = await this.getContractsData('655359');
+      let athensCode = null;
+      if (contractsDataAthens !== undefined && contractsDataAthens.script !== undefined) {
+        athensCode = contractsDataAthens.script.code;
+      }
 
-      this.decoded_data = decodeData(data, this.resultForStorage);
-      this.decoded_schema = decodeSchema(this.resultForStorage.collapsed_tree);
-      this.parameterSchema = decodeSchema(this.resultForParameter.collapsed_tree);
+      this.parameterSchema = {
+        babylon: buildSchema(code[0]),
+        athens: athensCode? buildSchema(athensCode[0]) : null
+      }
+      this.storageSchema = {
+        babylon: buildSchema(code[1]),
+        athens: athensCode? buildSchema(athensCode[1]) : null
+      }
+
+      this.decoded_data = decodeData(data, this.storageSchema.babylon);
+      this.decoded_schema = decodeSchema(this.storageSchema.babylon.collapsed_tree);
+      this.parameterSchemaView = decodeSchema(this.parameterSchema.babylon.collapsed_tree);
 
       this.groups = await this.buildGroups();
       if (Object.keys(this.groups).length > 0) {
@@ -186,10 +212,9 @@ export default {
       this.notFound = false;
       this.decoded_data = {};
       this.decoded_schema = {};
+      this.parameterSchemaView = {};
       this.parameterSchema = {};
-      this.resultForParameter = {};
-      this.resultForStorage = {};
-      this.bigMapJsonPath = "";
+      this.storageSchema = {};
       this.txInfo.morePages = false;
       this.txInfo.currentPage = 0;
       this.txInfo.data = [];
@@ -209,8 +234,8 @@ export default {
     updateAddress(value) {
       this.address = value;
     },
-    async getContractsData() {
-      return await get(`${this.baseNodeApiURL}/head/context/contracts/${this.address}`);
+    async getContractsData(blockId) {
+      return await get(`${this.baseNodeApiURL}/${blockId}/context/contracts/${this.address}`);
     },
     isValidOperation(operation) {
       let isOrignation = operation.kind === "origination";
@@ -498,7 +523,8 @@ export default {
         }
       }
 
-      groups[firstHash]["operations"][0]["prevStorage"] = decodeData(currentStorageRaw, this.resultForStorage);
+      groups[firstHash]["operations"][0]["prevStorage"] = decodeData(
+        currentStorageRaw, this.getStorageSchema(groups[firstHash]["level"]));
 
       for (let i = 0; i < hashes.length; i++) {
         let group = groups[hashes[i]];
@@ -520,10 +546,10 @@ export default {
               currentStorageSize = tx.storageSize;
             }
 
-            tx.storage = decodeData(tx.rawStorage, this.resultForStorage);
+            tx.storage = decodeData(tx.rawStorage, this.getStorageSchema(group['level']));
           }
           
-          tx.prevStorage = decodeData(tx.rawPrevStorage, this.resultForStorage);
+          tx.prevStorage = decodeData(tx.rawPrevStorage, this.getStorageSchema(group['level'] - 1));
         }
 
         if (group.storageSize === undefined) {
@@ -636,7 +662,8 @@ export default {
               if (op.errors.length > 0 && op.errors[0].id.endsWith("badContractParameter")) {
                 op.decodedParameters = decodeParameters(op.parameters, null);
               } else {
-                op.decodedParameters = decodeParameters(op.parameters, this.resultForParameter);
+                op.decodedParameters = decodeParameters(
+                  op.parameters, this.getParameterSchema(groups[hash]['level']));
               }
             }
           }
@@ -722,23 +749,6 @@ export default {
         });
 
       return jsonPath;
-    },
-    async buildSchemas(code) {
-      code.forEach(function(element) {
-        if (element.prim === "storage") {
-          this.resultForStorage = buildSchema(element);
-        }
-        if (element.prim === "parameter") {
-          this.resultForParameter = buildSchema(element);
-        }
-      }, this);
-
-      if (
-        this.resultForStorage.type_map["00"] !== undefined &&
-        this.resultForStorage.type_map["00"]["prim"] === "big_map"
-      ) {
-        this.bigMapJsonPath = this.getJsonPath(this.resultForStorage.type_map, "00");
-      }
     },
     async getSandboxData() {
       let groups = {};

@@ -192,7 +192,7 @@ export function buildSchema(code) {
       res.prim = node.prim;
       res.args = args;
 
-      if (typename || parent_prim != node.prim) {
+      if ((typename && node.prim === "pair") || parent_prim != node.prim) {
         args = get_flat_nested(res);
         type_map[path].children = args.map(x => x.path);
 
