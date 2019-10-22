@@ -324,15 +324,15 @@ export default {
       let tezaurus = {};
       let data = {};
 
-      if (this.implementsTzStats()) {
-        data = await this.getTzStatsTransactionData();
-        data.forEach(tx => {
-          tezaurus[tx[0]] = tx[1]
-        });
-      } else if (this.implementsConseil()) {
+      if (this.implementsConseil()) {
         data = await this.getConseilTransactionData();
         data.forEach(tx => {
           tezaurus[tx.block_level] = tx.timestamp;
+        });
+      } else if (this.implementsTzStats()) {
+        data = await this.getTzStatsTransactionData();
+        data.forEach(tx => {
+          tezaurus[tx[0]] = tx[1]
         });
       } else {
         throw "Cannot build tezaurus";
