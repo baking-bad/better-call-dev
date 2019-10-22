@@ -182,7 +182,7 @@ export default {
 
       let athensCode = null;
       if (this.tezosNet == "main") {
-        const contractsDataAthens = await this.getContractsData('655359');
+        const contractsDataAthens = await this.getContractsData('655359').catch(e => e);
         if (contractsDataAthens !== undefined && contractsDataAthens.script !== undefined) {
           athensCode = contractsDataAthens.script.code;
         }
@@ -351,6 +351,12 @@ export default {
 
       return res;
     },
+    isPayoutTransaction(tx) {
+      return this.isPayoutContract
+        && tx.kind === "transaction"
+        && tx.parameters === undefined
+        && tx.destination.startsWith('KT1');
+    },
     pushOperationsToGroups(operationGroups, level = 0) {
       const groups = {};
 
@@ -368,9 +374,7 @@ export default {
           }
 
           if (this.isValidOperation(operation)) {
-            if (this.isPayoutContract) {
-              operation.reward = true;
-            }
+            operation.reward = this.isPayoutTransaction(operation);
             operations.push(operation);
             fee += parseInt(operation.fee);
             gasLimit += parseInt(operation.gas_limit);
@@ -384,9 +388,7 @@ export default {
           if (operation.metadata.internal_operation_results !== undefined) {
             operation.metadata.internal_operation_results.forEach(function(op) {
               if (this.isValidOperation(op)) {
-                if (this.isPayoutContract) {
-                  op.reward = true;
-                }
+                op.reward = this.isPayoutTransaction(op);
                 op.internal = true;
                 operations.push(op);
 

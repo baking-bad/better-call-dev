@@ -26,5 +26,13 @@ export const demo = [
   {
     net: "babylon",
     address: "KT1M3gUfMDWrW9BxHzn6iwwuQ6V9HQe5rk6a"
+  },
+  {
+    net: "main",
+    address: "KT1LSMRcE2sLqg6H1mmFHG7RVwYNEQnkAtc1"
+  },
+  {
+    net: "main",
+    address: "KT1G7dP6KqKY7ZEEm8vn7m98gs2AMEHCpcia"
   }
 ]
