@@ -709,6 +709,7 @@ export default {
           }
         }
       }
+      walk(rawStorage, "0");
       return binPath;
     },
     getBigMapNode(rawStorage, binPath) {
@@ -717,7 +718,7 @@ export default {
         node = node.args[parseInt(i)];
       }
       const lastIndex = parseInt(binPath[binPath.length - 1]);
-      if (typeof(node.args[lastIndex]) != "array") {
+      if (typeof(node.args[lastIndex]) !== "array") {
          node.args[lastIndex] = [];
       }
       return node.args[lastIndex];
@@ -892,6 +893,7 @@ export default {
           if (op[2] === 'origination') {
             this.contractManager = op[3] || op[4];
           } else {
+            // eslint-disable-next-line
             console.log("Origination is missing, perhaps TF contract")
           }
         }
