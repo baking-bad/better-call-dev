@@ -766,7 +766,7 @@ export default {
     },
     async getSandboxData() {
       let groups = {};
-      const txsPerPage = 10;
+      const txsPerPage = 5;
 
       while (
         (this.txInfo.currentPage > 2 || this.txInfo.currentPage === 0) &&
@@ -864,7 +864,7 @@ export default {
         this.contractManager = res.manager;
       }
 
-      const txsPerPage = 10;
+      const txsPerPage = 5;
       const offset = this.txInfo.currentPage * txsPerPage;
       let res = this.blockData.slice(offset, Math.min(offset + txsPerPage, this.blockData.length));
 
@@ -900,7 +900,7 @@ export default {
         }
       }
 
-      const txsPerPage = 10;
+      const txsPerPage = 5;
       const offset = this.txInfo.currentPage * txsPerPage;
       let res = this.blockData.slice(offset, Math.min(offset + txsPerPage, this.blockData.length));
 
