@@ -718,6 +718,7 @@ export default {
         node = node.args[parseInt(i)];
       }
       const lastIndex = parseInt(binPath[binPath.length - 1]);
+      // eslint-disable-next-line
       if (typeof(node.args[lastIndex]) !== "array") {
          node.args[lastIndex] = [];
       }
