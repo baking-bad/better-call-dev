@@ -1,9 +1,9 @@
 {
   "main": {
     "value": "main",
-    "text": "Mainnet", 
+    "text": "MainNet", 
     "blockUrl": "https://rpc.tezrpc.me/chains/main/blocks",
-    "tzScanUrl": "https://api5.tzscan.io/v1",
+    "tzStatsUrl": "https://api.tzstats.com",
     "conseil": {
       "server": {
         "apiKey": "galleon",
@@ -13,11 +13,11 @@
       "network": "mainnet"
     }
   },
-  "alpha": {
-    "value": "alpha",
-    "text": "Babylon",
-    "blockUrl": "https://tezos-dev.cryptonomic-infra.tech/chains/main/blocks",
-    "tzScanUrl": "https://api.alphanet.tzscan.io/v1",
+  "babylon": {
+    "value": "babylon",
+    "text": "BabylonNet",
+    "blockUrl": "https://rpc.tzkt.io/babylonnet/chains/main/blocks",
+    "tzStatsUrl": "https://api.babylonnet.tzstats.com",
     "conseil": {
       "server": {
         "apiKey": "galleon",
@@ -27,9 +27,15 @@
       "network": "alphanet"
     }
   },
+  "zero": {
+    "value": "zero",
+    "text": "ZeroNet",
+    "blockUrl": "https://rpc.tzkt.io/zeronet/chains/main/blocks",
+    "tzStatsUrl": "https://api.zeronet.tzstats.com"
+  },
   "sandbox": {
     "value": "sandbox",
-    "text": "Sandbox", 
+    "text": "SandboxNet", 
     "blockUrl": "http://127.0.0.1:8732/chains/main/blocks"
   }
 }

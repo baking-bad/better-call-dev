@@ -15,12 +15,24 @@ class NetConfig {
     return this.netConfig.hasOwnProperty("conseil");
   }
 
+  implementsTzStats() {
+    return this.netConfig.hasOwnProperty("tzStatsUrl");
+  }
+
   conseilConfig() {
     let config = this.netConfig;
     if (!this.implementsConseil()) {
       throw `${this.net} has no conseil API`;
     }
     return config.conseil;
+  }
+
+  tzStatsUrl() {
+    let config = this.netConfig;
+    if (!config.hasOwnProperty("tzStatsUrl")) {
+      throw `${this.net} has no tzStatsUrl`;
+    }
+    return config.tzStatsUrl;
   }
 
   tzScanUrl() {
