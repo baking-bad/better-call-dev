@@ -30,11 +30,10 @@
 
 <script>
 import {
-  bigMapDiffDecode,
   decodeParameters,
   decodeData,
   decodeSchema,
-  buildSchema
+  buildSchema,
 } from "@/app/decode";
 import {
   ConseilQueryBuilder,
@@ -425,30 +424,47 @@ export default {
 
       return groups;
     },
-    buildPostLinksForNode(miniTezaurus, block) {
+    async getBigMapPrev(bigMapDiff, blockLevel) {
       const links = [];
+      bigMapDiff.forEach(change => {
+        if (change.action === "alloc") {
+          return;
+        }
+        if (change.big_map !== undefined) {
+          links.push({
+            link: `${this.baseNodeApiURL}/${blockLevel}/context/big_maps/${change.big_map}/${change.key_hash}`,
+            big_map: change.big_map,
+            key: change.key
+          });
+        } else {
+          links.push({
+            link: `${this.baseNodeApiURL}/${blockLevel}/context/contracts/${this.address}/big_map_get?key=${change.key}`,
+            postParams: {
+              key: change.key,
+              type: change.key_type
+            },
+            key: change.key
+          });
+        }
+      });
 
-      Object.keys(miniTezaurus).forEach(function(key) {
-        links.push({
-          link: `${this.baseNodeApiURL}/${block}/context/contracts/${this.address}/big_map_get?key=${key}`,
-          postParams: miniTezaurus[key],
-          key: miniTezaurus[key].key
-        });
-      }, this);
-
-      return links;
-    },
-    async getAllBigMapFromNode(links) {
-      let promiseArray = links.map(l => post(l.link, l.postParams));
+      let promiseArray = links.map(l => {
+        if (l.postParams) {
+          return post(l.link, l.postParams);
+        } else {
+          return get(l.link);
+        }
+      });
       let res = [];
 
-      let items = (await Promise.all(promiseArray)).flatMap(x => x);
+      let items = (await Promise.all(promiseArray.map(p => p.catch(e => e)))).flatMap(x => x);
 
       for (let i = 0; i < items.length; i++) {
         if (items[i]) {
           res.push({
             key: links[i].key,
-            value: items[i]
+            value: items[i],
+            big_map: links[i].big_map
           });
         }
       }
@@ -471,113 +487,51 @@ export default {
       let firstHash = hashes[0];
       let prevBlock = groups[firstHash]["level"] - 1;
 
-      let keys = this.buildBigMapTezaurus(groups, hashes);
-      let links = this.buildPostLinksForNode(keys, prevBlock);
-      let result = await this.getAllBigMapFromNode(links);
-      let miniTezaurusRaw = bigMapDiffDecode(result, this.resultForStorage);
-      let miniTezaurus = this.dropNullFromObject(miniTezaurusRaw);
-
-      let currentStorage = undefined;
+      let currentStorageRaw = undefined;
       let currentStorageSize = "0";
       if (groups[firstHash]["operations"][0]["kind"] != "origination") {
         let stResponse = await get(
           `${this.baseNodeApiURL}/${prevBlock}/context/contracts/${this.address}`
         );
         if (stResponse.script !== undefined) {
-          currentStorage = stResponse.script.storage;
+          currentStorageRaw = stResponse.script.storage;
         }
       }
 
-      currentStorage = decodeData(currentStorage, this.resultForStorage);
-      groups[firstHash]["operations"][0]["prevStorage"] = JSON.parse(
-        JSON.stringify(currentStorage)
-      );
+      groups[firstHash]["operations"][0]["prevStorage"] = decodeData(currentStorageRaw, this.resultForStorage);
 
       for (let i = 0; i < hashes.length; i++) {
         let group = groups[hashes[i]];
-        group["operations"].forEach(function(tx) {
-          tx.prevStorage = currentStorage;
+        for (var tx of group["operations"]) {
+          tx.rawPrevStorage = currentStorageRaw;
           if (tx.status === "applied" && tx.destination === this.address) {
-            if (tx.storage) {
-              currentStorage = JSON.parse(JSON.stringify(tx.storage));
+            if (tx.rawStorage) {
+
+              if (tx.bigMapDiff) {
+                tx.rawStorage = this.mergeBigMapToStorage(tx.rawStorage, tx.bigMapDiff);
+
+                if (tx.rawPrevStorage) {
+                  tx.rawPrevBigMap = await this.getBigMapPrev(tx.bigMapDiff, group["level"] - 1);
+                  tx.rawPrevStorage = this.mergeBigMapToStorage(tx.rawPrevStorage, tx.rawPrevBigMap);
+                }
+              }
+
+              currentStorageRaw = tx.rawStorage;
               currentStorageSize = tx.storageSize;
             }
 
-            if (tx.decodedBigMapDiff) {
-              tx.storage = this.mergeBigMapToStorage(tx.storage, tx.decodedBigMapDiff);
-
-              Object.keys(tx.decodedBigMapDiff).forEach(function(key) {
-                if (miniTezaurus[key] !== undefined) {
-                  let temp = {};
-                  temp[key] = miniTezaurus[key];
-                  tx.prevStorage = this.mergeBigMapToStorage(tx.prevStorage, temp);
-                }
-
-                miniTezaurus[key] = tx.decodedBigMapDiff[key];
-              }, this);
-            }
+            tx.storage = decodeData(tx.rawStorage, this.resultForStorage);
           }
-        }, this);
+          
+          tx.prevStorage = decodeData(tx.rawPrevStorage, this.resultForStorage);
+        }
 
         if (group.storageSize === undefined) {
           group.storageSize = currentStorageSize;
         }
       }
 
-      if (Object.keys(miniTezaurus).length > 0) {
-        let validTezaurus = this.buildValidTezaurus(this.decoded_data, miniTezaurus, [
-          ...this.bigMapJsonPath
-        ]);
-        this.decoded_data = this.mergeTezaurusToStorage(
-          this.decoded_data,
-          this.dropNullFromObject(validTezaurus)
-        );
-      }
-
       return groups;
-    },
-    buildValidTezaurus(decodedData, miniTezaurus, jsonPath) {
-      let current = {};
-      for (let i = 0; i < jsonPath.length; i++) {
-        let key = jsonPath[i];
-        current = decodedData[key];
-      }
-
-      if (current === undefined) {
-        current = {};
-      }
-
-      let whiteListKeys = Object.keys(current);
-      let validTezaurus = {};
-
-      Object.keys(miniTezaurus).forEach(function(key) {
-        if (!whiteListKeys.includes(key)) {
-          validTezaurus = { ...validTezaurus, [key]: miniTezaurus[key] };
-        }
-      });
-
-      return validTezaurus;
-    },
-    buildBigMapTezaurus(groups, hashes) {
-      let tezaurus = {};
-
-      for (let i = 0; i < hashes.length; i++) {
-        let group = groups[hashes[i]];
-        group["operations"].forEach(function(tx) {
-          if (tx.decodedBigMapDiff) {
-            tx.bigMapDiff.forEach(function(item) {
-              let key = item.key[Object.keys(item.key)[0]];
-              let type = { prim: this.resultForStorage.type_map["000"]["prim"] };
-              tezaurus[key] = {
-                key: item.key,
-                type: type
-              };
-            }, this);
-          }
-        }, this);
-      }
-
-      return tezaurus;
     },
     getUniqueErrors(errors, status) {
       if (status !== "failed") {
@@ -678,12 +632,6 @@ export default {
 
           if (op.destination === this.address) {
             groups[hash].storageSize = op.storageSize;
-            if (op.rawStorage !== undefined) {
-              op.storage = decodeData(op.rawStorage, this.resultForStorage);
-            }
-            if (op.bigMapDiff !== undefined) {
-              op.decodedBigMapDiff = bigMapDiffDecode(op.bigMapDiff, this.resultForStorage);
-            }
             if (op.parameters !== undefined) {
               if (op.errors.length > 0 && op.errors[0].id.endsWith("badContractParameter")) {
                 op.decodedParameters = decodeParameters(op.parameters, null);
@@ -709,37 +657,49 @@ export default {
 
       return diff;
     },
-    mergeBigMapToStorage(storage, decodedBigMapDiff) {
-      let current = storage;
-      let diff = this.dropNullFromObject(decodedBigMapDiff);
-
-      for (let i = 0; i < this.bigMapJsonPath.length; i++) {
-        let key = this.bigMapJsonPath[i];
-
-        if (i + 1 === this.bigMapJsonPath.length) {
-          current[key] = Object.assign(current[key], diff);
-          break;
+    findBigMapPath(rawStorage, bigMapId) {
+      let binPath = "00";
+      let walk = function(x, path) {
+        if (x.args) {
+          for (var i = 0; i < x.args.length; i++) {
+            if (x.args[i].int == bigMapId) {
+              binPath = path;
+            } else {
+              walk(x.args[i], path + i.toString());
+            }
+          }
         }
-
-        current = current[key];
       }
-
-      return current;
+      return binPath;
     },
-    mergeTezaurusToStorage(storage, tezaurus) {
-      let current = Object.assign({}, storage);
-
-      for (let i = 0; i < this.bigMapJsonPath.length; i++) {
-        let key = this.bigMapJsonPath[i];
-
-        if (i + 1 === this.bigMapJsonPath.length) {
-          current[key] = Object.assign({}, current[key], tezaurus);
-          break;
-        }
-
-        current = current[key];
+    getBigMapNode(rawStorage, binPath) {
+      let node = rawStorage;
+      for (var i = 1; i < binPath.length - 1; i++) {
+        node = node.args[parseInt(i)];
       }
-
+      const lastIndex = parseInt(binPath[binPath.length - 1]);
+      if (typeof(node.args[lastIndex]) != "array") {
+         node.args[lastIndex] = [];
+      }
+      return node.args[lastIndex];
+    },
+    mergeBigMapToStorage(rawStorage, bigMapDiff) {
+      let current = JSON.parse(JSON.stringify(rawStorage));
+      bigMapDiff.forEach(change => {
+        if (change.value === undefined || change.action === "alloc") {
+          return;
+        }
+        let path = "00";
+        if (change.big_map !== undefined) {
+          path = this.findBigMapPath(rawStorage, change.big_map);
+        }
+        
+        let node = this.getBigMapNode(current, path);
+        node.push({
+          prim: "Elt",
+          args: [change.key, change.value]
+        })
+      });
       return current;
     },
     getJsonPath(typeMap, path) {

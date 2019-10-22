@@ -1,7 +1,7 @@
 <template>
   <b-col lg="12">
     <div class="my-title" :class="tx.kind">
-      <span v-if="tx.internal">internal</span>
+      <span v-if="tx.internal">internal&nbsp;</span>
       <span v-if="tx.reward && tx.kind === 'transaction'">Reward Payment</span>
       <span v-else>{{tx.kind}}</span>
       <span :class="'ml-1 badge badge-outline ' + badgeClass(tx.status)">{{ tx.status }}</span>
