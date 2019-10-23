@@ -9,7 +9,7 @@
     </b-col>
 
     <b-col class="pl-0">
-      <span class="hash-address" v-b-tooltip.hover title="Operation Hash">{{ hash }}</span>
+      <span class="hash-address" v-b-tooltip.hover title="Operation hash and counter">{{ hash }}&nbsp;/&nbsp;{{ group.counter }}</span>
     </b-col>
 
     <b-col class="pl-0 text-right">
