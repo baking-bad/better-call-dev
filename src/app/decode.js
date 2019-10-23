@@ -178,7 +178,7 @@ export function buildSchema(code) {
       if (["big_map"].includes(node.prim)) {
         name = node.prim;
       } else if (path === "00" && node.prim === "key_hash") {
-        name = "delegate";
+        name = "__manager__";
       }
     }
 
