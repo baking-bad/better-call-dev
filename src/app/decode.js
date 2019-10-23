@@ -174,8 +174,12 @@ export function buildSchema(code) {
     const typename = getAnnotation(node, ":");
     let name = getAnnotation(node, "%", typename);
 
-    if (name === undefined && node.prim == "big_map") {
-      name = "big_map";
+    if (name === undefined) {
+      if (["big_map"].includes(node.prim)) {
+        name = node.prim;
+      } else if (path === "00" && node.prim === "key_hash") {
+        name = "delegate";
+      }
     }
 
     let args = [];
@@ -192,13 +196,13 @@ export function buildSchema(code) {
       res.prim = node.prim;
       res.args = args;
 
-      if ((typename && node.prim === "pair") || parent_prim != node.prim) {
+      if ((typename && node.prim === "pair" && name !== "storage") || parent_prim != node.prim) {
         args = get_flat_nested(res);
         type_map[path].children = args.map(x => x.path);
 
         const props = args.map(x => x.name);
 
-        if (allTrue(props)) {
+        if (new Set(props).size === props.length) {
           type_map[path].props = props;
         }
 
@@ -332,16 +336,6 @@ function get_route_terminal(route) {
     return get_route_terminal(route.value);
   }
   return route;
-}
-
-function allTrue(obj) {
-  for (const o in obj) {
-    if (!obj[o]) {
-      return false;
-    }
-  }
-
-  return true;
 }
 
 function isObject(obj) {

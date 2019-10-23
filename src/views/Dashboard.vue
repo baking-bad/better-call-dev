@@ -135,8 +135,8 @@ export default {
       return this.netConfig().implementsTzStats();
     },
     getStorageSchema(blockLevel) {
-      if (this.tezosNet == "main") {
-        if (blockLevel > 655359) {
+      if (this.tezosNet === "main") {
+        if (parseInt(blockLevel) > 655359) {
           return this.storageSchema.babylon;
         } else {
           return this.storageSchema.athens;
@@ -146,8 +146,8 @@ export default {
       }
     },
     getParameterSchema(blockLevel) {
-      if (this.tezosNet == "main") {
-        if (blockLevel > 655359) {
+      if (this.tezosNet === "main") {
+        if (parseInt(blockLevel) > 655359) {
           return this.parameterSchema.babylon;
         } else {
           return this.parameterSchema.athens;
@@ -367,6 +367,7 @@ export default {
         let gasLimit = 0;
         let storageLimit = 0;
         let weFound = false;
+        let counter = undefined;
 
         group.contents.forEach(function(operation) {
           if (!["transaction", "origination", "delegation"].includes(operation.kind)) {
@@ -381,6 +382,9 @@ export default {
             storageLimit += parseInt(operation.storage_limit);
 
             if (this.isRelated(operation)) {
+              if (counter === undefined) {
+                counter = operation.counter;
+              }
               weFound = true;
             }
           }
@@ -393,6 +397,9 @@ export default {
                 operations.push(op);
 
                 if (this.isRelated(op)) {
+                  if (counter === undefined) {
+                    counter = operation.counter;
+                  }
                   weFound = true;
                 }
               }
@@ -406,6 +413,7 @@ export default {
 
           groups[groupHash] = {
             operations,
+            counter: counter,
             level: lvl,
             fee: fee,
             gasLimit: gasLimit,
@@ -522,13 +530,13 @@ export default {
     async getOldStorage(groups) {
       let hashes = this.getReversedTxHashes(groups);
       let firstHash = hashes[0];
-      let prevBlock = groups[firstHash]["level"] - 1;
 
       let currentStorageRaw = undefined;
       let currentStorageSize = "0";
+      let currentLevel = groups[firstHash]["level"];
       if (groups[firstHash]["operations"][0]["kind"] != "origination") {
         let stResponse = await get(
-          `${this.baseNodeApiURL}/${prevBlock}/context/contracts/${this.address}`
+          `${this.baseNodeApiURL}/${currentLevel - 1}/context/contracts/${this.address}`
         );
         if (stResponse.script !== undefined) {
           currentStorageRaw = stResponse.script.storage;
@@ -536,7 +544,7 @@ export default {
       }
 
       groups[firstHash]["operations"][0]["prevStorage"] = decodeData(
-        currentStorageRaw, this.getStorageSchema(groups[firstHash]["level"]));
+        currentStorageRaw, this.getStorageSchema(currentLevel));
 
       for (let i = 0; i < hashes.length; i++) {
         let group = groups[hashes[i]];
@@ -561,9 +569,10 @@ export default {
             tx.storage = decodeData(tx.rawStorage, this.getStorageSchema(group['level']));
           }
           
-          tx.prevStorage = decodeData(tx.rawPrevStorage, this.getStorageSchema(group['level'] - 1));
+          tx.prevStorage = decodeData(tx.rawPrevStorage, this.getStorageSchema(currentLevel - 1));
         }
 
+        currentLevel = group["level"];
         if (group.storageSize === undefined) {
           group.storageSize = currentStorageSize;
         }
