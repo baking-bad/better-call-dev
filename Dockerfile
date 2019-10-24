@@ -1,6 +1,6 @@
 FROM node:latest AS base
 WORKDIR /better-call-dev
-RUN apt update && apt install -y libusb-1.0-0 libudev-dev
+RUN apt update && apt install -y libusb-1.0-0-dev libudev-dev
 ADD . .
 RUN npm i
 RUN npm run build
