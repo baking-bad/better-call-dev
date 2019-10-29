@@ -178,9 +178,6 @@ export default {
       let res = [];
 
       contents.forEach(function(operation) {
-        if (operation.kind === "origination") {
-          operation.paid_storage_size_diff += 257;
-        }
         res.push(operation);
 
         if (operation.metadata.internal_operation_results !== undefined) {
