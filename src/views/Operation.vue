@@ -31,7 +31,7 @@ import OperationInfo from "@/components/operation/OperationInfo.vue";
 import Loader from "@/components/Loader.vue";
 import NavBar from "@/components/NavBar.vue";
 import NotFound from "@/components/NotFound.vue";
-
+import { decodeData } from "@/app/decode";
 import { ConseilQueryBuilder, ConseilOperator, ConseilDataClient } from "conseiljs";
 import { setupConseil } from "@/app/conseil";
 import { get } from "@/app/http";
