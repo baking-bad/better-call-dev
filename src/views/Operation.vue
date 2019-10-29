@@ -10,7 +10,8 @@
         <div class="tab-wrapper" v-if="!notFound">
           <b-row class="styled-row">
             <b-col lg="12" class="pt-3 info-wrapper">
-              <GroupHeader :opDate="opDate" :opTime="opTime" :blockLevel="blockLevel" :hash="hash" />
+              <GroupHeader :opDate="opDate" :opTime="opTime" :blockLevel="blockLevel" :hash="hash" 
+                           :fee="fee" :gasLimit="gasLimit" :storageLimit="storageLimit" />
             </b-col>
             <b-col lg="12" class="mb-3 pt-3 pl-4">
               <b-row v-for="(op, id) in contents" :key="id + '-' + op.kind + '-' + op.source">
@@ -48,8 +49,11 @@ export default {
   },
   data: () => ({
     isLoading: false,
-    tezosNet: "alpha",
+    tezosNet: "main",
     hash: "",
+    fee: 0,
+    gasLimit: 0,
+    storageLimit: 0,
     blockLevel: 0,
     timestamp: 0,
     contents: [],
@@ -91,7 +95,13 @@ export default {
 
       this.isLoading = true;
 
-      let opData = await this.getOperationData(this.tezosNet, this.hash);
+      let opData = undefined;
+      if (this.implementsTzStats) {
+        opData = await this.getTzStatsOperationData(this.tezosNet, this.hash);
+      } else if (this.implementsConseil) {
+        opData = await this.getConseilOperationData(this.tezosNet, this.hash);
+      }      
+      
       if (opData === undefined) {
         this.isLoading = false;
         this.notFound = true;
@@ -103,14 +113,38 @@ export default {
         let rawContents = operations.find(op => op.hash === this.hash).contents;
         let contentsWithInternal = this.getInternalContents(rawContents);
 
+        let getInt = function(content, key) {
+          if (content !== undefined) {
+            const prop = content[key];
+            if (prop !== undefined) {
+              return parseInt(prop);
+            }
+          }
+          return 0;
+        }
+
         this.contents = this.restructureContents(contentsWithInternal);
+        this.fee = rawContents.reduce((a, b) => getInt(a, 'fee') + getInt(b, 'fee'), 0);
+        this.gasLimit = rawContents.reduce((a, b) => getInt(a, 'gas_limit') + getInt(b, 'gas_limit') || 0, 0);
+        this.storageLimit = rawContents.reduce((a, b) => getInt(a, 'storage_limit') + getInt(b, 'storage_limit') || 0, 0);
         this.isLoading = false;
       }
     },
     async getOperations(block) {
       return await get(`${this.baseNodeApiURL}/${block}/operations/3`);
     },
-    async getOperationData(net, hash) {
+    async getTzStatsOperationData(net, hash) {
+      const res = await get(`${this.tzStatsUrl}/tables/op?hash=${hash}&columns=height,time`)
+      if (res.length == 1) {
+        return {
+          level: res[0][0],
+          ts: res[0][1]
+        }
+      } else {
+        return undefined;
+      }
+    },
+    async getConseilOperationData(net, hash) {
       const cnsl = setupConseil(net);
 
       let txQuery = ConseilQueryBuilder.blankQuery();
@@ -144,6 +178,9 @@ export default {
       let res = [];
 
       contents.forEach(function(operation) {
+        if (operation.kind === "origination") {
+          operation.paid_storage_size_diff += 257;
+        }
         res.push(operation);
 
         if (operation.metadata.internal_operation_results !== undefined) {
@@ -158,11 +195,30 @@ export default {
 
       return res;
     },
+    getUniqueErrors(errors, status) {
+      let ret = [];
+      let seenErr = [];
+
+      errors.forEach(function(err) {
+        if (!seenErr.includes(err.id)) {
+          let id = err.id;
+          let msg = "";
+          if (err.with !== undefined) {
+            // To-Do: decoded with
+            msg = decodeData(err.with, null);
+          }
+          ret.push({ id: id, msg: msg });
+          seenErr.push(id);
+        }
+      }, this);
+
+      return ret;
+    },
     restructureContents(contents) {
       contents.forEach(function(op) {
         if (op.result !== undefined) {
           op.status = op.result.status;
-          op.errors = op.result.errors;
+          op.errors = this.getUniqueErrors(op.result.errors, op.status);
           op.consumedGas = op.result.consumed_gas || 0;
           op.paidStorageDiff = op.result.paid_storage_size_diff || 0;
 
@@ -173,7 +229,7 @@ export default {
           }
         } else if (op.metadata.operation_result !== undefined) {
           op.status = op.metadata.operation_result.status;
-          op.errors = op.metadata.operation_result.errors;
+          op.errors = this.getUniqueErrors(op.metadata.operation_result.errors, op.status);
           op.consumedGas = op.metadata.operation_result.consumed_gas || 0;
           op.paidStorageDiff = op.metadata.operation_result.paid_storage_size_diff || 0;
 
@@ -183,7 +239,7 @@ export default {
             op.destination = op.public_key;
           }
         }
-      });
+      }, this);
       return contents;
     },
     netConfig() {
@@ -214,7 +270,16 @@ export default {
       } else {
         return this.netConfig().blockUrl();
       }
-    }
+    },
+    tzStatsUrl() {
+      return this.netConfig().tzStatsUrl();
+    },
+    implementsConseil() {
+      return this.netConfig().implementsConseil();
+    },
+    implementsTzStats() {
+      return this.netConfig().implementsTzStats();
+    },
   }
 };
 </script>

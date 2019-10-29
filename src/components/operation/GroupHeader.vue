@@ -7,9 +7,27 @@
         &nbsp;{{ blockLevel }}
       </span>
     </b-col>
+    
+
+    <b-col class="pl-0">
+      <span class="hash-address" v-b-tooltip.hover title="Operation Hash">{{ hash }}</span>
+    </b-col>
 
     <b-col class="pl-0 text-right">
-      <span class="hash-address" v-b-tooltip.hover title="Operation Hash">{{ hash }}</span>
+      <span v-b-tooltip.hover title="Fee" class="mr-3">
+        <font-awesome-icon icon="receipt"/>
+        &nbsp;{{ formatXTZ(fee) }}
+      </span>
+
+      <span v-b-tooltip.hover title="Gas Limit" class="mr-3">
+        <font-awesome-icon icon="burn"/>
+        &nbsp;{{ gasLimit }}
+      </span>
+
+      <span v-b-tooltip.hover title="Storage Limit">
+        <font-awesome-icon icon="coins"/>
+        &nbsp;{{ storageLimit }}
+      </span>
     </b-col>
   </b-row>
 </template>
@@ -18,6 +36,7 @@
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faCube } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import utils from "@/app/utils";
 
 library.add(faCube);
 
@@ -27,10 +46,18 @@ export default {
     "opDate",
     "opTime",
     "blockLevel",
-    "hash"
+    "hash",
+    "fee",
+    "gasLimit",
+    "storageLimit"
   ],
   components: {
     FontAwesomeIcon
+  },
+  methods: {
+    formatXTZ(amount) {
+      return utils.formatXTZ(amount);
+    }
   }
 };
 </script>
