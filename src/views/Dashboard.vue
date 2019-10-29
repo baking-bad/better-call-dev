@@ -628,8 +628,8 @@ export default {
           if (op.result !== undefined) {
             op.status = op.result.status;
             op.errors = this.getUniqueErrors(op.result.errors, op.status);
-            op.consumedGas = op.result.consumed_gas || 0;
-            op.paidStorageDiff = op.result.paid_storage_size_diff || 0;
+            op.consumedGas = parseInt(op.result.consumed_gas) || 0;
+            op.paidStorageDiff = parseInt(op.result.paid_storage_size_diff) || 0;
             op.expand = false;
             currentBalanceChange += this.changeBalance(op.result.balance_updates, this.address);
 
@@ -637,6 +637,7 @@ export default {
               if (op.result.originated_contracts != undefined) {
                 op.destination = op.result.originated_contracts[0];
                 op.amount = this.changeBalance(op.result.balance_updates, op.destination);
+                op.paidStorageDiff += 257;
               }
             } else if (op.kind === "delegation") {
               op.destination = op.delegate || "unset".padEnd(36, " ");
@@ -649,8 +650,8 @@ export default {
           } else if (op.metadata.operation_result != undefined) {
             op.status = op.metadata.operation_result.status;
             op.errors = this.getUniqueErrors(op.metadata.operation_result.errors, op.status);
-            op.consumedGas = op.metadata.operation_result.consumed_gas || 0;
-            op.paidStorageDiff = op.metadata.operation_result.paid_storage_size_diff || 0;
+            op.consumedGas = parseInt(op.metadata.operation_result.consumed_gas) || 0;
+            op.paidStorageDiff = parseInt(op.metadata.operation_result.paid_storage_size_diff) || 0;
             op.expand = false;
             currentBalanceChange += this.changeBalance(
               op.metadata.operation_result.balance_updates,
@@ -663,6 +664,7 @@ export default {
                 op.metadata.operation_result.balance_updates,
                 op.destination
               );
+              op.paidStorageDiff += 257;
             }
             if (op.destination === this.address) {
               if (op.kind === "origination") {

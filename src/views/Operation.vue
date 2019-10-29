@@ -135,7 +135,7 @@ export default {
     },
     async getTzStatsOperationData(net, hash) {
       const res = await get(`${this.tzStatsUrl}/tables/op?hash=${hash}&columns=height,time`)
-      if (res.length == 1) {
+      if (res.length > 0) {
         return {
           level: res[0][0],
           ts: res[0][1]
@@ -196,18 +196,19 @@ export default {
       let ret = [];
       let seenErr = [];
 
-      errors.forEach(function(err) {
-        if (!seenErr.includes(err.id)) {
-          let id = err.id;
-          let msg = "";
-          if (err.with !== undefined) {
-            // To-Do: decoded with
-            msg = decodeData(err.with, null);
+      if (errors !== undefined) {
+        errors.forEach(function(err) {
+          if (!seenErr.includes(err.id)) {
+            let id = err.id;
+            let msg = "";
+            if (err.with !== undefined) {
+              msg = decodeData(err.with, null);
+            }
+            ret.push({ id: id, msg: msg });
+            seenErr.push(id);
           }
-          ret.push({ id: id, msg: msg });
-          seenErr.push(id);
-        }
-      }, this);
+        }, this);
+      }
 
       return ret;
     },
@@ -216,22 +217,24 @@ export default {
         if (op.result !== undefined) {
           op.status = op.result.status;
           op.errors = this.getUniqueErrors(op.result.errors);
-          op.consumedGas = op.result.consumed_gas || 0;
-          op.paidStorageDiff = op.result.paid_storage_size_diff || 0;
+          op.consumedGas = parseInt(op.result.consumed_gas) || 0;
+          op.paidStorageDiff = parseInt(op.result.paid_storage_size_diff) || 0;
 
           if (op.kind === "origination") {
             op.destination = op.result.originated_contracts[0];
+            op.paidStorageDiff += 257;
           } else if (op.kind === "reveal") {
             op.destination = op.public_key;
           }
         } else if (op.metadata.operation_result !== undefined) {
           op.status = op.metadata.operation_result.status;
           op.errors = this.getUniqueErrors(op.metadata.operation_result.errors);
-          op.consumedGas = op.metadata.operation_result.consumed_gas || 0;
-          op.paidStorageDiff = op.metadata.operation_result.paid_storage_size_diff || 0;
+          op.consumedGas = parseInt(op.metadata.operation_result.consumed_gas) || 0;
+          op.paidStorageDiff = parseInt(op.metadata.operation_result.paid_storage_size_diff) || 0;
 
           if (op.kind === "origination") {
             op.destination = op.metadata.operation_result.originated_contracts[0];
+            op.paidStorageDiff += 257;
           } else if (op.kind === "reveal") {
             op.destination = op.public_key;
           }
