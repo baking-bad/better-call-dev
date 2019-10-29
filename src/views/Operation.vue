@@ -192,7 +192,7 @@ export default {
 
       return res;
     },
-    getUniqueErrors(errors, status) {
+    getUniqueErrors(errors) {
       let ret = [];
       let seenErr = [];
 
@@ -215,7 +215,7 @@ export default {
       contents.forEach(function(op) {
         if (op.result !== undefined) {
           op.status = op.result.status;
-          op.errors = this.getUniqueErrors(op.result.errors, op.status);
+          op.errors = this.getUniqueErrors(op.result.errors);
           op.consumedGas = op.result.consumed_gas || 0;
           op.paidStorageDiff = op.result.paid_storage_size_diff || 0;
 
@@ -226,7 +226,7 @@ export default {
           }
         } else if (op.metadata.operation_result !== undefined) {
           op.status = op.metadata.operation_result.status;
-          op.errors = this.getUniqueErrors(op.metadata.operation_result.errors, op.status);
+          op.errors = this.getUniqueErrors(op.metadata.operation_result.errors);
           op.consumedGas = op.metadata.operation_result.consumed_gas || 0;
           op.paidStorageDiff = op.metadata.operation_result.paid_storage_size_diff || 0;
 
