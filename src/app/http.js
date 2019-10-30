@@ -24,11 +24,12 @@ export async function get(uri, timeout = 10000) {
       }
     })
   );
-  if (!response.ok) {
+  let jsonResponse = undefined;
+  if (response.ok) {
+    jsonResponse = await response.json();
+  } else if (response.status !== "404") {
     throw new RequestError(response);
   }
-
-  let jsonResponse = await response.json();
 
   if (isCacheable(uri)) {
     lscache.set(uri, JSON.stringify(jsonResponse), 42000);
@@ -54,11 +55,13 @@ export async function post(uri, object, timeout = 10000) {
         body: JSON.stringify(object)
       })
   );
-  if (!response.ok) {
+  
+  let jsonResponse = undefined;
+  if (response.ok) {
+    jsonResponse = await response.json();
+  } else if (response.status !== "404") {
     throw new RequestError(response);
   }
-
-  let jsonResponse = await response.json();
 
   if (isCacheable(uri)) {
     lscache.set(uri, JSON.stringify(jsonResponse), 42000);
