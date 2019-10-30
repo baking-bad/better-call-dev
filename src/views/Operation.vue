@@ -111,7 +111,6 @@ export default {
 
         let operations = await this.getOperations(opData.level);
         let rawContents = operations.find(op => op.hash === this.hash).contents;
-        let contentsWithInternal = this.getInternalContents(rawContents);
 
         let getInt = function(content, key) {
           if (content !== undefined) {
@@ -123,10 +122,13 @@ export default {
           return 0;
         }
 
+        this.fee = rawContents.map(x => getInt(x, 'fee')).reduce((a, b) => a + b, 0);
+        this.gasLimit = rawContents.map(x => getInt(x, 'gas_limit')).reduce((a, b) => a + b, 0);
+        this.storageLimit = rawContents.map(x => getInt(x, 'storage_limit')).reduce((a, b) => a + b, 0);
+
+        let contentsWithInternal = this.getInternalContents(rawContents);
+
         this.contents = this.restructureContents(contentsWithInternal);
-        this.fee = rawContents.reduce((a, b) => getInt(a, 'fee') + getInt(b, 'fee'), 0);
-        this.gasLimit = rawContents.reduce((a, b) => getInt(a, 'gas_limit') + getInt(b, 'gas_limit') || 0, 0);
-        this.storageLimit = rawContents.reduce((a, b) => getInt(a, 'storage_limit') + getInt(b, 'storage_limit') || 0, 0);
         this.isLoading = false;
       }
     },
@@ -178,17 +180,19 @@ export default {
       let res = [];
 
       contents.forEach(function(operation) {
+        operation.gas_limit = this.gasLimit;
+        operation.storage_limit = this.storageLimit;
         res.push(operation);
 
         if (operation.metadata.internal_operation_results !== undefined) {
           operation.metadata.internal_operation_results.forEach(function(op) {
             op.internal = true;
-            op.gas_limit = operation.gas_limit;
-            op.storage_limit = operation.storage_limit;
+            op.gas_limit = this.gasLimit;
+            op.storage_limit = this.storageLimit;
             res.push(op);
           });
         }
-      });
+      }, this);
 
       return res;
     },

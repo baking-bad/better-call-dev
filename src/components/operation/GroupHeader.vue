@@ -14,17 +14,17 @@
     </b-col>
 
     <b-col class="pl-0 text-right">
-      <span v-b-tooltip.hover title="Fee" class="mr-3">
+      <span v-b-tooltip.hover title="Total Fee" class="mr-3">
         <font-awesome-icon icon="receipt"/>
         &nbsp;{{ formatXTZ(fee) }}
       </span>
 
-      <span v-b-tooltip.hover title="Gas Limit" class="mr-3">
+      <span v-b-tooltip.hover title="Total Gas Limit" class="mr-3">
         <font-awesome-icon icon="burn"/>
         &nbsp;{{ gasLimit }}
       </span>
 
-      <span v-b-tooltip.hover title="Storage Limit">
+      <span v-b-tooltip.hover title="Total Storage Limit">
         <font-awesome-icon icon="coins"/>
         &nbsp;{{ storageLimit }}
       </span>

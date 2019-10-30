@@ -899,7 +899,8 @@ export default {
         const res = await get(
           `${this.tzStatsUrl()}/tables/op?receiver=${this.address}&columns=height,time,type,manager,sender&order=desc&limit=50000`
         )
-        this.blockData = res;
+        const levels = res.map(x => x[0]);
+        this.blockData = res.filter((item, index) => levels.indexOf(item[0]) === index);
         if (res.length > 0) {
           const op = res[res.length - 1];
           if (op[2] === 'origination') {

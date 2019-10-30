@@ -68,13 +68,6 @@
               >({{spentPercent(op.paidStorageDiff, op.storage_limit)}})</span>
             </span>
           </div>
-          <div class="mr-4" style="min-width: 90px;">
-            <div class="my-subtitle" v-if="op.fee">Fee</div>
-            <span style="font-size: 75%;" v-if="op.fee">
-              <font-awesome-icon icon="receipt" :style="{ color: '#c0b294' }" />
-              {{ formatXTZ(op.fee) }}
-            </span>
-          </div>
         </div>
       </b-col>
     </b-row>
@@ -160,7 +153,7 @@ export default {
       return "badge-secondary";
     },
     spentPercent(current, limit) {
-      let percent = Math.round((current / limit) * 100);
+      let percent = Math.round((parseInt(current) / parseInt(limit)) * 100);
       if (percent === 0) {
         return "<1%";
       } else {
