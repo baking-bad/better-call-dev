@@ -43,7 +43,8 @@
           </span>
           <span v-else-if="isPush(data.prim)">
             <span><MichelineViewItem :data="data.args[0]" :depth="depth" :path="path+'-0'"/></span>
-            <span class="micheline-view-value">&nbsp;{{ decodeTypedData(data.args[0], data.args[1]) }}&nbsp;</span>
+            <span v-if="isLambda(data.args[0])"><MichelineViewItem :data="data.args[1]" :depth="depth+1" :path="path+'-1'"/></span>
+            <span v-else class="micheline-view-value">&nbsp;{{ decodeTypedData(data.args[0], data.args[1]) }}&nbsp;</span>
           </span>
           <span v-else>
             <span v-if="data.args">
@@ -131,6 +132,9 @@ export default {
     },
     isPush: function(value) {
       return value === "PUSH";
+    },
+    isLambda: function(value) {
+      return value.prim === "lambda";
     },
     isDangerous: function(value) {
       return ["CREATE_CONTRACT", "CREATE_ACCOUNT", "TRANSFER_TOKENS", "SET_DELEGATE", 

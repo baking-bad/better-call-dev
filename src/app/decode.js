@@ -87,17 +87,17 @@ export function decodeData(data, schema, annotations = true, literals = true, ro
 
         if (type_info.children != undefined) {
           const terminal = get_route_terminal(res);
+          const index = type_info.children.indexOf(terminal.path);
+          res = {};
 
           if (type_info.props != undefined && annotations === true) {
-            const index = type_info.children.indexOf(terminal.path);
-            res = {};
             if (terminal.value === 'Unit') {
               res = type_info.props[index];
             } else {
               res[type_info.props[index]] = terminal.value;
             }
           } else {
-            res = terminal.value;
+            res[`__entry_${index}__`] = terminal.value;
           }
         }
       } else if (node.prim === "Elt") {
