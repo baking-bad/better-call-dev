@@ -87,11 +87,11 @@
       v-if="isLambda(data)"
     >
       <span class="tree-view-item-key">{{getKey(data)}}</span>
-      <button class="micheline-view-type" v-b-toggle.collapse-1>
+      <button class="micheline-view-type" v-b-toggle="_uid.toString()">
         <span class="when-opened">hide</span>
         <span class="when-closed">show</span>
       </button>
-      <b-collapse id="collapse-1">
+      <b-collapse :id="_uid.toString()">
         <MichelineViewItem :data="data.lambda" :depth="1" :path="0" />
       </b-collapse>
     </div>
