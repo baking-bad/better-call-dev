@@ -85,7 +85,8 @@
           <div v-if="tx.reward">
             <div class="my-subtitle">Audit</div>
             <span style="font-size: 80%;">
-              <a :href="'https://baking-bad.org/'+address" target="_blank">Baking Bad</a>
+              <a :href="'https://baking-bad.org/'+tx.destination" target="_blank">Baking Bad</a>
+              &nbsp;<span style="font-size: 80%;"><font-awesome-icon icon="external-link-alt"></font-awesome-icon></span>
             </span>
           </div>
         </div>
@@ -145,12 +146,12 @@
 import utils from "@/app/utils";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import Errors from "@/app/tezosErrors";
-import { faReceipt, faBurn, faCoins, faAngleDoubleUp } from "@fortawesome/free-solid-svg-icons";
+import { faReceipt, faBurn, faCoins, faAngleDoubleUp, faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import TreeView from "./TreeView.vue";
 import PatchView from "./PatchView.vue";
 
-library.add(faReceipt, faBurn, faCoins, faAngleDoubleUp);
+library.add(faReceipt, faBurn, faCoins, faAngleDoubleUp, faExternalLinkAlt);
 
 export default {
   name: "GroupInfo",
