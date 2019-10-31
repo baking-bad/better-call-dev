@@ -31,7 +31,11 @@ import OperationInfo from "@/components/operation/OperationInfo.vue";
 import Loader from "@/components/Loader.vue";
 import NavBar from "@/components/NavBar.vue";
 import NotFound from "@/components/NotFound.vue";
-import { decodeData } from "@/app/decode";
+import {
+  decodeParameters,
+  decodeData,
+  buildSchema,
+} from "@/app/decode";
 import { ConseilQueryBuilder, ConseilOperator, ConseilDataClient } from "conseiljs";
 import { setupConseil } from "@/app/conseil";
 import { get } from "@/app/http";
@@ -128,9 +132,12 @@ export default {
 
         let contentsWithInternal = this.getInternalContents(rawContents);
 
-        this.contents = this.restructureContents(contentsWithInternal);
+        this.contents = await this.restructureContents(contentsWithInternal);
         this.isLoading = false;
       }
+    },
+    async getContractsData(address) {
+      return await get(`${this.baseNodeApiURL}/${this.blockLevel}/context/contracts/${address}`);
     },
     async getOperations(block) {
       return await get(`${this.baseNodeApiURL}/${block}/operations/3`);
@@ -190,7 +197,7 @@ export default {
             op.gas_limit = this.gasLimit;
             op.storage_limit = this.storageLimit;
             res.push(op);
-          });
+          }, this);
         }
       }, this);
 
@@ -216,8 +223,8 @@ export default {
 
       return ret;
     },
-    restructureContents(contents) {
-      contents.forEach(function(op) {
+    async restructureContents(contents) {
+      for (var op of contents) {
         if (op.result !== undefined) {
           op.status = op.result.status;
           op.errors = this.getUniqueErrors(op.result.errors);
@@ -243,7 +250,17 @@ export default {
             op.destination = op.public_key;
           }
         }
-      }, this);
+
+        if (op.kind === "transaction" && op.parameters !== undefined) {
+          const contractData = await this.getContractsData(op.destination);
+          const schema = buildSchema(contractData.script.code[0]);
+          if (op.errors.length > 0 && op.errors[0].id.endsWith("badContractParameter")) {
+            op.decodedParameters = decodeParameters(op.parameters, null);
+          } else {
+            op.decodedParameters = decodeParameters(op.parameters, schema);
+          }
+        }
+      }
       return contents;
     },
     netConfig() {

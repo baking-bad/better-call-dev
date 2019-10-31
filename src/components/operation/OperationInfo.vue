@@ -68,7 +68,7 @@
               >({{spentPercent(op.paidStorageDiff, op.storage_limit)}})</span>
             </span>
           </div>
-          <div class="mr-4" v-if="!tx.internal">
+          <div class="mr-4" v-if="!op.internal">
             <div class="my-subtitle">Counter</div>
             <span style="font-size: 75%;">
               <font-awesome-icon icon="angle-double-up" />
@@ -76,6 +76,20 @@
             </span>
           </div>
         </div>
+      </b-col>
+      <b-col lg="12" v-if="op.parameters && op.kind === 'transaction'">
+        <b-card>
+          <b-row>
+            <b-col lg="5">
+              <div v-if="op.decodedParameters != null">
+                <div class="my-subtitle">Parameter</div>
+                <div class="tx-info-tree-view">
+                  <TreeView :data="op.decodedParameters" max-length="64" max-depth="5" />
+                </div>
+              </div>
+            </b-col>
+          </b-row>
+        </b-card>
       </b-col>
     </b-row>
     <b-row class="mt-2" v-if="op.status === 'failed' || op.status === 'backtracked'">
@@ -101,6 +115,7 @@ import utils from "@/app/utils";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faReceipt, faBurn, faCoins, faAngleDoubleUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import TreeView from "@/components/TreeView.vue";
 
 library.add(faReceipt, faBurn, faCoins, faAngleDoubleUp);
 
@@ -111,7 +126,8 @@ export default {
     Errors
   }),
   components: {
-    FontAwesomeIcon
+    FontAwesomeIcon,
+    TreeView
   },
   props: ["op", "tezosNet"],
   methods: {
