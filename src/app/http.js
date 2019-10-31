@@ -24,10 +24,11 @@ export async function get(uri, timeout = 10000) {
       }
     })
   );
+  
   let jsonResponse = undefined;
   if (response.ok) {
     jsonResponse = await response.json();
-  } else if (response.status !== "404") {
+  } else if (response.status !== 404) {
     throw new RequestError(response);
   }
 
@@ -59,7 +60,7 @@ export async function post(uri, object, timeout = 10000) {
   let jsonResponse = undefined;
   if (response.ok) {
     jsonResponse = await response.json();
-  } else if (response.status !== "404") {
+  } else if (response.status !== 404) {
     throw new RequestError(response);
   }
 

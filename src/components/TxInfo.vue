@@ -1,8 +1,9 @@
 <template>
   <b-col lg="12">
-    <div class="my-title" :class="tx.kind">
+    <div class="my-title" :class="entrypoint(tx) ? 'call' : tx.kind">
       <span v-if="tx.internal">internal&nbsp;</span>
       <span v-if="tx.reward && tx.kind === 'transaction'">Reward Payment</span>
+      <span v-else-if="entrypoint(tx)">CALL {{entrypoint(tx)}}</span>
       <span v-else>{{tx.kind}}</span>
       <span :class="'ml-1 badge badge-outline ' + badgeClass(tx.status)">{{ tx.status }}</span>
     </div>
@@ -232,6 +233,18 @@ export default {
     },
     expand() {
       this.$emit("expand");
+    },
+    entrypoint(operation) {
+      const params = operation.decodedParameters;
+      if (typeof(params) === "object") {
+        let entrypoint = Object.keys(operation.decodedParameters)[0];
+        if (entrypoint.includes("_Liq_entry_")) {
+          entrypoint = entrypoint.substring(11);
+        }
+        return entrypoint
+      } else {
+        return undefined;
+      }
     }
   }
 };
@@ -282,6 +295,10 @@ export default {
 .my-title.delegation,
 .my-title.origination {
   color: navy;
+}
+
+.my-title.call {
+  color:darkmagenta;
 }
 
 .my-subtitle {
