@@ -202,7 +202,7 @@ export function buildSchema(code) {
 
         const props = args.map(x => x.name);
 
-        if (new Set(props).size === props.length) {
+        if (new Set(props).size === props.length && props.every(x => x !== undefined)) {
           type_map[path].props = props;
         }
 

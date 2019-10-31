@@ -367,7 +367,6 @@ export default {
         let gasLimit = 0;
         let storageLimit = 0;
         let weFound = false;
-        let counter = undefined;
 
         group.contents.forEach(function(operation) {
           if (!["transaction", "origination", "delegation"].includes(operation.kind)) {
@@ -382,9 +381,6 @@ export default {
             storageLimit += parseInt(operation.storage_limit);
 
             if (this.isRelated(operation)) {
-              if (counter === undefined) {
-                counter = operation.counter;
-              }
               weFound = true;
             }
           }
@@ -397,9 +393,6 @@ export default {
                 operations.push(op);
 
                 if (this.isRelated(op)) {
-                  if (counter === undefined) {
-                    counter = operation.counter;
-                  }
                   weFound = true;
                 }
               }
@@ -413,7 +406,6 @@ export default {
 
           groups[groupHash] = {
             operations,
-            counter: counter,
             level: lvl,
             fee: fee,
             gasLimit: gasLimit,
