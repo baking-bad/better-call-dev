@@ -52,7 +52,7 @@
               &nbsp;{{ tx.consumedGas }}&nbsp;
               <span
                 v-if="tx.consumedGas"
-              >({{spentPercent(tx.consumedGas)}})</span>
+              >({{spentPercent(tx.consumedGas, gasLimit)}})</span>
             </span>
           </div>
           <div class="mr-4" v-if="!tx.reward">
@@ -62,7 +62,14 @@
               &nbsp;{{ tx.paidStorageDiff }}&nbsp;
               <span
                 v-if="tx.paidStorageDiff"
-              >({{paidStoragePercent(tx.paidStorageDiff)}})</span>
+              >({{spentPercent(tx.paidStorageDiff, storageLimit)}})</span>
+            </span>
+          </div>
+          <div class="mr-4" v-if="!tx.internal">
+            <div class="my-subtitle">Counter</div>
+            <span style="font-size: 75%;">
+              <font-awesome-icon icon="angle-double-up" />
+              &nbsp;{{ tx.counter }}
             </span>
           </div>
           <div v-if="address == tx.destination && !tx.reward">
@@ -137,12 +144,12 @@
 import utils from "@/app/utils";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import Errors from "@/app/tezosErrors";
-import { faReceipt, faBurn, faCoins } from "@fortawesome/free-solid-svg-icons";
+import { faReceipt, faBurn, faCoins, faAngleDoubleUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import TreeView from "./TreeView.vue";
 import PatchView from "./PatchView.vue";
 
-library.add(faReceipt, faBurn, faCoins);
+library.add(faReceipt, faBurn, faCoins, faAngleDoubleUp);
 
 export default {
   name: "GroupInfo",
@@ -163,24 +170,20 @@ export default {
     Errors
   }),
   methods: {
-    spentPercent(gas) {
-      let gasLimit = parseInt(this.gasLimit);
-      let currentGas = parseInt(gas);
-      let percent = Math.round((currentGas / gasLimit) * 100);
+    spentPercent(current, limit) {
+      let percent = Math.round((parseInt(current) / parseInt(limit)) * 100);
       if (percent === 0) {
-        return "<1 %";
+        return "<1%";
+      } else if (percent === 100) {
+        if (current < limit) {
+          return (parseInt(current) / parseInt(limit) * 100).toFixed(1) + "%";
+        } else if (current > limit) {
+          return ">100%";
+        } else {
+          return "100%";
+        }
       } else {
-        return percent + " %";
-      }
-    },
-    paidStoragePercent(diff) {
-      let storageLimit = parseInt(this.storageLimit);
-      let paidStorageDiff = parseInt(diff);
-      let percent = Math.round((paidStorageDiff / storageLimit) * 100);
-      if (percent === 0) {
-        return "<1 %";
-      } else {
-        return percent + " %";
+        return percent + "%";
       }
     },
     formatAddress(address) {

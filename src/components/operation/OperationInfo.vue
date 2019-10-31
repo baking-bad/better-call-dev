@@ -68,6 +68,13 @@
               >({{spentPercent(op.paidStorageDiff, op.storage_limit)}})</span>
             </span>
           </div>
+          <div class="mr-4" v-if="!tx.internal">
+            <div class="my-subtitle">Counter</div>
+            <span style="font-size: 75%;">
+              <font-awesome-icon icon="angle-double-up" />
+              &nbsp;{{ op.counter }}
+            </span>
+          </div>
         </div>
       </b-col>
     </b-row>
@@ -92,10 +99,10 @@
 import Errors from "@/app/tezosErrors";
 import utils from "@/app/utils";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faReceipt, faBurn, faCoins } from "@fortawesome/free-solid-svg-icons";
+import { faReceipt, faBurn, faCoins, faAngleDoubleUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
-library.add(faReceipt, faBurn, faCoins);
+library.add(faReceipt, faBurn, faCoins, faAngleDoubleUp);
 
 export default {
   name: "OperationInfo",
@@ -156,6 +163,14 @@ export default {
       let percent = Math.round((parseInt(current) / parseInt(limit)) * 100);
       if (percent === 0) {
         return "<1%";
+      } else if (percent === 100) {
+        if (current < limit) {
+          return (parseInt(current) / parseInt(limit) * 100).toFixed(1) + "%";
+        } else if (current > limit) {
+          return ">100%";
+        } else {
+          return "100%";
+        }
       } else {
         return percent + "%";
       }
