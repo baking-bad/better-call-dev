@@ -170,7 +170,7 @@ export default {
       }
 
       const code = contractsData.script.code;
-      const data = contractsData.script.storage;
+      this.rawStorage = contractsData.script.storage;
       this.contractBalance = parseInt(contractsData.balance);
       this.contractScript = contractsData.script;
       this.contractDelegate = contractsData.delegate;
@@ -197,7 +197,7 @@ export default {
         athens: athensCode? buildSchema(athensCode[1]) : null
       }
 
-      this.decoded_data = decodeData(data, this.storageSchema.babylon);
+      this.decoded_data = decodeData(this.rawStorage, this.storageSchema.babylon);
       this.decoded_schema = decodeSchema(this.storageSchema.babylon.collapsed_tree);
       this.parameterSchemaView = decodeSchema(this.parameterSchema.babylon.collapsed_tree);
 
@@ -220,6 +220,7 @@ export default {
       this.isLoading = false;
       this.isReady = false;
       this.notFound = false;
+      this.rawStorage = null;
       this.decoded_data = {};
       this.decoded_schema = {};
       this.parameterSchemaView = {};
@@ -457,6 +458,7 @@ export default {
       if (Object.keys(groups).length > 0) {
         this.buildBigMapAndParams(groups);
         groups = await this.getOldStorage(groups);
+        this.extendCurrentStorage(groups);
       }
 
       return groups;
@@ -519,11 +521,24 @@ export default {
 
       return res.reverse();
     },
+    extendCurrentStorage(groups) {
+      const hashes = Object.keys(groups)
+      for (const hash of hashes) {
+        let operations = groups[hash]['operations']
+        for (let j = operations.length - 1; j >= 0; j--) {
+          let tx = operations[j];
+          if (tx.status === 'applied' && tx.bigMapDiff) {
+            this.rawStorage = this.mergeBigMapToStorage(this.rawStorage, tx.bigMapDiff, true);
+          }
+        }
+      }
+      this.decoded_data = decodeData(this.rawStorage, this.storageSchema.babylon);
+    },
     async getOldStorage(groups) {
       let hashes = this.getReversedTxHashes(groups);
       let firstHash = hashes[0];
 
-      let currentStorageRaw = undefined;
+      let currentStorageRaw = null;
       let currentStorageSize = "0";
       let currentLevel = groups[firstHash]["level"];
       if (groups[firstHash]["operations"][0]["kind"] != "origination") {
@@ -540,22 +555,23 @@ export default {
 
       for (let i = 0; i < hashes.length; i++) {
         let group = groups[hashes[i]];
-        for (var tx of group["operations"]) {
+
+        for (var tx of group["operations"]) {         
           tx.rawPrevStorage = currentStorageRaw;
+
           if (tx.status === "applied" && tx.destination === this.address) {
             if (tx.rawStorage) {
+              currentStorageRaw = this.getStorageFreeOfBigMaps(tx.rawStorage, tx.bigMapDiff);
+              currentStorageSize = tx.storageSize;
 
               if (tx.bigMapDiff) {
                 tx.rawStorage = this.mergeBigMapToStorage(tx.rawStorage, tx.bigMapDiff);
 
-                if (tx.rawPrevStorage) {
+                if (tx.rawPrevStorage && (i > 0 || tx.kind != 'origination')) {
                   tx.rawPrevBigMap = await this.getBigMapPrev(tx.bigMapDiff, group["level"] - 1);
                   tx.rawPrevStorage = this.mergeBigMapToStorage(tx.rawPrevStorage, tx.rawPrevBigMap);
                 }
               }
-
-              currentStorageRaw = tx.rawStorage;
-              currentStorageSize = tx.storageSize;
             }
 
             tx.storage = decodeData(tx.rawStorage, this.getStorageSchema(group['level']));
@@ -715,19 +731,18 @@ export default {
       walk(rawStorage, "0");
       return binPath;
     },
-    getBigMapNode(rawStorage, binPath) {
-      let node = rawStorage;
+    getBigMapNode(root, binPath) {
+      let node = root;
       for (var i = 1; i < binPath.length - 1; i++) {
         node = node.args[parseInt(i)];
       }
       const lastIndex = parseInt(binPath[binPath.length - 1]);
-      // eslint-disable-next-line
-      if (typeof(node.args[lastIndex]) !== "array") {
+      if (node.args[lastIndex].int !== undefined) {
          node.args[lastIndex] = [];
       }
       return node.args[lastIndex];
     },
-    mergeBigMapToStorage(rawStorage, bigMapDiff) {
+    mergeBigMapToStorage(rawStorage, bigMapDiff, insertOnly = false) {
       let current = JSON.parse(JSON.stringify(rawStorage));
       bigMapDiff.forEach(change => {
         if (change.value === undefined || change.action === "alloc") {
@@ -739,11 +754,32 @@ export default {
         }
         
         let node = this.getBigMapNode(current, path);
+        if (insertOnly && node.some(x => x.args[0] === change.key)) {
+          return;
+        }
+
         node.push({
           prim: "Elt",
           args: [change.key, change.value]
         })
       });
+      return current;
+    },
+    getStorageFreeOfBigMaps(rawStorage, bigMapDiff) {
+      let current = JSON.parse(JSON.stringify(rawStorage));
+      if (bigMapDiff) {
+        bigMapDiff.forEach(change => {
+          if (change.action == "alloc") {
+            const binPath = this.findBigMapPath(rawStorage, change.big_map);
+            let node = current;
+            for (var i = 1; i < binPath.length - 1; i++) {
+              node = node.args[parseInt(i)];
+            }
+            const lastIndex = parseInt(binPath[binPath.length - 1]);
+            node.args[lastIndex] = {int: change.big_map}
+          }
+        });
+      }
       return current;
     },
     getJsonPath(typeMap, path) {
