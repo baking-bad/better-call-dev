@@ -1,6 +1,6 @@
 <template>
   <div :class="wrapperClass">
-    <TreeViewItem class="tree-view-item-root" :data="diffData" :max-depth="7" :currentDepth="0"/>
+    <TreeViewItem class="tree-view-item-root" :data="diffData" :max-depth="maxDepth" :currentDepth="0"/>
   </div>
 </template>
 

@@ -113,7 +113,7 @@
                 <div class="my-subtitle">Storage</div>
                 <div class="tx-info-tree-view">
                   <div v-if="tx.status === 'applied' && tx.storage !== undefined">
-                    <PatchView :prev-data="tx.prevStorage" :data="tx.storage" :max-depth="7" />
+                    <PatchView :prev-data="tx.prevStorage" :data="tx.storage" :max-depth="storageDepth(tx)" />
                   </div>
                   <div v-if="tx.status !== 'applied' && tx.prevStorage">
                     <PatchView :prev-data="tx.prevStorage" :data="tx.prevStorage" :max-depth="7" />
@@ -245,6 +245,13 @@ export default {
         return entrypoint
       } else {
         return undefined;
+      }
+    },
+    storageDepth(tx) {
+      if (tx.kind === "origination" && tx.internal !== true) {
+        return 2;
+      } else {
+        return 7;
       }
     }
   }
