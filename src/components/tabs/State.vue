@@ -35,7 +35,7 @@
                   <div>
                     <div class="my-subtitle">Storage</div>
                     <div class="storage-tree-view">
-                      <TreeView :data="decodedData" max-length="120" max-depth="7" />
+                      <TreeView :data="decodedData" max-length="120" max-depth="2" />
                     </div>
                   </div>
                 </b-col>

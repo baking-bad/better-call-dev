@@ -85,7 +85,8 @@
           <div v-if="tx.reward">
             <div class="my-subtitle">Audit</div>
             <span style="font-size: 80%;">
-              <a :href="'https://baking-bad.org/'+address" target="_blank">Baking Bad</a>
+              <a :href="'https://baking-bad.org/'+tx.destination" target="_blank">Baking Bad</a>
+              &nbsp;<span style="font-size: 80%;"><font-awesome-icon icon="external-link-alt"></font-awesome-icon></span>
             </span>
           </div>
         </div>
@@ -112,7 +113,7 @@
                 <div class="my-subtitle">Storage</div>
                 <div class="tx-info-tree-view">
                   <div v-if="tx.status === 'applied' && tx.storage !== undefined">
-                    <PatchView :prev-data="tx.prevStorage" :data="tx.storage" :max-depth="7" />
+                    <PatchView :prev-data="tx.prevStorage" :data="tx.storage" :max-depth="storageDepth(tx)" />
                   </div>
                   <div v-if="tx.status !== 'applied' && tx.prevStorage">
                     <PatchView :prev-data="tx.prevStorage" :data="tx.prevStorage" :max-depth="7" />
@@ -145,12 +146,12 @@
 import utils from "@/app/utils";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import Errors from "@/app/tezosErrors";
-import { faReceipt, faBurn, faCoins, faAngleDoubleUp } from "@fortawesome/free-solid-svg-icons";
+import { faReceipt, faBurn, faCoins, faAngleDoubleUp, faExternalLinkAlt } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import TreeView from "./TreeView.vue";
 import PatchView from "./PatchView.vue";
 
-library.add(faReceipt, faBurn, faCoins, faAngleDoubleUp);
+library.add(faReceipt, faBurn, faCoins, faAngleDoubleUp, faExternalLinkAlt);
 
 export default {
   name: "GroupInfo",
@@ -244,6 +245,13 @@ export default {
         return entrypoint
       } else {
         return undefined;
+      }
+    },
+    storageDepth(tx) {
+      if (tx.kind === "origination" && tx.internal !== true) {
+        return 2;
+      } else {
+        return 7;
       }
     }
   }
