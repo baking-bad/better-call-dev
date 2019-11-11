@@ -39,7 +39,7 @@
     "mutationobserver-shim": "^0.3.3",
     "node-sass": "^4.12.0",
     "popper.js": "^1.16.0",
-    "portal-vue": "^2.1.4",
+    "portal-vue": "^2.1.6",
     "sass-loader": "^7.1.0",
     "vue-cli-plugin-bootstrap-vue": "^0.4.0",
     "vue-template-compiler": "^2.5.21"
