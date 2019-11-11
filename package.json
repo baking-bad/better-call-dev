@@ -27,7 +27,7 @@
     "vue-router": "^3.0.7"
   },
   "devDependencies": {
-    "@babel/polyfill": "^7.4.4",
+    "@babel/polyfill": "^7.7.0",
     "@vue/cli-plugin-babel": "^3.7.0",
     "@vue/cli-plugin-eslint": "^3.7.0",
     "@vue/cli-service": "^3.7.0",
