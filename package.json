@@ -37,7 +37,7 @@
     "eslint": "^5.16.0",
     "eslint-plugin-vue": "^6.0.0",
     "mutationobserver-shim": "^0.3.3",
-    "node-sass": "^4.12.0",
+    "node-sass": "^4.13.0",
     "popper.js": "^1.16.0",
     "portal-vue": "^2.1.6",
     "sass-loader": "^7.1.0",
