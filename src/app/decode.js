@@ -10,17 +10,39 @@ const RESERVED_ENTRYPOINTS = [
   "remove_delegate"
 ]
 
+function extendDefaultParameters(value, defaultPath) {
+  var i = defaultPath.length - 1;
+  var res = value;
+  while (i > 0) {
+    if (defaultPath.charAt(i) == "0") {
+      res = {"prim": "Left", "args": [res]}
+    } else {
+      res = {"prim": "Right", "args": [res]}
+    }
+    i--;
+  }
+  return res;
+}
+
 export function decodeParameters(data, schema) {
   if (data.value === undefined || data.entrypoint === undefined) {
     return decodeData(data, schema);
   }
 
   if (schema.collapsed_tree.prim === "or") {
-    let treeArgs = schema.collapsed_tree.args;
-
-    for (let i = 0; i < treeArgs.length; i++) {
-      if (treeArgs[i].name === data.entrypoint) {
-        return { [data.entrypoint]: decodeData(data.value, schema, true, true, treeArgs[i].path) }
+    if (data.entrypoint === "default") {
+      for (var path in schema.type_map) {
+        if (schema.type_map[path].name === data.entrypoint) {
+          var value = extendDefaultParameters(data.value, path);
+          return decodeData(value, schema);
+        }
+      }
+    } else {
+      let treeArgs = schema.collapsed_tree.args;
+      for (let i = 0; i < treeArgs.length; i++) {
+        if (treeArgs[i].name === data.entrypoint) {
+          return { [data.entrypoint]: decodeData(data.value, schema, true, true, treeArgs[i].path) }
+        }
       }
     }
   }
@@ -195,6 +217,10 @@ export function buildSchema(code) {
       const res = new Nested();
       res.prim = node.prim;
       res.args = args;
+
+      if (name) {
+        type_map[path].name = name;
+      }
 
       if ((typename && node.prim === "pair" && name !== "storage") || parent_prim != node.prim) {
         args = get_flat_nested(res);

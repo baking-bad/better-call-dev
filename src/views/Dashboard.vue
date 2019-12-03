@@ -336,7 +336,7 @@ export default {
       if (this.implementsTzKT()) {
         data = await this.getTzktTransactionData();
         data.forEach(tx => {
-          tezaurus[tx.level] = Math.floor(new Date(tx.timestamp + "Z").getTime() / 1000);
+          tezaurus[tx.level] =new Date(tx.timestamp).getTime();
         });
       } else if (this.implementsTzStats()) {
         data = await this.getTzStatsTransactionData();
