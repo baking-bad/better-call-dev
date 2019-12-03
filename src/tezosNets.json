@@ -1,9 +1,10 @@
 {
   "main": {
     "value": "main",
-    "text": "Mainnet", 
+    "text": "Mainnet",
     "blockUrl": "https://rpc.tzkt.io/mainnet/chains/main/blocks",
     "tzStatsUrl": "https://api.tzstats.com",
+    "tzktUrl": "https://api.tzkt.io",
     "conseil": {
       "server": {
         "apiKey": "galleon",

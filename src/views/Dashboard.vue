@@ -72,6 +72,7 @@ export default {
     decoded_schema: {},
     parameterSchema: {},
     txInfo: {
+      lastId: 0,
       morePages: false,
       currentPage: 0,
       data: []
@@ -121,6 +122,9 @@ export default {
     tzStatsUrl() {
       return this.netConfig().tzStatsUrl();
     },
+    tzktUrl() {
+      return this.netConfig().tzktUrl();
+    },
     blockUrl() {
       if (this.$route.query.blockUrl !== undefined) {
         return decodeURI(this.$route.query.blockUrl);
@@ -133,6 +137,9 @@ export default {
     },
     implementsTzStats() {
       return this.netConfig().implementsTzStats();
+    },
+    implementsTzKT() {
+      return this.netConfig().implementsTzKT();
     },
     getStorageSchema(blockLevel) {
       if (this.tezosNet === "main") {
@@ -228,6 +235,7 @@ export default {
       this.storageSchema = {};
       this.txInfo.morePages = false;
       this.txInfo.currentPage = 0;
+      this.txInfo.lastId = 0;
       this.txInfo.data = [];
       this.groups = {};
       this.tezaurus = {};
@@ -325,7 +333,12 @@ export default {
       let tezaurus = {};
       let data = {};
 
-      if (this.implementsTzStats()) {
+      if (this.implementsTzKT()) {
+        data = await this.getTzktTransactionData();
+        data.forEach(tx => {
+          tezaurus[tx.level] = Math.floor(new Date(tx.timestamp + "Z").getTime() / 1000);
+        });
+      } else if (this.implementsTzStats()) {
         data = await this.getTzStatsTransactionData();
         data.forEach(tx => {
           tezaurus[tx[0]] = tx[1]
@@ -921,6 +934,23 @@ export default {
       this.txInfo.currentPage += 1;
 
       return res;
+    },
+    async getTzktTransactionData() {
+      const txsPerPage = 5;
+      const res = await get(
+        `${this.tzktUrl()}/v1/accounts/${this.address}/operations?limit=${txsPerPage}&lastId=${this.txInfo.lastId}`
+      )
+      if (res.length > 0) {
+        this.txInfo.currentPage += 1;
+        this.txInfo.morePages = res.length == txsPerPage;
+        this.txInfo.lastId = res[res.length - 1]["id"];
+      } else {
+        this.txInfo.morePages = false;
+      }
+
+      const levels = res.map(x => x["level"]);
+      let data = res.filter((item, index) => levels.indexOf(item["level"]) === index && item["type"] !== "system");
+      return data;
     },
     async getTzStatsTransactionData() {
       if (this.txInfo.currentPage == 0) {
