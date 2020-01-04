@@ -251,7 +251,7 @@ export default {
           }
         }
 
-        if (op.kind === "transaction" && op.parameters !== undefined) {
+        if (op.kind === "transaction" && op.parameters !== undefined && op.destination[0] == 'K') {
           const contractData = await this.getContractsData(op.destination);
           const schema = buildSchema(contractData.script.code[0]);
           if (op.errors.length > 0 && op.errors[0].id.endsWith("badContractParameter")) {
