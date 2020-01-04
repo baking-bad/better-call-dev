@@ -25,7 +25,7 @@ export async function get(uri, timeout = 10000) {
     })
   );
   
-  let jsonResponse = undefined;
+  let jsonResponse = null;
   if (response.ok) {
     jsonResponse = await response.json();
   } else if (response.status !== 404) {
@@ -57,7 +57,7 @@ export async function post(uri, object, timeout = 10000) {
       })
   );
   
-  let jsonResponse = undefined;
+  let jsonResponse = null;
   if (response.ok) {
     jsonResponse = await response.json();
   } else if (response.status !== 404) {

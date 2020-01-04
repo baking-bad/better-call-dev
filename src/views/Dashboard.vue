@@ -84,6 +84,7 @@ export default {
     contractDelegate: "",
     contractScript: "",
     isPayoutContract: false,
+    isSpendable: false,
     latestGroup: {},
     blockData: []
   }),
@@ -169,7 +170,7 @@ export default {
       this.isLoading = true;
 
       const contractsData = await this.getContractsData('head');
-      if (contractsData === undefined || contractsData.script === undefined) {
+      if (!(contractsData && contractsData.script)) {
         this.notFound = true;
         this.isLoading = false;
         this.isReady = true;
@@ -190,8 +191,9 @@ export default {
       let athensCode = null;
       if (this.tezosNet == "main") {
         const contractsDataAthens = await this.getContractsData('655359').catch(e => e);
-        if (contractsDataAthens !== undefined && contractsDataAthens.script !== undefined) {
+        if (contractsDataAthens && contractsDataAthens.script) {
           athensCode = contractsDataAthens.script.code;
+          this.isSpendable = contractsDataAthens.spendable;
         }
       }
 
@@ -333,15 +335,15 @@ export default {
       let tezaurus = {};
       let data = {};
 
-      if (this.implementsTzKT()) {
-        data = await this.getTzktTransactionData();
-        data.forEach(tx => {
-          tezaurus[tx.level] =new Date(tx.timestamp).getTime();
-        });
-      } else if (this.implementsTzStats()) {
+      if (this.implementsTzStats()) {
         data = await this.getTzStatsTransactionData();
         data.forEach(tx => {
           tezaurus[tx[0]] = tx[1]
+        });
+      } else if (this.implementsTzKT()) {
+        data = await this.getTzktTransactionData();
+        data.forEach(tx => {
+          tezaurus[tx.level] =new Date(tx.timestamp).getTime();
         });
       } else if (this.implementsConseil()) {
         data = await this.getConseilTransactionData();
@@ -471,7 +473,7 @@ export default {
       if (Object.keys(groups).length > 0) {
         this.buildBigMapAndParams(groups);
         groups = await this.getOldStorage(groups);
-        this.extendCurrentStorage(groups);
+        //this.extendCurrentStorage(groups);
       }
 
       return groups;
@@ -537,11 +539,11 @@ export default {
     extendCurrentStorage(groups) {
       const hashes = Object.keys(groups)
       for (const hash of hashes) {
-        let operations = groups[hash]['operations']
+        let operations = groups[hash]['operations'];
         for (let j = operations.length - 1; j >= 0; j--) {
           let tx = operations[j];
           if (tx.status === 'applied' && tx.bigMapDiff) {
-            this.rawStorage = this.mergeBigMapToStorage(this.rawStorage, tx.bigMapDiff, true);
+            this.rawStorage = this.mergeBigMapToStorage(this.rawStorage, tx.bigMapDiff, 'head', true);
           }
         }
       }
@@ -558,7 +560,7 @@ export default {
         let stResponse = await get(
           `${this.baseNodeApiURL}/${currentLevel - 1}/context/contracts/${this.address}`
         );
-        if (stResponse.script !== undefined) {
+        if (stResponse.script) {
           currentStorageRaw = stResponse.script.storage;
         }
       }
@@ -577,12 +579,12 @@ export default {
               currentStorageRaw = this.getStorageFreeOfBigMaps(tx.rawStorage, tx.bigMapDiff);
               currentStorageSize = tx.storageSize;
 
-              if (tx.bigMapDiff) {
-                tx.rawStorage = this.mergeBigMapToStorage(tx.rawStorage, tx.bigMapDiff);
+              if (tx.bigMapDiff && (i > 0 || tx.kind != 'origination')) {
+                tx.rawStorage = this.mergeBigMapToStorage(tx.rawStorage, tx.bigMapDiff, group["level"]);
 
-                if (tx.rawPrevStorage && (i > 0 || tx.kind != 'origination')) {
+                if (tx.rawPrevStorage) {
                   tx.rawPrevBigMap = await this.getBigMapPrev(tx.bigMapDiff, group["level"] - 1);
-                  tx.rawPrevStorage = this.mergeBigMapToStorage(tx.rawPrevStorage, tx.rawPrevBigMap);
+                  tx.rawPrevStorage = this.mergeBigMapToStorage(tx.rawPrevStorage, tx.rawPrevBigMap, group["level"]);
                 }
               }
             }
@@ -729,12 +731,12 @@ export default {
       return diff;
     },
     findBigMapPath(rawStorage, bigMapId) {
-      let binPath = "00";
+      let binPath = undefined;
       let walk = function(x, path) {
         if (x.args) {
           for (var i = 0; i < x.args.length; i++) {
             if (x.args[i].int == bigMapId) {
-              binPath = path;
+              binPath = path + i.toString();
             } else {
               walk(x.args[i], path + i.toString());
             }
@@ -747,7 +749,7 @@ export default {
     getBigMapNode(root, binPath) {
       let node = root;
       for (var i = 1; i < binPath.length - 1; i++) {
-        node = node.args[parseInt(i)];
+        node = node.args[parseInt(binPath[i])];
       }
       const lastIndex = parseInt(binPath[binPath.length - 1]);
       if (node.args[lastIndex].int !== undefined) {
@@ -755,17 +757,19 @@ export default {
       }
       return node.args[lastIndex];
     },
-    mergeBigMapToStorage(rawStorage, bigMapDiff, insertOnly = false) {
+    mergeBigMapToStorage(rawStorage, bigMapDiff, blockLevel, insertOnly = false) {
       let current = JSON.parse(JSON.stringify(rawStorage));
       bigMapDiff.forEach(change => {
         if (change.value === undefined || change.action === "alloc") {
           return;
         }
         let path = "00";
+        if (this.isSpendable && (blockLevel === 'head' || (parseInt(blockLevel) > 655359))) {
+          path = "010";
+        }
         if (change.big_map !== undefined) {
           path = this.findBigMapPath(rawStorage, change.big_map);
         }
-        
         let node = this.getBigMapNode(current, path);
         if (insertOnly && node.some(x => x.args[0] === change.key)) {
           return;
@@ -783,13 +787,15 @@ export default {
       if (bigMapDiff) {
         bigMapDiff.forEach(change => {
           if (change.action == "alloc") {
-            const binPath = this.findBigMapPath(rawStorage, change.big_map);
-            let node = current;
-            for (var i = 1; i < binPath.length - 1; i++) {
-              node = node.args[parseInt(i)];
+            const binPath = this.findBigMapPath(this.rawStorage, change.big_map);
+            if (binPath) {
+              let node = current;
+              for (var i = 1; i < binPath.length - 1; i++) {
+                node = node.args[binPath[parseInt(i)]];
+              }
+              const lastIndex = parseInt(binPath[binPath.length - 1]);
+              node.args[lastIndex] = {int: change.big_map}
             }
-            const lastIndex = parseInt(binPath[binPath.length - 1]);
-            node.args[lastIndex] = {int: change.big_map}
           }
         });
       }
