@@ -731,7 +731,7 @@ export default {
       return diff;
     },
     findBigMapPath(rawStorage, bigMapId) {
-      let binPath = undefined;
+      let binPath = "00"; // TODO: will be fixed in the new release
       let walk = function(x, path) {
         if (x.args) {
           for (var i = 0; i < x.args.length; i++) {
