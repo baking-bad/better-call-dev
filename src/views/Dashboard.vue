@@ -738,7 +738,13 @@ export default {
             if (x.args[i].int == bigMapId) {
               binPath = path + i.toString();
             } else {
-              walk(x.args[i], path + i.toString());
+              if (x.args[i].prim !== undefined) {
+                walk(x.args[i], path + i.toString());
+              } else {
+                for (var j = 0; j < x.args[i].length; j++) {
+                  walk(x.args[i][j], path + i.toString() + j.toString());
+                }
+              }
             }
           }
         }
@@ -749,7 +755,11 @@ export default {
     getBigMapNode(root, binPath) {
       let node = root;
       for (var i = 1; i < binPath.length - 1; i++) {
-        node = node.args[parseInt(binPath[i])];
+        if (node.args) {
+          node = node.args[parseInt(binPath[i])];
+        } else {
+          node = node[parseInt(binPath[i])];
+        }
       }
       const lastIndex = parseInt(binPath[binPath.length - 1]);
       if (node.args[lastIndex].int !== undefined) {
@@ -791,7 +801,11 @@ export default {
             if (binPath) {
               let node = current;
               for (var i = 1; i < binPath.length - 1; i++) {
-                node = node.args[binPath[parseInt(i)]];
+                if (node.args) {
+                  node = node.args[parseInt(binPath[i])];
+                } else {
+                  node = node[parseInt(binPath[i])];
+                }
               }
               const lastIndex = parseInt(binPath[binPath.length - 1]);
               node.args[lastIndex] = {int: change.big_map}
