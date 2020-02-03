@@ -747,6 +747,8 @@ export default {
               }
             }
           }
+        } else if (x.int == bigMapId) {
+          binPath = path;
         }
       }
       walk(rawStorage, "0");
@@ -754,6 +756,9 @@ export default {
     },
     getBigMapNode(root, binPath) {
       let node = root;
+      if (binPath === "0") {
+        return root;
+      }
       for (var i = 1; i < binPath.length - 1; i++) {
         if (node.args) {
           node = node.args[parseInt(binPath[i])];
@@ -799,16 +804,20 @@ export default {
           if (change.action == "alloc") {
             const binPath = this.findBigMapPath(this.rawStorage, change.big_map);
             if (binPath) {
-              let node = current;
-              for (var i = 1; i < binPath.length - 1; i++) {
-                if (node.args) {
-                  node = node.args[parseInt(binPath[i])];
-                } else {
-                  node = node[parseInt(binPath[i])];
+              if (binPath === "0") {
+                current = {int: change.big_map};
+              } else {
+                let node = current;
+                for (var i = 1; i < binPath.length - 1; i++) {
+                  if (node.args) {
+                    node = node.args[parseInt(binPath[i])];
+                  } else {
+                    node = node[parseInt(binPath[i])];
+                  }
                 }
+                const lastIndex = parseInt(binPath[binPath.length - 1]);
+                node.args[lastIndex] = {int: change.big_map}
               }
-              const lastIndex = parseInt(binPath[binPath.length - 1]);
-              node.args[lastIndex] = {int: change.big_map}
             }
           }
         });
