@@ -756,9 +756,6 @@ export default {
     },
     getBigMapNode(root, binPath) {
       let node = root;
-      if (binPath === "0") {
-        return root;
-      }
       for (var i = 1; i < binPath.length - 1; i++) {
         if (node.args) {
           node = node.args[parseInt(binPath[i])];
@@ -785,11 +782,17 @@ export default {
         if (change.big_map !== undefined) {
           path = this.findBigMapPath(rawStorage, change.big_map);
         }
-        let node = this.getBigMapNode(current, path);
+        let node = current;
+        if (path === "0") {
+          if (!Array.isArray(current)) {
+            node = current = [];
+          }
+        } else {
+          node = this.getBigMapNode(current, path);
+        }
         if (insertOnly && node.some(x => x.args[0] === change.key)) {
           return;
         }
-
         node.push({
           prim: "Elt",
           args: [change.key, change.value]
