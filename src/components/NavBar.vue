@@ -126,6 +126,7 @@ export default {
     explore(evt) {
       evt.preventDefault();
       this.isActive = true;
+      this.localAddress = this.localAddress.trim();
       this.$router.push({ path: `/${this.localNet}/${this.localAddress}` });
     },
     changeNet(value) {

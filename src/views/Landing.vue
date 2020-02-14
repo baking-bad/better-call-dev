@@ -146,6 +146,8 @@ export default {
     },
 
     explore() {
+      this.localAddress = this.localAddress.trim();
+      
       if (this.isValidKT(this.localAddress) || this.isValidOperation(this.localAddress)) {
         this.$router.push({ path: `/${this.localNet}/${this.localAddress}` });
       }
