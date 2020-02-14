@@ -30,18 +30,14 @@ export function decodeParameters(data, schema) {
   }
 
   if (schema.collapsed_tree.prim === "or") {
-    if (data.entrypoint === "default") {
-      for (var path in schema.type_map) {
-        if (schema.type_map[path].name === data.entrypoint) {
+    for (var path in schema.type_map) {
+      const node = schema.type_map[path];
+      if (node.name === data.entrypoint) {
+        if (node.prim === 'or' || data.entrypoint === "default") {
           var value = extendDefaultParameters(data.value, path);
           return decodeData(value, schema);
-        }
-      }
-    } else {
-      let treeArgs = schema.collapsed_tree.args;
-      for (let i = 0; i < treeArgs.length; i++) {
-        if (treeArgs[i].name === data.entrypoint) {
-          return { [data.entrypoint]: decodeData(data.value, schema, true, true, treeArgs[i].path) }
+        } else {
+          return {[data.entrypoint]: decodeData(data.value, schema, true, true, path)}
         }
       }
     }
@@ -213,14 +209,14 @@ export function buildSchema(code) {
       });
     }
 
+    if (name) {
+      type_map[path].name = name;
+    }
+
     if (["pair", "or"].includes(node.prim)) {
       const res = new Nested();
       res.prim = node.prim;
       res.args = args;
-
-      if (name) {
-        type_map[path].name = name;
-      }
 
       if ((typename && node.prim === "pair" && name !== "storage") || parent_prim != node.prim) {
         args = get_flat_nested(res);
