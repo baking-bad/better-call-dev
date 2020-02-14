@@ -239,7 +239,7 @@ export default {
       const params = operation.decodedParameters;
       if (typeof(params) === "object") {
         let entrypoint = Object.keys(operation.decodedParameters)[0];
-        if (entrypoint.includes("_Liq_entry_")) {
+        if (entrypoint && entrypoint.includes("_Liq_entry_")) {
           entrypoint = entrypoint.substring(11);
         }
         return entrypoint

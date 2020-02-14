@@ -28,6 +28,20 @@
       "network": "babylonnet"
     }
   },
+  "carthage": {
+    "value": "carthage",
+    "text": "Carthage",
+    "blockUrl": "https://rpc.tzkt.io/carthagenet/chains/main/blocks",
+    "tzStatsUrl": "https://api.carthagenet.tzstats.com",
+    "conseil": {
+      "server": {
+        "apiKey": "galleon",
+        "url": "https://conseil-dev.cryptonomic-infra.tech"
+      },
+      "platform": "tezos",
+      "network": "carthagenet"
+    }
+  },
   "zero": {
     "value": "zero",
     "text": "Zeronet",
