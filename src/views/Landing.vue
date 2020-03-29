@@ -110,6 +110,15 @@
         </div>
       </b-col>
     </b-row>
+    <b-alert
+      show="true"
+      class="position-fixed fixed-bottom m-0 rounded-0"
+      style="z-index: 2000; text-align: center;"
+      variant="warning"
+      dismissible
+    >
+      Try new version&nbsp;<a href="https://you.better-call.dev">you.better-call.dev</a>
+    </b-alert>
   </b-col>
 </template>
 
