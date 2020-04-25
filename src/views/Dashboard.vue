@@ -511,7 +511,7 @@ export default {
       });
       let res = [];
 
-      let items = (await Promise.all(promiseArray.map(p => p.catch(e => e)))).flatMap(x => x);
+      let items = (await Promise.all(promiseArray.map(p => p.catch(e => e))));
 
       for (let i = 0; i < items.length; i++) {
         if (items[i]) {
