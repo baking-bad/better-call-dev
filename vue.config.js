@@ -1,11 +1,4 @@
 module.exports = {
   runtimeCompiler: true,
-  baseUrl: './',
-  css: {
-    loaderOptions: {
-      css: {
-        url: false,
-      }
-    }
-  }
+  publicPath: 'https://baking-bad.github.io/better-call-dev/'
 }
