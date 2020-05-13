@@ -122,7 +122,7 @@ library.add(faReceipt, faBurn, faCoins, faAngleDoubleUp);
 export default {
   name: "OperationInfo",
   data: () => ({
-    baseAppURL: "https://better-call.dev/",
+    baseAppURL: "https://baking-bad.github.io/better-call-dev/",
     Errors
   }),
   components: {

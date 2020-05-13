@@ -6,7 +6,7 @@
 
 Yet another Tezos explorer created specifically for smart contract developers
 
-[![Better Call Dev](https://miro.medium.com/max/1632/1*shi7Y-RVeMCbozwk2rzbsQ.png)](https://better-call.dev)
+[![Better Call Dev](https://miro.medium.com/max/1632/1*shi7Y-RVeMCbozwk2rzbsQ.png)](https://baking-bad.github.io/better-call-dev)
 
 ## See it in action
 [https://baking-bad.github.io/better-call-dev](https://baking-bad.github.io/better-call-dev)

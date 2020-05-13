@@ -117,7 +117,7 @@
       variant="warning"
       dismissible
     >
-      Try new version&nbsp;<a href="https://you.better-call.dev">you.better-call.dev</a>
+      Try new version&nbsp;<a href="https://better-call.dev">better-call.dev</a>
     </b-alert>
   </b-col>
 </template>
