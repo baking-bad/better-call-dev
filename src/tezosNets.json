@@ -19,6 +19,7 @@
     "text": "Babylon",
     "blockUrl": "https://rpc.tzkt.io/babylonnet/chains/main/blocks",
     "tzStatsUrl": "https://api.babylonnet.tzstats.com",
+    "tzktUrl": "https://api.babylon.tzkt.io",
     "conseil": {
       "server": {
         "apiKey": "galleon",
@@ -33,6 +34,7 @@
     "text": "Carthage",
     "blockUrl": "https://rpc.tzkt.io/carthagenet/chains/main/blocks",
     "tzStatsUrl": "https://api.carthagenet.tzstats.com",
+    "tzktUrl": "https://api.carthage.tzkt.io",
     "conseil": {
       "server": {
         "apiKey": "galleon",

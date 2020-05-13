@@ -9,7 +9,7 @@ Yet another Tezos explorer created specifically for smart contract developers
 [![Better Call Dev](https://miro.medium.com/max/1632/1*shi7Y-RVeMCbozwk2rzbsQ.png)](https://better-call.dev)
 
 ## See it in action
-[https://old.better-call.dev/](https://old.better-call.dev/)
+[https://baking-bad.github.io/better-call-dev](https://baking-bad.github.io/better-call-dev)
 
 ## Read the paper
 [Michelson rocks but you better call dev](https://medium.com/coinmonks/michelson-rocks-but-you-better-call-dev-e23cd32a299a)
@@ -37,7 +37,7 @@ Add `?blockUrl=` query parameter containing an urlencoded URI:
 `{scheme}://{host}:{port}/{path}/chains/{chain}/blocks`  
 
 Example:  
-[http://better-call.dev/babylon/KT1M3gUfMDWrW9BxHzn6iwwuQ6V9HQe5rk6a/operations?blockUrl=https%3A%2F%2Ftezos-dev.cryptonomic-infra.tech%2Fchains%2Fmain%2Fblocks](http://better-call.dev/babylon/KT1M3gUfMDWrW9BxHzn6iwwuQ6V9HQe5rk6a/operations?blockUrl=https%3A%2F%2Ftezos-dev.cryptonomic-infra.tech%2Fchains%2Fmain%2Fblocks)
+[https://baking-bad.github.io/better-call-dev/babylon/KT1M3gUfMDWrW9BxHzn6iwwuQ6V9HQe5rk6a/operations?blockUrl=https%3A%2F%2Ftezos-dev.cryptonomic-infra.tech%2Fchains%2Fmain%2Fblocks](https://baking-bad.github.io/better-call-dev/babylon/KT1M3gUfMDWrW9BxHzn6iwwuQ6V9HQe5rk6a/operations?blockUrl=https%3A%2F%2Ftezos-dev.cryptonomic-infra.tech%2Fchains%2Fmain%2Fblocks)
 
 ## Sponsored by
 [Tezos Foundation](https://tezos.foundation/)
