@@ -335,15 +335,15 @@ export default {
       let tezaurus = {};
       let data = {};
 
-      if (this.implementsTzStats()) {
-        data = await this.getTzStatsTransactionData();
-        data.forEach(tx => {
-          tezaurus[tx[0]] = tx[1]
-        });
-      } else if (this.implementsTzKT()) {
+      if (this.implementsTzKT()) {
         data = await this.getTzktTransactionData();
         data.forEach(tx => {
           tezaurus[tx.level] =new Date(tx.timestamp).getTime();
+        });
+      } else if (this.implementsTzStats()) {
+        data = await this.getTzStatsTransactionData();
+        data.forEach(tx => {
+          tezaurus[tx[0]] = tx[1]
         });
       } else if (this.implementsConseil()) {
         data = await this.getConseilTransactionData();
@@ -981,7 +981,7 @@ export default {
       }
 
       const levels = res.map(x => x["level"]);
-      let data = res.filter((item, index) => levels.indexOf(item["level"]) === index && item["type"] !== "system");
+      let data = res.filter((item, index) => levels.indexOf(item["level"]) === index && (item["type"] === "transaction" || item["type"] === "origination"));
       return data;
     },
     async getTzStatsTransactionData() {
