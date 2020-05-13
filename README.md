@@ -9,7 +9,7 @@ Yet another Tezos explorer created specifically for smart contract developers
 [![Better Call Dev](https://miro.medium.com/max/1632/1*shi7Y-RVeMCbozwk2rzbsQ.png)](https://better-call.dev)
 
 ## See it in action
-[https://better-call.dev/](https://better-call.dev/)
+[https://old.better-call.dev/](https://old.better-call.dev/)
 
 ## Read the paper
 [Michelson rocks but you better call dev](https://medium.com/coinmonks/michelson-rocks-but-you-better-call-dev-e23cd32a299a)
