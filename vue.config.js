@@ -1,3 +1,11 @@
 module.exports = {
-  runtimeCompiler: true
+  runtimeCompiler: true,
+  baseUrl: './',
+  css: {
+    loaderOptions: {
+      css: {
+        url: false,
+      }
+    }
+  }
 }
