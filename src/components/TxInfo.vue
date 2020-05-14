@@ -168,7 +168,7 @@ export default {
     storageLimit: Number
   },
   data: () => ({
-    baseAppURL: "https://baking-bad.github.io/better-call-dev/",
+    baseAppURL: "https://old.better-call.dev/",
     Errors
   }),
   methods: {
