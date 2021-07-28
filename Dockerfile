@@ -1,10 +1,11 @@
-FROM node:10 AS base
+FROM node:latest AS build
 WORKDIR /better-call-dev
-RUN apt update && apt install -y libusb-1.0-0
-ADD . .
-RUN npm i
-RUN npm run build
+COPY . .
+RUN rm -rf node_modules package-lock.json
+RUN npm i && npm run build
 
 
 FROM nginx:latest AS release
-COPY --from=base /better-call-dev/dist /usr/share/nginx/html/
+COPY default.conf /etc/nginx/conf.d/default.conf
+WORKDIR /usr/share/nginx/html/
+COPY --from=build /better-call-dev/dist ./
